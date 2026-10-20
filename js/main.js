@@ -6,6 +6,7 @@ import { loadFrames } from './frames.js';
 import { createPixelField } from './pixel-field.js';
 import { createCameraSequence } from './camera-seq.js';
 import { initScrollCamera } from './scroll-camera.js';
+import { initHeroMain } from './hero-main.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -50,13 +51,13 @@ const field = createPixelField(document.getElementById('prehero-bg'), {
   ...(mobile && { cellSize: 3, gap: 1.5 }),
 });
 const camera = createCameraSequence(prehero, frames, config.sequence);
-let scroll = null;
+let pin = null;
 let oddFrame = false;
 loop.add(() => {
-  // con el scroll en marcha los píxeles ya se están yendo (fundido + blur): a 30 fps no se nota
+  // con el scroll en marcha los píxeles ya se están yendo (fundido + escala): a 30 fps no se nota
   // y deja GPU libre para la secuencia (medido: ~45 → ~55 fps en retina)
   oddFrame = !oddFrame;
-  if (oddFrame || !(scroll?.scrollTrigger?.progress > 0)) field.draw();
+  if (oddFrame || !(pin?.progress > 0)) field.draw();
   camera.draw();
 });
 
@@ -69,8 +70,9 @@ runLoader({ gsap, lenis, reduced, frames }).then(() => {
     // movimiento reducido: un único dibujado quieto y se para
     if (reduced.matches) requestAnimationFrame(() => field.setRunning(false));
     // el scroll se monta ya con la página visible (los valores iniciales de HUD/CTA son los reales)
-    scroll = initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, frames, hud, fps: config.sequence.fps });
-    window.disco.scroll = scroll;
+    pin = initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, frames, hud, fps: config.sequence.fps });
+    initHeroMain({ gsap, ScrollTrigger, reduced, pin });
+    window.disco.pin = pin;
   });
 });
 

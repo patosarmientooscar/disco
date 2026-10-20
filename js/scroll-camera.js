@@ -1,6 +1,7 @@
 // Scroll por la cámara: #prehero se fija ~500vh y el scroll recorre el vídeo frame a frame.
 // Primer 10%: se van HUD y CTA. Primer 40%: el fondo de píxeles se aleja (scale + opacity,
 // sin blur: costaba ~5 fps en retina). Hacia atrás, al revés.
+// Devuelve el ScrollTrigger del pin (con scrub o, con movimiento reducido, el pin simple).
 const PIN = '+=500%';
 const PIN_REDUCED = '+=150%';
 const UI_OUT = 0.1;
@@ -27,12 +28,12 @@ export function initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, 
     });
     fade(ui, UI_OUT);
     fade(field.element, FIELD_OUT);
-    return null;
+    return pin;
   }
 
   const state = { frame: 0 };
   let fieldOn = true;
-  return gsap.timeline({
+  const tl = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: {
       trigger: prehero,
@@ -52,4 +53,5 @@ export function initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, 
       { scale: 1, opacity: 1 },
       { scale: 0.7, opacity: 0, duration: FIELD_OUT }, 0)
     .fromTo(ui, { autoAlpha: 1 }, { autoAlpha: 0, duration: UI_OUT }, 0);
+  return tl.scrollTrigger;
 }
