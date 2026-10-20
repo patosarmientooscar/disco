@@ -7,67 +7,111 @@
   pointer-events: none;
 }
 
-/* ---------- hero principal (provisional) ----------
+/* ---------- hero principal ----------
    Se solapa con la última pantalla del pin (margen negativo = alto del pre-hero):
-   cuando el pin termina, ocupa exactamente la pantalla y se abre desde el centro. */
+   cuando el pin termina, ocupa exactamente la pantalla y se abre desde el centro.
+   Alto fijo: tilted-grid.js usa container-type:size (unidades cqh/cqw). */
 .hero-main {
   position: relative;
   z-index: 2;
   margin-top: -100vh;
   margin-top: -100svh;
-  min-height: 100vh;
-  min-height: 100svh;
-  background: var(--blanco-flash);
-  color: var(--negro-sensor);
-  clip-path: circle(0% at 50% 50%);
-}
-
-/* todo el hero cabe en una pantalla: título arriba, fila de fotos abajo con alto fijo */
-.hero-main__inner {
-  min-height: inherit;
+  height: 100vh;
+  height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: clamp(32px, 5vw, 72px);
-  padding: clamp(72px, 12vh, 140px) clamp(16px, 4vw, 56px) clamp(16px, 4vw, 56px);
+  padding: clamp(64px, 11vh, 120px) clamp(16px, 4vw, 56px) clamp(20px, 4vh, 40px);
+  background: var(--blanco-flash);
+  color: var(--negro-sensor);
+  text-align: center;
+  clip-path: circle(0% at 50% 50%);
 }
+/* el texto va por encima de la fila de fotos */
+.hero-main__top,
+.hero-main__bottom { position: relative; z-index: 1; }
 
 .hero-main__title {
+  margin: 0 auto;
+  max-width: 18ch;
+  font: 600 clamp(34px, 5vw, 76px) / 1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+/* máscara por palabra para la entrada */
+.hero-main__title .w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding: 0.06em 0.02em 0.12em;
+  margin: -0.06em -0.02em -0.12em;
+}
+.hero-main__title .w__in { display: inline-block; }
+
+.hero-main__sub {
+  margin: clamp(10px, 1.4vw, 18px) 0 0;
+  font: 500 clamp(16px, 1.6vw, 22px) / 1.3 var(--font-display);
+  color: #3A3A40;
+}
+
+.hero-main__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 2vh, 20px);
+}
+.hero-main__tagline {
   margin: 0;
-  max-width: 14ch;
-  font: 600 clamp(2.5rem, 1rem + 6.4vw, 7.5rem) / 0.95 var(--font-display);
-  letter-spacing: -0.035em;
+  max-width: 62ch;
+  font: 400 var(--hud-size) / 1.5 var(--font-mono);
+  letter-spacing: 0.02em;
+  color: rgb(7 7 10 / 0.62);
   text-wrap: balance;
 }
 
-/* huecos para las fotos del cliente (nada de stock) */
-.hero-main__photos {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); /* minmax(0, …): las columnas pueden encoger */
-  height: clamp(180px, 42svh, 460px);
-  gap: clamp(8px, 1.4vw, 20px);
-  margin: 0; padding: 0;
-  list-style: none;
+/* ---------- botón REC (sobre fondo claro) ---------- */
+.btn-rec {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 16px 24px;
+  background: var(--negro-sensor);
+  color: var(--blanco-flash);
+  font: 600 1rem / 1 var(--font-display);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border-radius: 999px;
 }
-.photo-slot {
-  position: relative;
-  background: #E6E3DB;
-  outline: 1px dashed rgb(7 7 10 / 0.25);
-  outline-offset: -1px;
+.btn-rec__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--rojo-rec);
+  animation: blink var(--beat) steps(1, end) infinite;
 }
-.photo-slot__name {
-  position: absolute; left: 10px; bottom: 10px; right: 10px;
-  font: 400 var(--hud-size) / 1.2 var(--font-mono);
-  letter-spacing: 0.02em;
-  color: rgb(7 7 10 / 0.6);
-  overflow-wrap: anywhere;
+/* al pasar el ratón el punto deja de parpadear y se queda fijo */
+.btn-rec:hover .btn-rec__dot,
+.btn-rec:focus-visible .btn-rec__dot { animation: none; opacity: 1; }
+
+.btn-rec--fixed {
+  position: fixed;
+  z-index: var(--z-cta);
+  right: calc(var(--hud-inset) + var(--hud-pad));
+  bottom: calc(var(--hud-inset) + var(--hud-pad));
+  visibility: hidden;
+  opacity: 0;
 }
 
 @media (max-width: 768px) {
-  .photo-slot__name { left: 6px; bottom: 6px; right: 6px; font-size: 10px; }
+  .hero-main { padding-top: clamp(56px, 10svh, 96px); }
+  .hero-main__bottom .btn-rec { width: 100%; justify-content: center; padding: 18px 22px; }
+  .hero-main__tagline { font-size: 11px; }
+  .btn-rec--fixed {
+    left: 12px; right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    justify-content: center;
+    padding: 18px 22px;
+  }
 }
 
-/* movimiento reducido: fundido en lugar del círculo */
+/* movimiento reducido: fundido en lugar del círculo; el punto no parpadea */
 @media (prefers-reduced-motion: reduce) {
   .hero-main { clip-path: none; opacity: 0; }
+  .btn-rec__dot { animation: none; }
 }

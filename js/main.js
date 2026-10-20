@@ -7,6 +7,8 @@ import { createPixelField } from './pixel-field.js';
 import { createCameraSequence } from './camera-seq.js';
 import { initScrollCamera } from './scroll-camera.js';
 import { initHeroMain } from './hero-main.js';
+import { initHeroContent } from './hero-content.js';
+import { heroPhotos } from './photos.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -33,9 +35,8 @@ gsap.ticker.add((time) => {
   tasks.forEach((fn) => fn(time, ratio));
 });
 
-// CTA
-const cta = document.querySelector('[data-cta]');
-cta.href = whatsappUrl();
+// CTAs de WhatsApp (pre-hero, hero principal y el fijo)
+document.querySelectorAll('[data-cta]').forEach((a) => { a.href = whatsappUrl(); });
 
 // Módulos (la precarga de frames arranca ya, en paralelo al loading)
 const frames = loadFrames();
@@ -61,6 +62,9 @@ loop.add(() => {
   camera.draw();
 });
 
+// Hero principal: fila curvada (parada hasta que se abra el círculo) y titular listo para entrar
+const heroContent = initHeroContent({ gsap, ScrollTrigger, reduced, photos: heroPhotos });
+
 // Loading → flash de transición → pre-hero
 runLoader({ gsap, lenis, reduced, frames }).then(() => {
   flash.transition(() => {
@@ -71,7 +75,8 @@ runLoader({ gsap, lenis, reduced, frames }).then(() => {
     if (reduced.matches) requestAnimationFrame(() => field.setRunning(false));
     // el scroll se monta ya con la página visible (los valores iniciales de HUD/CTA son los reales)
     pin = initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, frames, hud, fps: config.sequence.fps });
-    initHeroMain({ gsap, ScrollTrigger, reduced, pin });
+    initHeroMain({ gsap, ScrollTrigger, reduced, pin, onOpen: heroContent.show, onClose: heroContent.hide });
+    heroContent.watchCta();
     window.disco.pin = pin;
   });
 });

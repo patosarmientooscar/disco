@@ -53,15 +53,18 @@
       <div class="prehero__white" data-whiteout aria-hidden="true"></div>
     </section>
 
-    <!-- Hero principal (provisional): se abre desde el centro al llegar al último frame -->
+    <!-- Hero principal: se abre desde el centro al llegar al último frame.
+         tilted-grid.js inserta detrás la fila curvada de fotos. -->
     <section class="hero-main" id="hero-main" aria-labelledby="hero-main-title">
-      <div class="hero-main__inner">
-        <h1 class="hero-main__title" id="hero-main-title">Le ponemos ritmo a tu negocio</h1>
-        <ul class="hero-main__photos">
-          <li class="photo-slot"><span class="photo-slot__name">foto-local-01.jpg</span></li>
-          <li class="photo-slot"><span class="photo-slot__name">foto-local-02.jpg</span></li>
-          <li class="photo-slot"><span class="photo-slot__name">foto-local-03.jpg</span></li>
-        </ul>
+      <div class="hero-main__top">
+        <h1 class="hero-main__title" id="hero-main-title" data-split>La energía, el ambiente, las historias.</h1>
+        <p class="hero-main__sub" data-hero-sub>Eso es lo que se queda.</p>
+      </div>
+      <div class="hero-main__bottom">
+        <a class="btn-rec" data-cta data-hero-cta href="#" target="_blank" rel="noopener">
+          <i class="btn-rec__dot" aria-hidden="true"></i>Pide tu presupuesto
+        </a>
+        <p class="hero-main__tagline">Productora de foto, vídeo y edición en Madrid · Restaurantes · Discotecas · Eventos · Locales</p>
       </div>
     </section>
   </main>
@@ -76,8 +79,14 @@
     </div>
   </div>
 
+  <!-- CTA del pre-hero (claro); se va al empezar el scroll por la cámara -->
   <a class="cta" data-cta href="#" target="_blank" rel="noopener">
     <i class="cta__dot" aria-hidden="true"></i>Pide tu presupuesto
+  </a>
+
+  <!-- CTA fijo (oscuro) del resto de la página: aparece cuando el del hero principal sale de pantalla -->
+  <a class="btn-rec btn-rec--fixed" data-cta data-cta-fixed href="#" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+    <i class="btn-rec__dot" aria-hidden="true"></i>Pide tu presupuesto
   </a>
 
   <div class="flash" data-flash aria-hidden="true"></div>

@@ -3,7 +3,7 @@
 const CLOSED = 'circle(0% at 50% 50%)';
 const OPEN = 'circle(150% at 50% 50%)';
 
-export function initHeroMain({ gsap, ScrollTrigger, reduced, pin }) {
+export function initHeroMain({ gsap, ScrollTrigger, reduced, pin, onOpen, onClose }) {
   const hero = document.getElementById('hero-main');
   const white = document.querySelector('[data-whiteout]');
   let tl = null;
@@ -13,6 +13,7 @@ export function initHeroMain({ gsap, ScrollTrigger, reduced, pin }) {
     tl = gsap.timeline().to(white, { opacity: 1, duration: 0.15, ease: 'power1.out' }, 0);
     if (reduced.matches) tl.to(hero, { opacity: 1, duration: 0.6, ease: 'power1.inOut' }, 0.1);
     else tl.to(hero, { clipPath: OPEN, duration: 0.9, ease: 'expo.out' }, 0.1);
+    onOpen?.();
   };
 
   const close = () => {
@@ -20,7 +21,8 @@ export function initHeroMain({ gsap, ScrollTrigger, reduced, pin }) {
     tl = gsap.timeline();
     if (reduced.matches) tl.to(hero, { opacity: 0, duration: 0.4, ease: 'power1.inOut' }, 0);
     else tl.to(hero, { clipPath: CLOSED, duration: 0.6, ease: 'expo.inOut' }, 0);
-    tl.to(white, { opacity: 0, duration: 0.3, ease: 'power1.in' }, '>-0.15');
+    tl.to(white, { opacity: 0, duration: 0.3, ease: 'power1.in' }, '>-0.15')
+      .add(() => onClose?.());
   };
 
   // justo al final del pin de la cámara
