@@ -18,11 +18,6 @@ export const config = {
     mobile: { dir: 'assets/seq/mobile', count: 97, step: 2 },
     frame: (dir, i) => `${dir}/${String(i + 1).padStart(4, '0')}.webp`,
   },
-
-  sound: {
-    // Ruta a un mp3 de obturador. Con null se sintetiza el clic con Web Audio.
-    shutterSrc: null, // 'assets/sound/shutter.mp3'
-  },
 };
 
 export const whatsappUrl = () =>

@@ -14,7 +14,6 @@
   /* layout */
   --hud-inset: clamp(14px, 2.2vw, 32px);
   --hud-pad: clamp(12px, 1.4vw, 20px);
-  --bracket: clamp(18px, 2.4vw, 34px);
 
   /* rhythm: 118 BPM */
   --beat: calc(60s / 118);

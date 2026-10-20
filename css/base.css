@@ -35,15 +35,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .js body :is(.hud, .cta) { transition: opacity 0.6s ease; }
 }
 
-/* ---------- pre-hero (se construye en la fase 3) ---------- */
-.prehero {
-  position: relative;
-  height: 100vh;
-  height: 100svh;
-  background: var(--negro-sensor);
-  overflow: hidden;
-}
-
 /* ---------- CTA ---------- */
 .cta {
   position: fixed;

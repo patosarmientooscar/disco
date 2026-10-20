@@ -1,0 +1,24 @@
+/* ---------- pre-hero ---------- */
+.prehero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  background: var(--negro-sensor);
+  overflow: hidden;
+  isolation: isolate; /* el screen de la cámara mezcla solo con los píxeles */
+}
+
+/* oculto bajo el loading; aparece de golpe en el pico del flash */
+.js body.is-loading .prehero > * { opacity: 0; }
+
+/* la cámara: el negro del vídeo se vuelve transparente; bordes con máscara radial suave */
+.prehero__camera {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  display: block;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 78% 82% at 50% 46%, #000 58%, transparent 100%);
+          mask-image: radial-gradient(ellipse 78% 82% at 50% 46%, #000 58%, transparent 100%);
+}

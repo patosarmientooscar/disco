@@ -1,8 +1,10 @@
-import { whatsappUrl } from './config.js';
-import { initFlash, createShutter } from './flash.js';
+import { config, whatsappUrl } from './config.js';
+import { initFlash } from './flash.js';
 import { initHud } from './hud.js';
 import { runLoader } from './loader.js';
 import { loadFrames } from './frames.js';
+import { createPixelField } from './pixel-field.js';
+import { createCameraSequence } from './camera-seq.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -35,17 +37,28 @@ cta.href = whatsappUrl();
 
 // Módulos (la precarga de frames arranca ya, en paralelo al loading)
 const frames = loadFrames();
-const sound = createShutter();
-const flash = initFlash({ gsap, reduced, sound });
-const hud = initHud({ loop, sound });
+const flash = initFlash({ gsap, reduced });
+const hud = initHud({ loop });
+
+// Pre-hero: píxeles "disco.es" detrás, cámara del vídeo delante
+const prehero = document.getElementById('prehero');
+const field = createPixelField(prehero, { text: 'disco.es' });
+const camera = createCameraSequence(prehero, frames, { mobileQuery: config.sequence.mobileQuery });
+loop.add(() => {
+  field.draw();
+  camera.draw();
+});
 
 // Loading → flash de transición → pre-hero
 runLoader({ gsap, lenis, reduced, frames }).then(() => {
   flash.transition(() => {
     document.body.classList.remove('is-loading');
     hud.start();
+    field.setRunning(true);
+    // movimiento reducido: un único dibujado quieto y se para
+    if (reduced.matches) requestAnimationFrame(() => field.setRunning(false));
   });
 });
 
 // Para las fases siguientes
-window.disco = { gsap, lenis, loop, hud, flash, frames };
+window.disco = { gsap, lenis, loop, hud, flash, frames, field, camera };

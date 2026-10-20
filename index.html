@@ -11,12 +11,13 @@
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&display=swap">
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/hud.css">
+  <link rel="stylesheet" href="css/prehero.css">
   <link rel="stylesheet" href="css/loader.css">
 
   <script>
@@ -43,40 +44,20 @@
   <a class="skip" href="#contenido">Saltar al contenido</a>
 
   <main id="contenido">
-    <!-- Pre-hero: píxeles "disco.es" + cámara del vídeo (fases 3–4) -->
+    <!-- Pre-hero: píxeles "disco.es" (pixel-field.js) + cámara del vídeo (camera-seq.js); ambos crean su canvas -->
     <section class="prehero" id="prehero" aria-labelledby="prehero-title">
       <h1 class="sr-only" id="prehero-title">Le ponemos ritmo a tu negocio</h1>
     </section>
   </main>
 
-  <!-- HUD de visor -->
-  <div class="hud" data-hud>
-    <div class="hud__frame" aria-hidden="true">
-      <i class="hud__corner hud__corner--tl"></i><i class="hud__corner hud__corner--tr"></i>
-      <i class="hud__corner hud__corner--bl"></i><i class="hud__corner hud__corner--br"></i>
-    </div>
-
+  <!-- HUD mínimo: REC + timecode -->
+  <div class="hud" data-hud aria-hidden="true">
     <div class="hud__slot hud__slot--tl">
-      <span class="hud__rec" aria-hidden="true"><i class="hud__rec-dot"></i>REC</span>
-      <button class="hud__sound" type="button" data-sound-toggle aria-pressed="false">
-        <span class="hud__sound-label">Sonido</span> <span data-sound-state>OFF</span>
-      </button>
+      <span class="hud__rec"><i class="hud__rec-dot"></i>REC</span>
     </div>
-
-    <div class="hud__slot hud__slot--tr hud__desktop" aria-hidden="true">
-      <span>4K 25p</span>
-      <span class="hud__battery"><i></i><i></i><i></i></span>
-    </div>
-
-    <div class="hud__slot hud__slot--bl hud__desktop" aria-hidden="true">
-      <span>ISO 800</span><span>f/1.8</span><span>1/250</span>
-    </div>
-
-    <div class="hud__slot hud__slot--br" aria-hidden="true">
+    <div class="hud__slot hud__slot--br">
       <span class="hud__tc" data-timecode>00:00:00:00</span>
     </div>
-
-    <p class="hud__scroll" aria-hidden="true">Scroll para entrar</p>
   </div>
 
   <a class="cta" data-cta href="#" target="_blank" rel="noopener">
