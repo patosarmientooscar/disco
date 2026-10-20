@@ -24,6 +24,11 @@
 const SLICES = 16;
 const CAMERA = 1.6;
 const MAX_WIDTH = 55;
+// Solape entre tiras (px). El original usaba 1px y en GPUs reales deja
+// líneas verticales finas entre tiras. Cada tira se extiende OVERLAP px a
+// cada lado: en un cilindro visto por dentro esa extensión queda detrás de
+// la tira vecina, así que tapa la rendija sin verse.
+const OVERLAP = 2;
 
 const DEFAULTS = {
   images: [],
@@ -98,18 +103,18 @@ export function createTiltedGrid(host, userOptions = {}) {
   band.style.webkitMaskImage = mask;
 
   let layout = null;
-  let tiles = []; // [{ el, imgs: HTMLImageElement[], index }]
+  let tiles = []; // [{ el, strips: HTMLElement[], index }]
 
   const imageFor = (n) => images[((n % images.length) + images.length) % images.length];
 
+  // Cada tira pinta su trozo de foto como background-image (sin <img> ni
+  // overflow:hidden): una sola capa por tira, sin bordes recortados que el
+  // navegador tenga que suavizar.
   const setTileImage = (tile, n) => {
     if (!images.length || tile.index === n) return;
     tile.index = n;
-    const img = imageFor(n);
-    tile.imgs.forEach((el, k) => {
-      el.src = img.src;
-      el.alt = k === 0 ? img.alt ?? '' : '';
-    });
+    const url = `url("${imageFor(n).src.replace(/"/g, '\\"')}")`;
+    tile.strips.forEach((el) => (el.style.backgroundImage = url));
   };
 
   const build = () => {
@@ -136,29 +141,32 @@ export function createTiltedGrid(host, userOptions = {}) {
         `top:calc(${o.axis}% - ${u(0.5)});width:${u(o.aspectRatio)};height:${u(1)};` +
         `transform-style:preserve-3d;animation:${orbit} ${duration}s linear ${-t * o.speed}s infinite;`;
 
-      const tile = { el, imgs: [], index: -1 };
+      const tile = { el, strips: [], index: -1 };
       for (let k = 0; k < SLICES; k++) {
         const strip = document.createElement('div');
-        const radiusCss =
-          k === 0
-            ? `border-radius:${o.radius}px 0 0 ${o.radius}px;`
-            : k === SLICES - 1
-              ? `border-radius:0 ${o.radius}px ${o.radius}px 0;`
-              : '';
+        const first = k === 0;
+        const last = k === SLICES - 1;
+        // La primera tira no se extiende a la izquierda ni la última a la
+        // derecha (son el borde real de la foto).
+        const padL = first ? 0 : OVERLAP;
+        const padR = last ? 0 : OVERLAP;
+        const radiusCss = first
+          ? `border-radius:${o.radius}px 0 0 ${o.radius}px;`
+          : last
+            ? `border-radius:0 ${o.radius}px ${o.radius}px 0;`
+            : '';
         strip.style.cssText =
-          `position:absolute;top:0;overflow:hidden;background:${o.tileBackground};${radiusCss}` +
-          `left:${u((o.aspectRatio - share) / 2)};` +
-          `width:${k === SLICES - 1 ? u(share) : `calc(${u(share)} + 1px)`};height:${u(1)};` +
+          `position:absolute;top:0;${radiusCss}` +
+          `background-color:${o.tileBackground};background-repeat:no-repeat;` +
+          `background-size:${u(o.aspectRatio)} ${u(1)};` +
+          `background-position:calc(${u(-k * share)} + ${padL}px) 0;` +
+          `left:calc(${u((o.aspectRatio - share) / 2)} - ${padL}px);` +
+          `width:calc(${u(share)} + ${padL + padR}px);height:${u(1)};` +
+          `backface-visibility:hidden;-webkit-backface-visibility:hidden;` +
+          `transform-origin:calc(50% + ${(padL - padR) / 2}px) 50%;` +
           `transform:${turn((o.aspectRatio / 2 - (k + 0.5) * share) * unit)};`;
-        const img = document.createElement('img');
-        img.draggable = false;
-        img.decoding = 'async';
-        img.style.cssText =
-          `position:absolute;top:0;max-width:none;object-fit:cover;` +
-          `left:${u(-k * share)};width:${u(o.aspectRatio)};height:${u(1)};`;
-        strip.append(img);
         el.append(strip);
-        tile.imgs.push(img);
+        tile.strips.push(strip);
       }
 
       // Cuando el tile da la vuelta (fuera de vista) recibe su siguiente imagen.

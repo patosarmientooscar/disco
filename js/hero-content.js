@@ -9,9 +9,11 @@ export function initHeroContent({ gsap, ScrollTrigger, reduced, photos }) {
   const fixedCta = document.querySelector('[data-cta-fixed]');
 
   // --- fila curvada: solo se mueve con el círculo abierto y el hero en pantalla ---
+  // móvil: la fila más arriba (axis 55) para no dejar un hueco vacío bajo el titular
+  const mobile = matchMedia('(max-width: 768px)').matches;
   const grid = createTiltedGrid(hero, {
     images: photos.map(({ src, alt }) => ({ src, alt })),
-    axis: 62, tileHeight: 30, speed: 4,
+    axis: mobile ? 55 : 62, tileHeight: 30, speed: 4,
   });
   let open = false;
   let onScreen = false;
