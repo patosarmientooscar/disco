@@ -10,6 +10,12 @@ export const config = {
   },
   email: 'hola@disco.es',
 
+  // Secuencia de frames de la cámara (fase 2). Con count 0 el loading precarga las capas del hero.
+  sequence: {
+    count: 0,
+    path: (i) => `assets/sequence/frame-${String(i + 1).padStart(3, '0')}.webp`,
+  },
+
   sound: {
     // Ruta a un mp3 de obturador. Con null se sintetiza el clic con Web Audio.
     shutterSrc: null, // 'assets/sound/shutter.mp3'

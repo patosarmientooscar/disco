@@ -20,6 +20,7 @@
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/hero.css">
+  <link rel="stylesheet" href="css/loader.css">
 
   <!-- Three.js: listo para el shader de refracción de la fase 2 -->
   <script type="importmap">
@@ -32,11 +33,27 @@
   </script>
   <script>
     document.documentElement.classList.add('js');
-    // Red de seguridad: si main.js no llega, el hero se muestra igualmente.
-    setTimeout(function () { document.body.classList.remove('is-loading'); }, 4000);
+    // Red de seguridad: si main.js no llega, el hero se muestra igualmente
+    // (loading máx. ~5.5s + intro del hero ~1.5s).
+    setTimeout(function () {
+      var loader = document.getElementById('loader');
+      if (loader) loader.remove();
+      document.documentElement.classList.remove('is-locked');
+      document.body.classList.remove('is-loading');
+    }, 10000);
   </script>
 </head>
 <body class="is-loading">
+  <!-- Acto 1: loading -->
+  <div class="loader" id="loader">
+    <p class="loader__logo" data-loader-logo aria-hidden="true">disco.es</p>
+    <p class="loader__phrase" data-loader-phrase>
+      <span class="sr-only">Le ponemos ritmo a tu negocio</span>
+      <span class="loader__words" data-loader-words aria-hidden="true"></span>
+    </p>
+    <div class="loader__flash" data-loader-flash aria-hidden="true"></div>
+  </div>
+
   <a class="skip" href="#dentro">Saltar al contenido</a>
 
   <main>

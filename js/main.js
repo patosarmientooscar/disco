@@ -2,6 +2,7 @@ import { whatsappUrl } from './config.js';
 import { initFlash, createShutter } from './flash.js';
 import { initHud } from './hud.js';
 import { initHero } from './hero.js';
+import { runLoader } from './loader.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -47,10 +48,12 @@ const flash = initFlash({ gsap, loop, reduced, sound });
 const hud = initHud({ loop, sound });
 initHero({ gsap, loop, reduced, flash });
 
-// Entrada: negro 0.6s → flash → aparece todo
-flash.intro(() => {
-  document.body.classList.remove('is-loading');
-  hud.start();
+// Acto 1 (loading) → acto 2: carga del flash → disparo → aparece todo
+runLoader({ gsap, lenis, reduced }).then(() => {
+  flash.intro(() => {
+    document.body.classList.remove('is-loading');
+    hud.start();
+  });
 });
 
 // Para las fases 2 y 3
