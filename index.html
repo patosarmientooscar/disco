@@ -14,9 +14,7 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-  <link rel="preload" href="assets/camera/body.svg" as="image">
-  <link rel="preload" href="assets/camera/lens.svg" as="image">
-  <link rel="preload" href="assets/camera/glass.svg" as="image">
+  <link rel="preload" href="assets/camera/body.webp" as="image" type="image/webp" fetchpriority="high">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/hero.css">
@@ -53,9 +51,10 @@
 
       <div class="camera" aria-hidden="true">
         <div class="camera__stage" data-camera-stage>
-          <img class="camera__layer camera__layer--body"  data-depth="0.25" src="assets/camera/body.svg"  alt="" width="800" height="560" decoding="async">
-          <img class="camera__layer camera__layer--lens"  data-depth="0.6"  src="assets/camera/lens.svg"  alt="" width="800" height="560" decoding="async">
-          <img class="camera__layer camera__layer--glass" data-depth="1"    src="assets/camera/glass.svg" alt="" width="800" height="560" decoding="async">
+          <img class="camera__layer camera__layer--body"  data-depth="0.25" src="assets/camera/body.webp"  alt="" width="500" height="500" decoding="async" fetchpriority="high">
+          <img class="camera__layer camera__layer--flash" data-depth="0.25" src="assets/camera/flash.webp" alt="" width="500" height="500" decoding="async">
+          <img class="camera__layer camera__layer--lens"  data-depth="0.6"  src="assets/camera/lens.webp"  alt="" width="500" height="500" decoding="async">
+          <img class="camera__layer camera__layer--glass" data-depth="1"    src="assets/camera/glass.webp" alt="" width="500" height="500" decoding="async">
         </div>
       </div>
 
