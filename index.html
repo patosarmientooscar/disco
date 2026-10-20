@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>disco.es — Productora de foto y vídeo para restaurantes, discotecas y eventos en Madrid</title>
+  <meta name="description" content="disco.es — Productora de foto y vídeo para restaurantes, discotecas y eventos en Madrid">
+  <meta name="theme-color" content="#07070A">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307070A'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FF2B2B'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+  <link rel="preload" href="assets/camera/body.svg" as="image">
+  <link rel="preload" href="assets/camera/lens.svg" as="image">
+  <link rel="preload" href="assets/camera/glass.svg" as="image">
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/hero.css">
+
+  <!-- Three.js: listo para el shader de refracción de la fase 2 -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script>
+    document.documentElement.classList.add('js');
+    // Red de seguridad: si main.js no llega, el hero se muestra igualmente.
+    setTimeout(function () { document.body.classList.remove('is-loading'); }, 4000);
+  </script>
+</head>
+<body class="is-loading">
+  <a class="skip" href="#dentro">Saltar al contenido</a>
+
+  <main>
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="hero__grain" aria-hidden="true"></div>
+
+      <h1 class="hero__title" id="hero-title">
+        <span class="hero__line hero__line--a">Le ponemos ritmo</span>
+        <span class="hero__line hero__line--b">a tu negocio</span>
+      </h1>
+
+      <!-- Fase 2: el shader pinta aquí la lente refractando el titular -->
+      <canvas class="hero__gl" id="lens-gl" aria-hidden="true"></canvas>
+
+      <div class="camera" aria-hidden="true">
+        <div class="camera__stage" data-camera-stage>
+          <img class="camera__layer camera__layer--body"  data-depth="0.25" src="assets/camera/body.svg"  alt="" width="800" height="560" decoding="async">
+          <img class="camera__layer camera__layer--lens"  data-depth="0.6"  src="assets/camera/lens.svg"  alt="" width="800" height="560" decoding="async">
+          <img class="camera__layer camera__layer--glass" data-depth="1"    src="assets/camera/glass.svg" alt="" width="800" height="560" decoding="async">
+        </div>
+      </div>
+
+      <p class="hero__sub">Productora en Madrid. Fotos, vídeos y contenido lleno de energía y precisión.</p>
+
+      <!-- HUD de visor -->
+      <div class="hud" data-hud>
+        <div class="hud__frame" aria-hidden="true">
+          <i class="hud__corner hud__corner--tl"></i><i class="hud__corner hud__corner--tr"></i>
+          <i class="hud__corner hud__corner--bl"></i><i class="hud__corner hud__corner--br"></i>
+        </div>
+
+        <div class="hud__slot hud__slot--tl">
+          <span class="hud__rec" aria-hidden="true"><i class="hud__rec-dot"></i>REC</span>
+          <button class="hud__sound" type="button" data-sound-toggle aria-pressed="false">
+            <span class="hud__sound-label">Sonido</span> <span data-sound-state>OFF</span>
+          </button>
+        </div>
+
+        <div class="hud__slot hud__slot--tr hud__desktop" aria-hidden="true">
+          <span>4K 25p</span>
+          <span class="hud__battery"><i></i><i></i><i></i></span>
+        </div>
+
+        <div class="hud__slot hud__slot--bl hud__desktop" aria-hidden="true">
+          <span>ISO 800</span><span>f/1.8</span><span>1/250</span>
+        </div>
+
+        <div class="hud__slot hud__slot--br" aria-hidden="true">
+          <span class="hud__tc" data-timecode>00:00:00:00</span>
+        </div>
+
+        <p class="hud__scroll" aria-hidden="true">Scroll para entrar</p>
+      </div>
+
+      <div class="reticle" data-reticle aria-hidden="true">
+        <div class="reticle__inner" data-reticle-inner>
+          <i class="reticle__c reticle__c--tl"></i><i class="reticle__c reticle__c--tr"></i>
+          <i class="reticle__c reticle__c--bl"></i><i class="reticle__c reticle__c--br"></i>
+          <i class="reticle__dot"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fase 2/3: interior del objetivo -->
+    <section class="inside" id="dentro" aria-label="Dentro del objetivo" tabindex="-1"></section>
+  </main>
+
+  <a class="cta" data-cta href="#" target="_blank" rel="noopener">
+    <i class="cta__dot" aria-hidden="true"></i>Pide tu presupuesto
+  </a>
+
+  <div class="flash" data-flash aria-hidden="true"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

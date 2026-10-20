@@ -1,0 +1,34 @@
+:root {
+  /* color */
+  --negro-sensor: #07070A;
+  --blanco-flash: #F4F2EC;
+  --rojo-rec: #FF2B2B;
+  --cristal: #9FB4C7;
+  --gris-visor: #3A3A40;
+  --hud-ink: rgb(244 242 236 / 0.7);
+  --hud-line: rgb(244 242 236 / 0.45);
+
+  /* type */
+  --font-display: 'Clash Display', 'Arial Narrow', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  --hud-size: 12px;
+  --title-size: clamp(3.25rem, 10.3vw, 12.5rem);
+  --sub-size: clamp(0.95rem, 0.6rem + 0.6vw, 1.15rem);
+
+  /* layout */
+  --hud-inset: clamp(14px, 2.2vw, 32px);
+  --hud-pad: clamp(12px, 1.4vw, 20px);
+  --bracket: clamp(18px, 2.4vw, 34px);
+
+  /* rhythm: 118 BPM */
+  --beat: calc(60s / 118);
+
+  /* depth */
+  --z-title: 1;
+  --z-gl: 2;
+  --z-camera: 3;
+  --z-hud: 4;
+  --z-reticle: 6;
+  --z-cta: 7;
+  --z-flash: 10;
+}
