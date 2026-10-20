@@ -1,14 +1,14 @@
 // Cámara del vídeo pintada frame a frame en un canvas a pantalla completa.
-// En CSS lleva mix-blend-mode: screen: el negro del vídeo desaparece y se ven los píxeles detrás.
+// Los frames llevan alpha (fondo quitado): la cámara tapa de verdad los píxeles de detrás.
 const MAX_DPR = 2;
 
-export function createCameraSequence(host, frames, { mobileQuery }) {
+export function createCameraSequence(host, frames, { mobileQuery, cameraBox, mobileFill }) {
   const canvas = document.createElement('canvas');
   canvas.className = 'prehero__camera';
   canvas.setAttribute('aria-hidden', 'true');
   host.append(canvas);
 
-  const ctx = canvas.getContext('2d', { alpha: false });
+  const ctx = canvas.getContext('2d');
   const mobile = matchMedia(mobileQuery);
   let width = 1, height = 1, dpr = 1;
   let wanted = 0;   // frame que pide el scroll
@@ -43,10 +43,10 @@ export function createCameraSequence(host, frames, { mobileQuery }) {
     const ih = img.naturalHeight;
     let s, x, y;
     if (mobile.matches) {
-      // contain, ajustado al ancho
-      s = width / iw;
-      x = 0;
-      y = (height - ih * s) / 2;
+      // la cámara (no el frame) ocupa ~85% del ancho y queda centrada; se recorta el negro de los lados
+      s = (width * mobileFill) / (iw * cameraBox.width);
+      x = width / 2 - iw * cameraBox.cx * s;
+      y = height / 2 - ih * cameraBox.cy * s;
     } else {
       // cover anclado arriba: el panel LED llega al borde superior hacia el segundo 1.5
       s = Math.max(width / iw, height / ih);
@@ -54,8 +54,7 @@ export function createCameraSequence(host, frames, { mobileQuery }) {
       y = 0;
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, x, y, iw * s, ih * s);
   };

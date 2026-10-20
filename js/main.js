@@ -43,7 +43,7 @@ const hud = initHud({ loop });
 // Pre-hero: píxeles "disco.es" detrás, cámara del vídeo delante
 const prehero = document.getElementById('prehero');
 const field = createPixelField(prehero, { text: 'disco.es' });
-const camera = createCameraSequence(prehero, frames, { mobileQuery: config.sequence.mobileQuery });
+const camera = createCameraSequence(prehero, frames, config.sequence);
 loop.add(() => {
   field.draw();
   camera.draw();

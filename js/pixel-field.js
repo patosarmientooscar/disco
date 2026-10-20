@@ -15,7 +15,7 @@
  *   // al aparecer tras el flash: field.setRunning(true);
  */
 
-const MAX_DPR = 2;
+const MAX_DPR = window.matchMedia('(max-width: 768px)').matches ? 2 : 1; // 1 en desktop (60 fps en retina), 2 en móvil
 const RGB_MAX = 255;
 const MS_PER_SECOND = 1000;
 const TAU = Math.PI * 2;

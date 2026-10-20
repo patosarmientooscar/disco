@@ -16,6 +16,10 @@ export const config = {
     mobileQuery: '(max-width: 767px)',
     desktop: { dir: 'assets/seq/desktop', count: 193, step: 1 },
     mobile: { dir: 'assets/seq/mobile', count: 97, step: 2 },
+    // Cámara en el frame 1 (fracción del frame): bbox x 345–890, y 43–683 de 1280×720.
+    // En móvil se escala para que ocupe ~85% del ancho, recortando solo el negro de los lados.
+    cameraBox: { width: 546 / 1280, cx: 617.5 / 1280, cy: 363 / 720 },
+    mobileFill: 0.85,
     frame: (dir, i) => `${dir}/${String(i + 1).padStart(4, '0')}.webp`,
   },
 };
