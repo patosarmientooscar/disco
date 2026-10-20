@@ -42,7 +42,12 @@ const hud = initHud({ loop });
 
 // Pre-hero: píxeles "disco.es" detrás, cámara del vídeo delante
 const prehero = document.getElementById('prehero');
-const field = createPixelField(prehero, { text: 'disco.es' });
+// En móvil la palabra vive en una franja baja: celdas más finas para que se lea entera.
+const mobile = matchMedia(config.sequence.mobileQuery).matches;
+const field = createPixelField(document.getElementById('prehero-bg'), {
+  text: 'disco.es',
+  ...(mobile && { cellSize: 3, gap: 1.5 }),
+});
 const camera = createCameraSequence(prehero, frames, config.sequence);
 loop.add(() => {
   field.draw();

@@ -13,12 +13,13 @@ export const config = {
   // Secuencia de frames de la cámara (vídeo a 24 fps). Móvil: 1 de cada 2 frames.
   sequence: {
     fps: 24,
-    mobileQuery: '(max-width: 767px)',
+    mobileQuery: '(max-width: 768px)', // mismo corte que pixel-field.js y #prehero-bg
     desktop: { dir: 'assets/seq/desktop', count: 193, step: 1 },
     mobile: { dir: 'assets/seq/mobile', count: 97, step: 2 },
-    // Cámara en el frame 1 (fracción del frame): bbox x 345–890, y 43–683 de 1280×720.
+    // Cámara en el frame 1 (fracción del frame): bbox x 345–890, y 43–657 de 1280×720.
     // En móvil se escala para que ocupe ~85% del ancho, recortando solo el negro de los lados.
-    cameraBox: { width: 546 / 1280, cx: 617.5 / 1280, cy: 363 / 720 },
+    // (Si cambia, revisar la altura de #prehero-bg en móvil en prehero.css.)
+    cameraBox: { width: 546 / 1280, cx: 617.5 / 1280, cy: 350 / 720 },
     mobileFill: 0.85,
     frame: (dir, i) => `${dir}/${String(i + 1).padStart(4, '0')}.webp`,
   },

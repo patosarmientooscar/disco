@@ -8,6 +8,17 @@
   isolation: isolate;
 }
 
+/* host del campo de píxeles (pixel-field.js crea su canvas dentro y escucha aquí el puntero) */
+.prehero__bg {
+  position: absolute;
+  inset: 0;
+}
+/* móvil: solo la franja de arriba, hasta justo encima del panel LED.
+   La cámara mide 85vw × 1.1245 de alto y está centrada: empieza en 50% − 47.8vw. */
+@media (max-width: 768px) {
+  .prehero__bg { bottom: auto; height: calc(50% - 47.8vw - 8px); }
+}
+
 /* oculto bajo el loading; aparece de golpe en el pico del flash */
 .js body.is-loading .prehero > * { opacity: 0; }
 
