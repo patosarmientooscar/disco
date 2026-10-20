@@ -10,10 +10,13 @@ export const config = {
   },
   email: 'hola@disco.es',
 
-  // Secuencia de frames de la cámara (se rellena en la fase 1). Con count 0 no hay nada que precargar.
+  // Secuencia de frames de la cámara (vídeo a 24 fps). Móvil: 1 de cada 2 frames.
   sequence: {
-    count: 0,
-    path: (i) => `assets/sequence/frame-${String(i + 1).padStart(3, '0')}.webp`,
+    fps: 24,
+    mobileQuery: '(max-width: 767px)',
+    desktop: { dir: 'assets/seq/desktop', count: 193, step: 1 },
+    mobile: { dir: 'assets/seq/mobile', count: 97, step: 2 },
+    frame: (dir, i) => `${dir}/${String(i + 1).padStart(4, '0')}.webp`,
   },
 
   sound: {

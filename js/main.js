@@ -2,6 +2,7 @@ import { whatsappUrl } from './config.js';
 import { initFlash, createShutter } from './flash.js';
 import { initHud } from './hud.js';
 import { runLoader } from './loader.js';
+import { loadFrames } from './frames.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -32,13 +33,14 @@ gsap.ticker.add((time) => {
 const cta = document.querySelector('[data-cta]');
 cta.href = whatsappUrl();
 
-// Módulos
+// Módulos (la precarga de frames arranca ya, en paralelo al loading)
+const frames = loadFrames();
 const sound = createShutter();
 const flash = initFlash({ gsap, reduced, sound });
 const hud = initHud({ loop, sound });
 
 // Loading → flash de transición → pre-hero
-runLoader({ gsap, lenis, reduced }).then(() => {
+runLoader({ gsap, lenis, reduced, frames }).then(() => {
   flash.transition(() => {
     document.body.classList.remove('is-loading');
     hud.start();
@@ -46,4 +48,4 @@ runLoader({ gsap, lenis, reduced }).then(() => {
 });
 
 // Para las fases siguientes
-window.disco = { gsap, lenis, loop, hud, flash };
+window.disco = { gsap, lenis, loop, hud, flash, frames };
