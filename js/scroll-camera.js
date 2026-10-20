@@ -1,5 +1,6 @@
 // Scroll por la cámara: #prehero se fija ~500vh y el scroll recorre el vídeo frame a frame.
-// Primer 10%: se van HUD y CTA. Primer 40%: el fondo de píxeles se aleja. Hacia atrás, al revés.
+// Primer 10%: se van HUD y CTA. Primer 40%: el fondo de píxeles se aleja (scale + opacity,
+// sin blur: costaba ~5 fps en retina). Hacia atrás, al revés.
 const PIN = '+=500%';
 const PIN_REDUCED = '+=150%';
 const UI_OUT = 0.1;
@@ -48,7 +49,7 @@ export function initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, 
   })
     .to(state, { frame: frames.count - 1, duration: 1, onUpdate: () => camera.setFrame(state.frame) }, 0)
     .fromTo(field.element,
-      { scale: 1, opacity: 1, filter: 'blur(0px)' },
-      { scale: 0.8, opacity: 0, filter: 'blur(6px)', duration: FIELD_OUT }, 0)
+      { scale: 1, opacity: 1 },
+      { scale: 0.7, opacity: 0, duration: FIELD_OUT }, 0)
     .fromTo(ui, { autoAlpha: 1 }, { autoAlpha: 0, duration: UI_OUT }, 0);
 }

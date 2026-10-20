@@ -3,6 +3,9 @@
 const MAX_DPR = 2;
 const MOBILE_COVER_FROM = 0.2; // móvil: tramo del vídeo en el que se pasa de "cámara al 85%"…
 const MOBILE_COVER_TO = 0.5;   // …a "frame cubriendo la pantalla" (antes de que el frame deje de tener fondo)
+const EDGE_FADE_FROM = 0.24;   // móvil: desde aquí el borde superior/inferior del frame (la cámara cortada)
+const EDGE_FADE_FULL = 0.3;    // entra en pantalla: degradado a negro, a tope desde aquí
+const EDGE_FADE_SIZE = 0.16;   // alto del degradado, fracción del alto del frame dibujado
 
 const smooth = (v, a, b) => {
   const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
@@ -72,6 +75,28 @@ export function createCameraSequence(host, frames, { mobileQuery, cameraBox, mob
     ctx.clearRect(0, 0, width, height);
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, x, y, iw * s, ih * s);
+
+    // móvil: mientras los bordes del frame están en pantalla con la cámara cortada, degradado a negro
+    if (mobile.matches) {
+      const k = smooth(index / (frames.count - 1), EDGE_FADE_FROM, EDGE_FADE_FULL);
+      const h = ih * s;
+      if (k > 0 && (y > 0 || y + h < height)) fadeEdges(x, y, iw * s, h, k);
+    }
+  };
+
+  const fadeEdges = (x, y, w, h, k) => {
+    const band = h * EDGE_FADE_SIZE;
+    const black = (a) => `rgba(7, 7, 10, ${a})`; // --negro-sensor
+    const top = ctx.createLinearGradient(0, y, 0, y + band);
+    top.addColorStop(0, black(k));
+    top.addColorStop(1, black(0));
+    ctx.fillStyle = top;
+    ctx.fillRect(x, y, w, band);
+    const bottom = ctx.createLinearGradient(0, y + h, 0, y + h - band);
+    bottom.addColorStop(0, black(k));
+    bottom.addColorStop(1, black(0));
+    ctx.fillStyle = bottom;
+    ctx.fillRect(x, y + h - band, w, band);
   };
 
   return {
