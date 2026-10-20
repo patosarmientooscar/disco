@@ -14,7 +14,9 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-  <link rel="preload" href="assets/camera/body.webp" as="image" type="image/webp" fetchpriority="high">
+  <link rel="preload" as="image" type="image/webp" fetchpriority="high"
+        imagesrcset="assets/camera/body-1076.webp 1076w, assets/camera/body.webp 2152w"
+        imagesizes="(max-width: 767px) 64vw, 403px">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/hero.css">
@@ -51,12 +53,30 @@
 
       <div class="camera" aria-hidden="true">
         <div class="camera__stage" data-camera-stage>
-          <img class="camera__layer camera__layer--body"  data-depth="0.25" src="assets/camera/body.webp"  alt="" width="500" height="500" decoding="async" fetchpriority="high">
-          <img class="camera__layer camera__layer--flash" data-depth="0.25" src="assets/camera/flash.webp" alt="" width="500" height="500" decoding="async">
-          <img class="camera__layer camera__layer--lens"  data-depth="0.6"  src="assets/camera/lens.webp"  alt="" width="500" height="500" decoding="async">
-          <img class="camera__layer camera__layer--glass" data-depth="1"    src="assets/camera/glass.webp" alt="" width="500" height="500" decoding="async">
+          <!-- capas 2152×2360, misma alineación; ½ resolución para pantallas que no la necesitan -->
+          <img class="camera__layer camera__layer--body" data-depth="0.25" data-full-width="2152"
+               src="assets/camera/body.webp" srcset="assets/camera/body-1076.webp 1076w, assets/camera/body.webp 2152w"
+               sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async" fetchpriority="high">
+          <div class="camera__layer camera__layer--flash" data-depth="0.25" data-flash-unit>
+            <img src="assets/camera/flash.webp" srcset="assets/camera/flash-1076.webp 1076w, assets/camera/flash.webp 2152w"
+                 sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async">
+            <i class="flash-unit__tint flash-unit__tint--red" data-tint-red></i>
+            <i class="flash-unit__tint flash-unit__tint--green" data-tint-green></i>
+            <i class="flash-unit__tint flash-unit__tint--white" data-tint-white></i>
+            <i class="flash-unit__glow flash-unit__glow--red" data-glow-red></i>
+            <i class="flash-unit__glow flash-unit__glow--green" data-glow-green></i>
+            <i class="flash-unit__glow flash-unit__glow--white" data-glow-white></i>
+          </div>
+          <img class="camera__layer camera__layer--lens" data-depth="0.6"
+               src="assets/camera/lens.webp" srcset="assets/camera/lens-1076.webp 1076w, assets/camera/lens.webp 2152w"
+               sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async">
+          <img class="camera__layer camera__layer--glass" data-depth="1"
+               src="assets/camera/glass.webp" srcset="assets/camera/glass-1076.webp 1076w, assets/camera/glass.webp 2152w"
+               sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async">
         </div>
       </div>
+
+      <div class="vignette" data-vignette aria-hidden="true"></div>
 
       <p class="hero__sub">Productora en Madrid. Fotos, vídeos y contenido lleno de energía y precisión.</p>
 
@@ -65,6 +85,12 @@
         <div class="hud__frame" aria-hidden="true">
           <i class="hud__corner hud__corner--tl"></i><i class="hud__corner hud__corner--tr"></i>
           <i class="hud__corner hud__corner--bl"></i><i class="hud__corner hud__corner--br"></i>
+        </div>
+
+        <div class="hud__flash" data-flash-meter aria-hidden="true">
+          <span>FLASH</span>
+          <span class="hud__cells"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="hud__pct" data-flash-pct>0%</span>
         </div>
 
         <div class="hud__slot hud__slot--tl">

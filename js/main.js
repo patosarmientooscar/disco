@@ -32,11 +32,20 @@ gsap.ticker.add((time) => {
 const cta = document.querySelector('[data-cta]');
 cta.href = whatsappUrl();
 
+// La cámara nunca se muestra por encima de su resolución real ÷ devicePixelRatio
+const camBody = document.querySelector('[data-full-width]');
+const capCamera = () => {
+  const max = Math.floor(Number(camBody.dataset.fullWidth) / (window.devicePixelRatio || 1));
+  document.documentElement.style.setProperty('--cam-max', `${max}px`);
+};
+capCamera();
+window.addEventListener('resize', capCamera); // el DPR cambia con el zoom del navegador
+
 // Módulos
 const sound = createShutter();
-const flash = initFlash({ gsap, reduced, el: document.querySelector('[data-flash]') });
+const flash = initFlash({ gsap, loop, reduced, sound });
 const hud = initHud({ loop, sound });
-initHero({ gsap, loop, reduced, flash, sound });
+initHero({ gsap, loop, reduced, flash });
 
 // Entrada: negro 0.6s → flash → aparece todo
 flash.intro(() => {

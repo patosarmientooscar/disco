@@ -2,7 +2,7 @@ const LERP = 0.08;     // parallax de la cámara
 const MAX_ROT = 8;     // grados
 const MAX_SHIFT = 18;  // px para la capa con depth 1
 
-export function initHero({ gsap, loop, reduced, flash, sound }) {
+export function initHero({ gsap, loop, reduced, flash }) {
   const hero = document.getElementById('hero');
   const stage = hero.querySelector('[data-camera-stage]');
   const layers = [...stage.querySelectorAll('[data-depth]')].map((el) => ({ el, depth: Number(el.dataset.depth) }));
@@ -49,11 +49,18 @@ export function initHero({ gsap, loop, reduced, flash, sound }) {
     reticle.classList.remove('is-visible');
   });
 
-  // Disparo: flash + obturador + enfoque de la retícula
-  hero.addEventListener('click', (e) => {
-    if (e.target.closest('a, button')) return;
-    if (!flash.shoot()) return;
-    sound.play();
+  // Flash con carga: mantener pulsado (ratón o dedo) carga, soltar dispara
+  hero.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('a, button')) return;
+    flash.press();
+  });
+  window.addEventListener('pointerup', () => flash.release());
+  window.addEventListener('pointercancel', () => flash.cancel());
+  window.addEventListener('blur', () => flash.cancel());
+  hero.addEventListener('contextmenu', (e) => { if (flash.charging) e.preventDefault(); });
+
+  // Enfoque de la retícula en cada disparo
+  flash.onFire(() => {
     if (reduced.matches) return;
     reticle.classList.add('is-locked');
     gsap.fromTo(reticleInner, { scale: 1.3 }, {
