@@ -10,7 +10,7 @@ export const config = {
   },
   email: 'hola@disco.es',
 
-  // Secuencia de frames de la cámara (fase 2). Con count 0 el loading precarga las capas del hero.
+  // Secuencia de frames de la cámara (se rellena en la fase 1). Con count 0 no hay nada que precargar.
   sequence: {
     count: 0,
     path: (i) => `assets/sequence/frame-${String(i + 1).padStart(3, '0')}.webp`,

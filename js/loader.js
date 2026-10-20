@@ -10,11 +10,10 @@ const wait = (s) => new Promise((r) => setTimeout(r, s * 1000));
 const seen = () => { try { return sessionStorage.getItem(SEEN_KEY) === '1'; } catch { return false; } };
 const markSeen = () => { try { sessionStorage.setItem(SEEN_KEY, '1'); } catch { /* sin storage: siempre versión larga */ } };
 
-// Frames de la secuencia de la cámara; hasta que existan, las capas del hero.
+// Frames de la secuencia de la cámara (vacío hasta la fase 1)
 function frameUrls() {
   const { count, path } = config.sequence;
-  if (count) return Array.from({ length: count }, (_, i) => path(i));
-  return [...document.querySelectorAll('.camera img')].map((img) => img.currentSrc || img.src);
+  return Array.from({ length: count }, (_, i) => path(i));
 }
 
 function preload(urls) {

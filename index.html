@@ -11,30 +11,17 @@
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap">
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-  <link rel="preload" as="image" type="image/webp" fetchpriority="high"
-        imagesrcset="assets/camera/body-1076.webp 1076w, assets/camera/body.webp 2152w"
-        imagesizes="(max-width: 767px) 64vw, 403px">
-
   <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/hero.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/hud.css">
   <link rel="stylesheet" href="css/loader.css">
 
-  <!-- Three.js: listo para el shader de refracción de la fase 2 -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
-      }
-    }
-  </script>
   <script>
     document.documentElement.classList.add('js');
-    // Red de seguridad: si main.js no llega, el hero se muestra igualmente
-    // (loading máx. ~5.5s + intro del hero ~1.5s).
+    // Red de seguridad: si main.js no llega, la página se muestra igualmente.
     setTimeout(function () {
       var loader = document.getElementById('loader');
       if (loader) loader.remove();
@@ -44,7 +31,7 @@
   </script>
 </head>
 <body class="is-loading">
-  <!-- Acto 1: loading -->
+  <!-- Loading -->
   <div class="loader" id="loader">
     <p class="loader__logo" data-loader-logo aria-hidden="true">disco.es</p>
     <p class="loader__phrase" data-loader-phrase>
@@ -54,97 +41,44 @@
     <div class="loader__flash" data-loader-flash aria-hidden="true"></div>
   </div>
 
-  <a class="skip" href="#dentro">Saltar al contenido</a>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
 
-  <main>
-    <section class="hero" id="hero" aria-labelledby="hero-title">
-      <div class="hero__grain" aria-hidden="true"></div>
-
-      <h1 class="hero__title" id="hero-title">
-        <span class="hero__line hero__line--a">Le ponemos ritmo</span>
-        <span class="hero__line hero__line--b">a tu negocio</span>
-      </h1>
-
-      <!-- Fase 2: el shader pinta aquí la lente refractando el titular -->
-      <canvas class="hero__gl" id="lens-gl" aria-hidden="true"></canvas>
-
-      <div class="camera" aria-hidden="true">
-        <div class="camera__stage" data-camera-stage>
-          <!-- capas 2152×2360, misma alineación; ½ resolución para pantallas que no la necesitan -->
-          <img class="camera__layer camera__layer--body" data-depth="0.25" data-full-width="2152"
-               src="assets/camera/body.webp" srcset="assets/camera/body-1076.webp 1076w, assets/camera/body.webp 2152w"
-               sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async" fetchpriority="high">
-          <div class="camera__layer camera__layer--flash" data-depth="0.25" data-flash-unit>
-            <img src="assets/camera/flash.webp" srcset="assets/camera/flash-1076.webp 1076w, assets/camera/flash.webp 2152w"
-                 sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async">
-            <i class="flash-unit__tint flash-unit__tint--red" data-tint-red></i>
-            <i class="flash-unit__tint flash-unit__tint--green" data-tint-green></i>
-            <i class="flash-unit__tint flash-unit__tint--white" data-tint-white></i>
-            <i class="flash-unit__glow flash-unit__glow--red" data-glow-red></i>
-            <i class="flash-unit__glow flash-unit__glow--green" data-glow-green></i>
-            <i class="flash-unit__glow flash-unit__glow--white" data-glow-white></i>
-          </div>
-          <img class="camera__layer camera__layer--lens" data-depth="0.6"
-               src="assets/camera/lens.webp" srcset="assets/camera/lens-1076.webp 1076w, assets/camera/lens.webp 2152w"
-               sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async">
-          <img class="camera__layer camera__layer--glass" data-depth="1"
-               src="assets/camera/glass.webp" srcset="assets/camera/glass-1076.webp 1076w, assets/camera/glass.webp 2152w"
-               sizes="(max-width: 767px) 64vw, 403px" alt="" width="2152" height="2360" decoding="async">
-        </div>
-      </div>
-
-      <div class="vignette" data-vignette aria-hidden="true"></div>
-
-      <p class="hero__sub">Productora en Madrid. Fotos, vídeos y contenido lleno de energía y precisión.</p>
-
-      <!-- HUD de visor -->
-      <div class="hud" data-hud>
-        <div class="hud__frame" aria-hidden="true">
-          <i class="hud__corner hud__corner--tl"></i><i class="hud__corner hud__corner--tr"></i>
-          <i class="hud__corner hud__corner--bl"></i><i class="hud__corner hud__corner--br"></i>
-        </div>
-
-        <div class="hud__flash" data-flash-meter aria-hidden="true">
-          <span>FLASH</span>
-          <span class="hud__cells"><i></i><i></i><i></i><i></i><i></i></span>
-          <span class="hud__pct" data-flash-pct>0%</span>
-        </div>
-
-        <div class="hud__slot hud__slot--tl">
-          <span class="hud__rec" aria-hidden="true"><i class="hud__rec-dot"></i>REC</span>
-          <button class="hud__sound" type="button" data-sound-toggle aria-pressed="false">
-            <span class="hud__sound-label">Sonido</span> <span data-sound-state>OFF</span>
-          </button>
-        </div>
-
-        <div class="hud__slot hud__slot--tr hud__desktop" aria-hidden="true">
-          <span>4K 25p</span>
-          <span class="hud__battery"><i></i><i></i><i></i></span>
-        </div>
-
-        <div class="hud__slot hud__slot--bl hud__desktop" aria-hidden="true">
-          <span>ISO 800</span><span>f/1.8</span><span>1/250</span>
-        </div>
-
-        <div class="hud__slot hud__slot--br" aria-hidden="true">
-          <span class="hud__tc" data-timecode>00:00:00:00</span>
-        </div>
-
-        <p class="hud__scroll" aria-hidden="true">Scroll para entrar</p>
-      </div>
-
-      <div class="reticle" data-reticle aria-hidden="true">
-        <div class="reticle__inner" data-reticle-inner>
-          <i class="reticle__c reticle__c--tl"></i><i class="reticle__c reticle__c--tr"></i>
-          <i class="reticle__c reticle__c--bl"></i><i class="reticle__c reticle__c--br"></i>
-          <i class="reticle__dot"></i>
-        </div>
-      </div>
+  <main id="contenido">
+    <!-- Pre-hero: píxeles "disco.es" + cámara del vídeo (fases 3–4) -->
+    <section class="prehero" id="prehero" aria-labelledby="prehero-title">
+      <h1 class="sr-only" id="prehero-title">Le ponemos ritmo a tu negocio</h1>
     </section>
-
-    <!-- Fase 2/3: interior del objetivo -->
-    <section class="inside" id="dentro" aria-label="Dentro del objetivo" tabindex="-1"></section>
   </main>
+
+  <!-- HUD de visor -->
+  <div class="hud" data-hud>
+    <div class="hud__frame" aria-hidden="true">
+      <i class="hud__corner hud__corner--tl"></i><i class="hud__corner hud__corner--tr"></i>
+      <i class="hud__corner hud__corner--bl"></i><i class="hud__corner hud__corner--br"></i>
+    </div>
+
+    <div class="hud__slot hud__slot--tl">
+      <span class="hud__rec" aria-hidden="true"><i class="hud__rec-dot"></i>REC</span>
+      <button class="hud__sound" type="button" data-sound-toggle aria-pressed="false">
+        <span class="hud__sound-label">Sonido</span> <span data-sound-state>OFF</span>
+      </button>
+    </div>
+
+    <div class="hud__slot hud__slot--tr hud__desktop" aria-hidden="true">
+      <span>4K 25p</span>
+      <span class="hud__battery"><i></i><i></i><i></i></span>
+    </div>
+
+    <div class="hud__slot hud__slot--bl hud__desktop" aria-hidden="true">
+      <span>ISO 800</span><span>f/1.8</span><span>1/250</span>
+    </div>
+
+    <div class="hud__slot hud__slot--br" aria-hidden="true">
+      <span class="hud__tc" data-timecode>00:00:00:00</span>
+    </div>
+
+    <p class="hud__scroll" aria-hidden="true">Scroll para entrar</p>
+  </div>
 
   <a class="cta" data-cta href="#" target="_blank" rel="noopener">
     <i class="cta__dot" aria-hidden="true"></i>Pide tu presupuesto

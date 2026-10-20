@@ -1,7 +1,6 @@
 import { whatsappUrl } from './config.js';
 import { initFlash, createShutter } from './flash.js';
 import { initHud } from './hud.js';
-import { initHero } from './hero.js';
 import { runLoader } from './loader.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -33,28 +32,18 @@ gsap.ticker.add((time) => {
 const cta = document.querySelector('[data-cta]');
 cta.href = whatsappUrl();
 
-// La cámara nunca se muestra por encima de su resolución real ÷ devicePixelRatio
-const camBody = document.querySelector('[data-full-width]');
-const capCamera = () => {
-  const max = Math.floor(Number(camBody.dataset.fullWidth) / (window.devicePixelRatio || 1));
-  document.documentElement.style.setProperty('--cam-max', `${max}px`);
-};
-capCamera();
-window.addEventListener('resize', capCamera); // el DPR cambia con el zoom del navegador
-
 // Módulos
 const sound = createShutter();
-const flash = initFlash({ gsap, loop, reduced, sound });
+const flash = initFlash({ gsap, reduced, sound });
 const hud = initHud({ loop, sound });
-initHero({ gsap, loop, reduced, flash });
 
-// Acto 1 (loading) → acto 2: carga del flash → disparo → aparece todo
+// Loading → flash de transición → pre-hero
 runLoader({ gsap, lenis, reduced }).then(() => {
-  flash.intro(() => {
+  flash.transition(() => {
     document.body.classList.remove('is-loading');
     hud.start();
   });
 });
 
-// Para las fases 2 y 3
+// Para las fases siguientes
 window.disco = { gsap, lenis, loop, hud, flash };
