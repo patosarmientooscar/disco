@@ -5,6 +5,7 @@ import { runLoader } from './loader.js';
 import { loadFrames } from './frames.js';
 import { createPixelField } from './pixel-field.js';
 import { createCameraSequence } from './camera-seq.js';
+import { initScrollCamera } from './scroll-camera.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -38,7 +39,7 @@ cta.href = whatsappUrl();
 // Módulos (la precarga de frames arranca ya, en paralelo al loading)
 const frames = loadFrames();
 const flash = initFlash({ gsap, reduced });
-const hud = initHud({ loop });
+const hud = initHud({ loop, fps: config.sequence.fps });
 
 // Pre-hero: píxeles "disco.es" detrás, cámara del vídeo delante
 const prehero = document.getElementById('prehero');
@@ -49,8 +50,13 @@ const field = createPixelField(document.getElementById('prehero-bg'), {
   ...(mobile && { cellSize: 3, gap: 1.5 }),
 });
 const camera = createCameraSequence(prehero, frames, config.sequence);
+let scroll = null;
+let oddFrame = false;
 loop.add(() => {
-  field.draw();
+  // con el scroll en marcha los píxeles ya se están yendo (fundido + blur): a 30 fps no se nota
+  // y deja GPU libre para la secuencia (medido: ~45 → ~55 fps en retina)
+  oddFrame = !oddFrame;
+  if (oddFrame || !(scroll?.scrollTrigger?.progress > 0)) field.draw();
   camera.draw();
 });
 
@@ -62,6 +68,9 @@ runLoader({ gsap, lenis, reduced, frames }).then(() => {
     field.setRunning(true);
     // movimiento reducido: un único dibujado quieto y se para
     if (reduced.matches) requestAnimationFrame(() => field.setRunning(false));
+    // el scroll se monta ya con la página visible (los valores iniciales de HUD/CTA son los reales)
+    scroll = initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, frames, hud, fps: config.sequence.fps });
+    window.disco.scroll = scroll;
   });
 });
 

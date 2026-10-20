@@ -1,11 +1,10 @@
-const FPS = 25;
 const pad = (n) => String(n).padStart(2, '0');
 
-export function initHud({ loop }) {
+export function initHud({ loop, fps: FPS }) {
   const tcEl = document.querySelector('[data-timecode]');
 
-  // Timecode: por defecto tiempo real desde la entrada. En la fase 4 setSource()
-  // lo sincroniza con el frame del vídeo (la fuente devuelve segundos).
+  // Timecode: por defecto tiempo real desde la entrada; setSource() lo sincroniza
+  // con el frame del vídeo (la fuente devuelve segundos).
   let startedAt = 0;
   let source = () => (performance.now() - startedAt) / 1000;
   let lastFrame = -1;

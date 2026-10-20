@@ -1,6 +1,13 @@
 // Cámara del vídeo pintada frame a frame en un canvas a pantalla completa.
 // Los frames llevan alpha (fondo quitado): la cámara tapa de verdad los píxeles de detrás.
 const MAX_DPR = 2;
+const MOBILE_COVER_FROM = 0.2; // móvil: tramo del vídeo en el que se pasa de "cámara al 85%"…
+const MOBILE_COVER_TO = 0.5;   // …a "frame cubriendo la pantalla" (antes de que el frame deje de tener fondo)
+
+const smooth = (v, a, b) => {
+  const t = Math.min(1, Math.max(0, (v - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 
 export function createCameraSequence(host, frames, { mobileQuery, cameraBox, mobileFill }) {
   const canvas = document.createElement('canvas');
@@ -38,15 +45,23 @@ export function createCameraSequence(host, frames, { mobileQuery, cameraBox, mob
   new ResizeObserver(resize).observe(canvas);
   resize();
 
-  const paint = (img) => {
+  const paint = (img, index) => {
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
     let s, x, y;
     if (mobile.matches) {
-      // la cámara (no el frame) ocupa ~85% del ancho y queda centrada; se recorta el negro de los lados
-      s = (width * mobileFill) / (iw * cameraBox.width);
-      x = width / 2 - iw * cameraBox.cx * s;
-      y = height / 2 - ih * cameraBox.cy * s;
+      // al principio la cámara (no el frame) ocupa ~85% del ancho, centrada; al entrar en la
+      // lente el frame pasa a cubrir la pantalla entera (si no, quedaría una franja con bordes duros)
+      const s0 = (width * mobileFill) / (iw * cameraBox.width);
+      const x0 = width / 2 - iw * cameraBox.cx * s0;
+      const y0 = height / 2 - ih * cameraBox.cy * s0;
+      const s1 = Math.max(width / iw, height / ih);
+      const x1 = (width - iw * s1) / 2;
+      const y1 = (height - ih * s1) / 2;
+      const t = smooth(index / (frames.count - 1), MOBILE_COVER_FROM, MOBILE_COVER_TO);
+      s = s0 + (s1 - s0) * t;
+      x = x0 + (x1 - x0) * t;
+      y = y0 + (y1 - y0) * t;
     } else {
       // cover anclado arriba: el panel LED llega al borde superior hacia el segundo 1.5
       s = Math.max(width / iw, height / ih);
@@ -67,7 +82,7 @@ export function createCameraSequence(host, frames, { mobileQuery, cameraBox, mob
     draw() {
       const j = nearestLoaded(wanted);
       if (j < 0 || (j === drawn && !dirty)) return;
-      paint(frames.images[j]);
+      paint(frames.images[j], j);
       drawn = j;
       dirty = false;
     },
