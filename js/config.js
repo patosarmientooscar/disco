@@ -13,7 +13,7 @@ export const config = {
   // Loading: lo que se precarga de verdad (el % refleja su carga) y su duración mínima.
   // El vídeo de las lentes está en el HTML (<video data-intro-video>, webm + mp4).
   intro: {
-    images: ['assets/hero/layer1-sketch.webp', 'assets/hero/layer2-clay.webp', 'assets/hero/layer3-final.webp'],
+    images: ['assets/hero/hero-red.jpg'], // foto del hero v2 (las capas del hero por capas están en legacy/)
     minSeconds: 2.8,
   },
 
