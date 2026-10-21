@@ -42,11 +42,11 @@
   color: var(--team-gray);
 }
 
-/* ---------- retratos 4:5 en blanco y negro: sin bordes, sombras ni esquinas ---------- */
+/* ---------- retratos 1:1 en blanco y negro (mismo ancho que con 4:5, más bajos): sin bordes, sombras ni esquinas ---------- */
 .team__person { margin: 0; }
 .team__frame {
   overflow: hidden;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   background: #141111;
 }
 .team__zoom,
@@ -58,6 +58,7 @@
 }
 .team__zoom img {
   object-fit: cover;
+  object-position: var(--focus, 50% 50%); /* encuadre en la cara */
   filter: grayscale(1);
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); /* expo.out */
 }
@@ -85,12 +86,15 @@
   .team__person:hover .team__name-in { transform: translateY(-4px); }
 }
 
-/* móvil: una columna; fotos al 78%, Luna a la izquierda y Bruno a la derecha (escalonado) */
+.team__person--luna { --focus: 50% 32%; }
+.team__person--bruno { --focus: 45% 28%; }
+
+/* móvil: una columna; fotos al 78%, Luna a la izquierda y Bruno a la derecha */
 .team__person { width: 78%; }
 .team__person--bruno { justify-self: end; }
 
-/* ≥ 768px: rejilla de 12 columnas, composición escalonada editorial.
-   Frase en 1–7; Luna en 2–5 (10vh bajo la subfrase); Bruno en 8–11 (18vh más abajo que Luna).
+/* ≥ 768px: rejilla de 12 columnas. Frase en 1–7; Luna en 2–5 y Bruno en 8–11, a la misma altura
+   (10vh bajo la subfrase) y apareciendo a la vez.
    Columnas 6–7 libres entre las fotos: por ahí pasa el destello 3D. */
 @media (min-width: 768px) {
   .team__inner {
@@ -102,7 +106,7 @@
   .team__intro { grid-column: 1 / 8; grid-row: 1; }
   .team__person { width: auto; }
   .team__person--luna { grid-column: 2 / 6; grid-row: 2; margin-top: 10vh; }
-  .team__person--bruno { grid-column: 8 / 12; grid-row: 2; margin-top: 28vh; justify-self: stretch; }
+  .team__person--bruno { grid-column: 8 / 12; grid-row: 2; margin-top: 10vh; justify-self: stretch; }
 }
 
 @media (prefers-reduced-motion: reduce) {

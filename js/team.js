@@ -39,19 +39,24 @@ export function initTeam({ gsap, ScrollTrigger, reduced }) {
     }, 200);
   });
 
-  // --- fotos y nombres ---
-  section.querySelectorAll('.team__person').forEach((person) => {
-    const frame = person.querySelector('[data-team-frame]');
-    const zoom = person.querySelector('[data-team-zoom]');
-    const name = person.querySelector('[data-team-name]');
-    gsap.timeline({
-      scrollTrigger: { trigger: frame, start: 'top 95%', end: 'top 30%', scrub: SCRUB },
+  // --- fotos y nombres: las dos a la vez (mismo trigger, misma animación, sin stagger) ---
+  // En móvil van una debajo de otra: ahí cada una se destapa al llegar a ella.
+  const reveal = (persons) => {
+    const frames = persons.map((p) => p.querySelector('[data-team-frame]'));
+    const zooms = persons.map((p) => p.querySelector('[data-team-zoom]'));
+    const names = persons.map((p) => p.querySelector('[data-team-name]'));
+    return gsap.timeline({
+      scrollTrigger: { trigger: frames[0], start: 'top 95%', end: 'top 30%', scrub: SCRUB },
     })
-      .fromTo(frame, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', duration: 1 }, 0)
-      .fromTo(zoom, { scale: 1.18 }, { scale: 1, ease: 'none', duration: 1 }, 0)
-      // el nombre, un poco después de que la foto termine de destaparse
-      .fromTo(name, { opacity: 0, y: 10 }, { opacity: 1, y: 0, ease: 'none', duration: 0.35 }, 1.15);
-  });
+      .fromTo(frames, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', duration: 1 }, 0)
+      .fromTo(zooms, { scale: 1.18 }, { scale: 1, ease: 'none', duration: 1 }, 0)
+      // los nombres, a la vez, un poco después de que las fotos terminen de destaparse
+      .fromTo(names, { opacity: 0, y: 10 }, { opacity: 1, y: 0, ease: 'none', duration: 0.35 }, 1.15);
+  };
+  const persons = [...section.querySelectorAll('.team__person')];
+  gsap.matchMedia()
+    .add('(min-width: 768px)', () => { reveal(persons); })
+    .add('(max-width: 767px)', () => { persons.forEach((p) => reveal([p])); });
 }
 
 // Parte el texto en sus líneas reales: cada una en una máscara (.team__line > .team__line-in)
