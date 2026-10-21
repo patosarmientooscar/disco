@@ -1,3 +1,6 @@
+/* LEGACY LOADING — loading anterior ("disco.es" → "Le ponemos ritmo a tu negocio").
+   No se carga. Sustituido por js/intro-loader.js + css/intro-loader.css (2026-10-21). */
+
 // Frase del loading: minimalista, una línea. Cada palabra sube desde su máscara
 // y pasa rojo → ámbar → violeta antes de quedarse en blanco.
 const RED = '#FF2B2B';

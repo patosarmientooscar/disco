@@ -10,6 +10,13 @@ export const config = {
   },
   email: 'hola@disco.es',
 
+  // Loading: lo que se precarga de verdad (el % refleja su carga) y su duración mínima.
+  intro: {
+    video: 'assets/intro/camera-lens.mp4',
+    images: ['assets/hero/layer1-sketch.webp', 'assets/hero/layer2-clay.webp', 'assets/hero/layer3-final.webp'],
+    minSeconds: 2.8,
+  },
+
   // Secuencia de frames de la cámara (vídeo a 24 fps). Móvil: 1 de cada 2 frames.
   sequence: {
     fps: 24,

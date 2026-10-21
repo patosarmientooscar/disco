@@ -1,7 +1,7 @@
 import { config, whatsappUrl } from './config.js';
 import { initFlash } from './flash.js';
 import { initHud } from './hud.js';
-import { runLoader } from './loader.js';
+import { runIntroLoader } from './intro-loader.js';
 import { loadFrames } from './frames.js';
 import { createPixelField } from './pixel-field.js';
 import { createCameraSequence } from './camera-seq.js';
@@ -66,8 +66,8 @@ loop.add(() => {
 // Hero principal: fila curvada (parada hasta que se abra el círculo) y titular listo para entrar
 const heroContent = initHeroContent({ gsap, ScrollTrigger, reduced, photos: heroPhotos });
 
-// Loading → flash de transición → pre-hero
-runLoader({ gsap, lenis, reduced, frames }).then(() => {
+// Loading (logo + progreso real; dispara "disco:loaded") → flash de transición → pre-hero
+runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro }).then(() => {
   flash.transition(() => {
     document.body.classList.remove('is-loading');
     hud.start();

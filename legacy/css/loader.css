@@ -1,3 +1,6 @@
+/* LEGACY LOADING — loading anterior ("disco.es" → "Le ponemos ritmo a tu negocio").
+   No se carga. Sustituido por js/intro-loader.js + css/intro-loader.css (2026-10-21). */
+
 /* ---------- loading ---------- */
 html.is-locked { overflow: hidden; }
 
