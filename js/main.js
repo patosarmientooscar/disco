@@ -1,7 +1,6 @@
 import { config, whatsappUrl } from './config.js';
 import { runIntroLoader } from './intro-loader.js';
-import { initHeroContent } from './hero-content.js';
-import { heroPhotos } from './photos.js';
+import { initHero } from './hero.js';
 import { initServices } from './services.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -32,14 +31,15 @@ gsap.ticker.add((time) => {
 // CTAs de WhatsApp (hero principal, cierre de servicios y el fijo)
 document.querySelectorAll('[data-cta]').forEach((a) => { a.href = whatsappUrl(); });
 
-// Hero principal: fila curvada (parada hasta que termine la intro) y titular listo para entrar
-const heroContent = initHeroContent({ gsap, ScrollTrigger, reduced, photos: heroPhotos });
+// Hero v2: foto con estela líquida (OGL); la frase entra con "disco:intro-done"
+// (LEGACY HERO: la fila curvada era initHeroContent, en legacy/js/hero-content.js)
+const hero = initHero({ gsap, ScrollTrigger, reduced, loop });
 
 // Loading (logo + progreso real) → luz roja → flash → lentes → blanco → hero
 runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro }).then(() => {
   document.body.classList.remove('is-loading');
-  heroContent.show();
-  heroContent.watchCta();
+  hero.show(); // por si no hubo loading (sin "disco:intro-done"); si ya entró, no hace nada
+  hero.watchCta();
   window.disco.services = initServices({ gsap, ScrollTrigger, reduced, loop });
   ScrollTrigger.refresh();
 });

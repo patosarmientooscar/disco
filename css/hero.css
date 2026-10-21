@@ -1,0 +1,126 @@
+/* ---------- hero v2: foto roja a pantalla completa con estela líquida ----------
+   La foto es un <img> (fallback sin WebGL / movimiento reducido); encima, el canvas de OGL
+   la pinta igual ("cover" centrado) y añade la estela del ratón. Viñeta y grano van en CSS
+   para no tener que renderizar en reposo.
+   LEGACY HERO: la fila curvada (Tilted Grid) está en legacy/css/hero-main.css. */
+.hero {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #000;
+  isolation: isolate;
+}
+
+.hero__media,
+.hero__canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+.hero__media img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+/* el canvas aparece cuando ya ha pintado la foto (sin parpadeo en negro) */
+.hero__canvas { display: block; opacity: 0; }
+.hero.is-gl .hero__canvas { opacity: 1; }
+
+/* viñeta inferior: transparente → rgba(0,0,0,.45) en el 35% de abajo */
+.hero::before {
+  content: "";
+  position: absolute; inset: auto 0 0;
+  height: 35%;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0), rgb(0 0 0 / 0.45));
+  pointer-events: none;
+}
+
+/* grano de película: ruido SVG que salta de posición a 12 fps */
+.hero::after {
+  content: "";
+  position: absolute; inset: -50%;
+  z-index: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  pointer-events: none;
+  animation: hero-grain 0.5s steps(6) infinite;
+}
+@keyframes hero-grain {
+  0%   { transform: translate(0, 0); }
+  17%  { transform: translate(-7%, 4%); }
+  33%  { transform: translate(5%, -9%); }
+  50%  { transform: translate(-3%, 8%); }
+  67%  { transform: translate(9%, 2%); }
+  83%  { transform: translate(-8%, -5%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ---------- frase ---------- */
+.hero__title {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: clamp(56px, 12vh, 140px);
+  width: max-content;
+  max-width: 92vw;
+  margin: 0;
+  transform: translateX(-50%);
+  font: 400 clamp(30px, 4.4vw, 88px) / 1.02 var(--font-hero);
+  letter-spacing: 0;
+  color: #a7a7a7;
+  text-align: center;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+/* cada línea en su máscara; el margen negativo deja sitio a las tildes sin mover el texto */
+.hero__line {
+  display: block;
+  overflow: hidden;
+  padding: 0.14em 0.04em 0.06em;
+  margin: -0.14em -0.04em -0.06em;
+}
+/* en escritorio cada línea cabe entera; en móvil se parte sola, equilibrada (sin palabras sueltas) */
+.hero__line-in { display: block; text-wrap: balance; }
+
+/* ---------- "SCROLL TO EXPLORE" ---------- */
+.hero__scroll {
+  position: absolute;
+  z-index: 2;
+  left: clamp(24px, 3vw, 56px);
+  bottom: clamp(24px, 3vh, 40px);
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  pointer-events: none;
+}
+.hero__scroll-line {
+  flex: none;
+  width: 2px;
+  height: 150px;
+  background: repeating-linear-gradient(to bottom, #fff 0 8px, transparent 8px 14px);
+  animation: hero-dash 1.6s linear infinite;
+}
+@keyframes hero-dash { to { background-position: 0 14px; } }
+.hero__scroll-text {
+  margin: 0;
+  font: 400 20px / 1.05 var(--font-hero);
+  color: #a7a7a7;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* antes de la intro: frase y scroll ocultos (JS los hace entrar con "disco:intro-done") */
+.js .hero__line-in { transform: translateY(105%); opacity: 0; }
+.js .hero__scroll { opacity: 0; }
+
+/* móvil: el indicador chocaría con la frase */
+@media (max-width: 768px) {
+  .hero__scroll { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::after { animation: none; }
+  .hero__scroll-line { animation: none; }
+}
