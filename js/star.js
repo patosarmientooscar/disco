@@ -7,12 +7,12 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 // debajo del texto y del menú (z-index, ver css/star.css). Render dentro del loop único (gsap.ticker).
 // Render y entorno: copia del visor aprobado por Oscar.
 const MODEL = 'assets/3d/disco-star.glb';
-const MODEL_HEIGHT = 2.84;          // unidades del modelo (ancho 2.0, grosor 0.68)
+const MODEL_HEIGHT = 2.84;          // unidades del modelo (ancho 2.0, grosor 0.50); v1 en legacy/assets/3d/
 const MAX_DPR = 2;
 const FOV = 28;
 const CAMERA_Z = 7.6;               // en vertical: max(7.6, 5.2 / aspect)
-const HERO_SIZE = 0.3;              // alto del destello en el hero (fracción de la pantalla)
-const HERO_SIZE_MOBILE = 0.22;
+const HERO_SIZE = 0.45;             // alto del destello en el hero (fracción de la pantalla): el protagonista
+const HERO_SIZE_MOBILE = 0.34;
 const MOBILE = '(max-width: 639px)';
 const TURNS = 4;                    // vueltas en Y a lo largo de todo el scroll
 const SCRUB = 1.2;                  // inercia del recorrido: le da peso, gravedad cero
@@ -20,7 +20,7 @@ const LERP = 0.08;
 const SPIN_GAIN = 0.0009;           // velocidad de Lenis → velocidad angular extra
 const SPIN_FRICTION = 0.94;
 const ENTER = { duration: 1.4, turns: 1.5 };
-const STATIC_POSE = { y: 0.6, x: 0.1 }; // movimiento reducido: 3/4, que se vea el volumen
+const STATIC_POSE = { y: 0.5, x: 0.12 }; // movimiento reducido: 3/4, que se vea el volumen
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let renderer;
@@ -53,32 +53,36 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   star.visible = false;
   scene.add(star);
 
-  // --- modelo: el material del GLB se sustituye por plata pulida reutilizando sus texturas ---
+  // --- modelo: los materiales del GLB se sustituyen por plata pulida (por nombre de material) ---
+  //   "disco-star-silver" (caras): purpurina, reutilizando su normalMap y su rugosidad por escama
+  //   "disco-star-side" (lateral): plata lisa pulida, sin mapas
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const loaded = loader.loadAsync(MODEL).then((gltf) => {
     const maxAniso = renderer.capabilities.getMaxAnisotropy();
+    const silver = { color: 0xe4e6ea, metalness: 1, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.4 };
     gltf.scene.traverse((o) => {
       if (!o.isMesh) return;
-      const { normalMap, roughnessMap } = o.material;
-      [normalMap, roughnessMap].forEach((t) => {
-        if (!t) return;
-        t.wrapS = t.wrapT = THREE.RepeatWrapping;
-        t.anisotropy = maxAniso;
-        t.needsUpdate = true;
-      });
-      if (normalMap) normalMap.colorSpace = THREE.NoColorSpace;
-      o.material.dispose();
-      o.material = new THREE.MeshPhysicalMaterial({
-        color: 0xe4e6ea,
-        metalness: 1,
-        roughness: 1,
-        roughnessMap,
-        normalMap,
-        normalScale: new THREE.Vector2(0.4, 0.4),
-        clearcoat: 1,
-        clearcoatRoughness: 0.03,
-        envMapIntensity: 1.4,
-      });
+      const old = o.material;
+      if (old.name === 'disco-star-side') {
+        o.material = new THREE.MeshPhysicalMaterial({ ...silver, roughness: 0.12 });
+      } else {
+        const { normalMap, roughnessMap } = old;
+        [normalMap, roughnessMap].forEach((t) => {
+          if (!t) return;
+          t.wrapS = t.wrapT = THREE.RepeatWrapping;
+          t.anisotropy = maxAniso;
+          t.needsUpdate = true;
+        });
+        if (normalMap) normalMap.colorSpace = THREE.NoColorSpace;
+        o.material = new THREE.MeshPhysicalMaterial({
+          ...silver,
+          roughness: 1,
+          roughnessMap,
+          normalMap,
+          normalScale: new THREE.Vector2(0.4, 0.4),
+        });
+      }
+      old.dispose();
     });
     star.add(gltf.scene);
     renderer.compile(scene, camera); // shaders listos antes de la entrada (sin tirón)
@@ -117,12 +121,12 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
   // --- movimiento reducido: quieto en el hero, de 3/4, sin recorrido ni giro ---
   if (reduced.matches) {
-    const pose = place({ position: new THREE.Vector3() }, { x: 0, y: 0.12, s: 1 });
+    const pose = place({ position: new THREE.Vector3() }, { x: 0, y: 0.08, s: 1 });
     star.position.copy(pose.position);
     star.scale.setScalar(pose.scale);
     star.rotation.set(STATIC_POSE.x, STATIC_POSE.y, 0);
     const draw = () => {
-      const p = place({ position: new THREE.Vector3() }, { x: 0, y: 0.12, s: 1 });
+      const p = place({ position: new THREE.Vector3() }, { x: 0, y: 0.08, s: 1 });
       star.position.copy(p.position);
       star.scale.setScalar(p.scale);
       renderer.render(scene, camera);
@@ -247,8 +251,17 @@ function waypoints(mobile, ScrollTrigger) {
   const services = document.getElementById('servicios');
   const top = services ? services.getBoundingClientRect().top + scrollY : max / 2;
   const pin = ScrollTrigger.getAll().find((st) => st.pin && services?.contains(st.pin));
-  const hero = { at: 0, x: 0, y: 0.12, s: 1 };
-  const end = { at: max, x: 0, y: 0.3, s: 0.7 };
+  const hero = { at: 0, x: 0, y: 0.08, s: 1 };          // encima de la frase, sin tocarla ni al menú
+  // móvil: en el hueco entre el último servicio y "¿Hablamos de tu local?" (medido al final del scroll)
+  const endY = (() => {
+    const last = services && [...services.querySelectorAll('.service')].pop();
+    const outro = services && services.querySelector('.services__outro-title');
+    if (!mobile || !last || !outro) return 0.3;
+    const docTop = (el) => el.getBoundingClientRect().top + scrollY;
+    const mid = (docTop(last) + last.offsetHeight + docTop(outro)) / 2 - max; // px en pantalla al final
+    return 1 - (mid / innerHeight) * 2;
+  })();
+  const end = { at: max, x: 0, y: endY, s: mobile ? 0.4 : 0.5 };
 
   if (mobile || !pin) {
     // apilado: alterna a los lados, por detrás del contenido
@@ -256,8 +269,8 @@ function waypoints(mobile, ScrollTrigger) {
     const h = services ? services.offsetHeight : max;
     return [
       hero,
-      { at: top, x: side, y: 0.2, s: 0.55 },
-      { at: Math.min(max - 1, top + h * 0.5), x: -side, y: -0.1, s: 0.5 },
+      { at: top, x: side, y: 0.2, s: 0.4 },
+      { at: Math.min(max - 1, top + h * 0.5), x: -side, y: -0.1, s: 0.36 },
       end,
     ].sort((a, b) => a.at - b.at);
   }
@@ -274,8 +287,8 @@ function waypoints(mobile, ScrollTrigger) {
   })();
   return [
     hero,
-    { at: pin.start, x: gapX, y: 0.08, s: 0.55 },
-    { at: pin.end, x: gapX, y: -0.12, s: 0.5 },
+    { at: pin.start, x: gapX, y: 0.05, s: 0.4 },     // s 0.4 ≈ 18% del alto de pantalla
+    { at: pin.end, x: gapX, y: -0.1, s: 0.36 },
     end,
   ];
 }
@@ -305,6 +318,7 @@ function studio(renderer) {
   panel(8, 2, [0, -8, 4], 0xffffff, 1.2);    // rebote del suelo
   panel(6, 6, [0, 2, -10], 0xff3a1a, 1.6);   // rebote rojo por detrás (casa con la foto del hero)
   panel(3, 3, [6, -3, 8], 0xffffff, 2.5);    // kicker para los brillos
+  panel(16, 7, [-3, 4, 13], 0xffffff, 1.1);  // panel frontal grande (detrás de la cámara): sin él las caras planas se ven negras de frente
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   const texture = pmrem.fromScene(env, 0.02).texture;
