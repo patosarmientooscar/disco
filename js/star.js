@@ -25,6 +25,8 @@ const ENTER = { duration: 1.4, turns: 2 };   // vueltas completas: acaba de fren
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
 const FRONT_BRAKE = 0.85;          // con el modo frontal dominando, frena el giro extra
+// prueba: el lateral con la misma textura que las caras (false = lateral liso, como viene en el GLB)
+const SIDE_TEXTURE = true;
 const HERO_SPIN = 0.3;             // rad/s: en el hero gira muy despacio sobre su eje Y, sin parar (~21 s por vuelta)
 const TAU = Math.PI * 2;
 
@@ -86,6 +88,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       });
       old.dispose();
     });
+    if (SIDE_TEXTURE) texturizeSide(gltf.scene);
     star.add(gltf.scene);
     renderer.compile(scene, camera); // shaders listos antes de la entrada (sin tirón)
   }).catch(() => {
@@ -355,4 +358,45 @@ function studio(renderer) {
   pmrem.dispose();
   disposables.forEach((d) => d.dispose());
   return texture;
+}
+
+// El lateral no trae coordenadas de textura: se le generan con una proyección plana según hacia
+// dónde mira cada vértice (lateral "en X" → (z, y); "en Y" → (x, z)), con la misma densidad que la
+// cara, y recibe el material de la cara (normalMap + roughnessMap) con el color del lateral.
+function texturizeSide(root) {
+  let face = null;
+  let side = null;
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    if (o.material.name === 'disco-star-face') face = o;
+    if (o.material.name === 'disco-star-side') side = o;
+  });
+  if (!face || !side || !face.geometry.attributes.uv) return;
+
+  // densidad de la cara: unidades de uv por unidad de modelo (en x)
+  const fp = face.geometry.attributes.position;
+  const fuv = face.geometry.attributes.uv;
+  let minX = Infinity, maxX = -Infinity, minU = Infinity, maxU = -Infinity;
+  for (let i = 0; i < fp.count; i++) {
+    minX = Math.min(minX, fp.getX(i)); maxX = Math.max(maxX, fp.getX(i));
+    minU = Math.min(minU, fuv.getX(i)); maxU = Math.max(maxU, fuv.getX(i));
+  }
+  const density = (maxU - minU) / (maxX - minX || 1);
+
+  const pos = side.geometry.attributes.position;
+  const nrm = side.geometry.attributes.normal;
+  const uv = new Float32Array(pos.count * 2);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const alongX = Math.abs(nrm.getX(i)) > Math.abs(nrm.getY(i));
+    uv[i * 2] = 0.5 + (alongX ? z + y * 0.37 : x) * density;     // 0.37: desfase para que las dos proyecciones no repitan el mismo trozo
+    uv[i * 2 + 1] = 0.5 + (alongX ? y : z + x * 0.37) * density;
+  }
+  side.geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+
+  const m = face.material.clone();
+  m.name = 'disco-star-side';
+  m.color.copy(side.material.color);
+  side.material.dispose();
+  side.material = m;
 }
