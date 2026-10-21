@@ -11,7 +11,6 @@ const STAGGER = 0.14;
 const FILL = 0.5;          // barrido de relleno de cada letra
 const STAR_DRAW = 0.6;
 const STAR_FILL = 0.35;
-const BAR_GAP = 18;        // px entre "AGENCIA DE PRODUCCIÓN" y la barra
 const LERP = 0.12;
 
 export function runIntroLoader({ gsap, lenis, reduced, loop, intro }) {
@@ -31,16 +30,10 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro }) {
   lenis.stop();
   document.documentElement.classList.add('is-locked');
 
-  // --- barra: mismo ancho que el subtítulo, 18px por debajo (sin contar su animación) ---
+  // --- barra: abajo y centrada (CSS); mismo ancho que el subtítulo (sin contar su animación) ---
   const placeBar = () => {
     const box = subtitle.getBBox();
-    const m = svg.getScreenCTM();
-    const host = el.getBoundingClientRect();
-    const a = new DOMPoint(box.x, box.y + box.height).matrixTransform(m);
-    const b = new DOMPoint(box.x + box.width, box.y + box.height).matrixTransform(m);
-    bar.style.left = `${a.x - host.left}px`;
-    bar.style.top = `${a.y - host.top + BAR_GAP}px`;
-    bar.style.width = `${b.x - a.x}px`;
+    bar.style.width = `${box.width * svg.getScreenCTM().a}px`;
   };
   placeBar();
   window.addEventListener('resize', placeBar);

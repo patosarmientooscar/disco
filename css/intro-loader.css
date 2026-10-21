@@ -18,11 +18,14 @@ html.is-locked { overflow: hidden; }
   overflow: visible;
 }
 
-/* pista + relleno de 1px; ancho y posición = los de #logo-subtitle (desde JS) */
+/* pista + relleno de 1px, abajo y centrada; ancho = el de #logo-subtitle (desde JS) */
 .intro__bar {
   position: absolute;
-  left: 0; top: 0;
+  left: 50%;
+  bottom: clamp(28px, 5vh, 56px);
+  transform: translateX(-50%);
   width: 0;
+  min-width: 180px;
   height: 1px;
   background: rgb(255 255 255 / 0.14);
 }
@@ -89,7 +92,7 @@ html.is-locked { overflow: hidden; }
 .intro__pct {
   position: absolute;
   right: 0;
-  bottom: 4px; /* cabe en los 18px entre el subtítulo y la barra sin tocarlo */
+  bottom: 4px; /* 4px por encima de la barra */
   font: 400 10px / 1 var(--font-mono);
   letter-spacing: 0.12em;
   font-variant-numeric: tabular-nums;
