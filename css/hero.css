@@ -3,14 +3,14 @@
    la pinta igual ("cover" centrado) y añade la estela del ratón. Viñeta y grano van en CSS
    para no tener que renderizar en reposo.
    LEGACY HERO: la fila curvada (Tilted Grid) está en legacy/css/hero-main.css. */
+/* sin z-index ni isolation: el destello 3D (canvas fijo, z-index 1, js/star.js) pasa por encima de
+   la foto y del fluido y por debajo de la frase y del scroll (z-index 2) */
 .hero {
   position: relative;
-  z-index: 2;
   height: 100vh;
   height: 100svh;
   overflow: hidden;
   background: #000;
-  isolation: isolate;
 }
 
 .hero__media,

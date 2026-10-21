@@ -13,7 +13,9 @@ const STAR_DRAW = 0.6;
 const STAR_FILL = 0.35;
 const LERP = 0.12;
 
-export function runIntroLoader({ gsap, lenis, reduced, loop, intro }) {
+// assets: promesas de otras cargas que cuentan en el progreso (p. ej. el GLB del destello 3D);
+// cuentan como hechas tanto si cargan como si fallan.
+export function runIntroLoader({ gsap, lenis, reduced, loop, intro, assets = [] }) {
   const el = document.getElementById('intro-loader');
   if (!el) return Promise.resolve();
 
@@ -128,6 +130,12 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro }) {
     video.load();
   }
   if (video.readyState >= 4) videoSrc.value = 1;
+
+  assets.forEach((p) => {
+    const s = track();
+    const done = () => { s.value = 1; };
+    Promise.resolve(p).then(done, done);
+  });
 
   const fonts = track();
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { fonts.value = 1; });

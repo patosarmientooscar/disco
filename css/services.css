@@ -1,10 +1,14 @@
 /* ---------- servicios: "el visor" ---------- */
+/* sin z-index: el destello 3D (z-index 1) queda por encima del fondo de la sección y por debajo de
+   su contenido (el bloque fijado y el cierre, z-index 2) */
 .services {
   position: relative;
-  z-index: 2;
   background: var(--blanco-flash);
   color: var(--negro-sensor);
 }
+
+.services__pin,
+.services__outro { position: relative; z-index: 2; }
 
 .services__pin {
   height: 100vh;

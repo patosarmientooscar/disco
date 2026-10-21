@@ -1,0 +1,19 @@
+/* ---------- destello 3D (js/star.js) ----------
+   Fijo a pantalla completa, transparente, sin eventos. z-index 1: por encima de las fotos y fondos
+   (el hero y servicios no crean contexto propio) y por debajo del texto (z-index 2), del CTA fijo
+   y del menú. */
+.star-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* movimiento reducido: se queda en el hero (se va con él al hacer scroll) */
+.star-canvas--static {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100vh;
+  height: 100svh;
+}
