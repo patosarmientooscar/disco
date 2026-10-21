@@ -1,0 +1,126 @@
+/* ---------- nav: píldora flotante de cristal blanco, fija en toda la web ----------
+   .nav (fija y centrada) → .nav__float (flotación, GSAP) → .nav__bar (cristal) + .nav__panel (cristal).
+   El panel es hermano de la barra, no hijo: un backdrop-filter dentro de otro solo vería la barra.
+   Tinta: blanca sobre fondos oscuros (hero); negra (.is-ink-dark) sobre secciones claras (data-nav-ink="dark"). */
+.nav {
+  --nav-h: 64px;
+  --nav-gap: clamp(28px, 13vw, 190px);
+  --nav-logo: 26px;
+  --nav-text: 12px;
+  --nav-ink: #fff;
+  --nav-glass: rgb(255 255 255 / 0.22);
+
+  position: fixed;
+  top: clamp(16px, 4vh, 40px);
+  left: 50%;
+  z-index: 1000;
+  transform: translateX(-50%);
+  color: var(--nav-ink);
+  transition: color 0.3s ease;
+}
+.nav.is-ink-dark { --nav-ink: var(--negro-sensor); }
+
+.nav__float { position: relative; }
+
+.nav__bar,
+.nav__panel {
+  background: var(--nav-glass);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 0.45);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 10px 40px rgb(0 0 0 / 0.25);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav { --nav-glass: rgb(255 255 255 / 0.85); --nav-ink: var(--negro-sensor); }
+}
+
+.nav__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--nav-gap);
+  height: var(--nav-h);
+  padding: 0 28px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.nav__toggle,
+.nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font: 500 var(--nav-text) / 1 var(--font-display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+/* área de toque cómoda sin cambiar el tamaño visual */
+.nav__toggle, .nav__link, .nav__logo { padding: 10px 0; }
+
+/* 2 líneas finas → X */
+.nav__burger {
+  position: relative;
+  width: 18px; height: 8px;
+}
+.nav__burger i {
+  position: absolute; left: 0;
+  width: 100%; height: 1.5px;
+  background: currentColor;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav__burger i:first-child { top: 0; }
+.nav__burger i:last-child { bottom: 0; }
+.nav__toggle[aria-expanded="true"] .nav__burger i:first-child { transform: translateY(3.25px) rotate(45deg); }
+.nav__toggle[aria-expanded="true"] .nav__burger i:last-child { transform: translateY(-3.25px) rotate(-45deg); }
+
+.nav__logo { display: block; color: inherit; }
+.nav__logo-svg {
+  display: block;
+  height: var(--nav-logo);
+  width: auto;
+  aspect-ratio: 960 / 290;
+}
+
+/* ---------- desplegable ---------- */
+.nav__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 260px;
+  padding: 24px;
+  border-radius: 24px;
+}
+.nav__panel[hidden] { display: none; }
+.nav__list { list-style: none; margin: 0; padding: 0; }
+.nav__list li + li { margin-top: 6px; }
+.nav__item {
+  display: inline-block;
+  padding: 4px 0;
+  color: inherit;
+  font: 400 28px / 1.1 var(--font-hero);
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.nav__item[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+
+/* index: oculta durante loading, flash y lentes (entra con "disco:intro-done") */
+.js .nav[data-nav-wait] .nav__bar { opacity: 0; visibility: hidden; }
+
+@media (max-width: 639px) {
+  .nav {
+    --nav-h: 52px;
+    --nav-gap: 22px;
+    --nav-logo: 20px;
+    --nav-text: 11px;
+    top: 12px;
+  }
+  .nav__toggle { gap: 8px; }
+  /* el desplegable ocupa todo el ancho menos 24px (12 + 12), centrado con la píldora
+     (translate, no transform: GSAP anima el transform del panel al abrir) */
+  .nav__panel {
+    left: 50%;
+    translate: -50% 0;
+    width: calc(100vw - 24px);
+  }
+}

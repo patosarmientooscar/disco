@@ -1,0 +1,23 @@
+/* ---------- páginas interiores mínimas (portfolio, nosotros, contacto) ---------- */
+.page {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  gap: 20px;
+  padding: 140px clamp(16px, 4vw, 56px) 64px;
+  text-align: center;
+}
+.page__title {
+  margin: 0;
+  font: 400 clamp(44px, 8vw, 140px) / 1 var(--font-hero);
+  color: #a7a7a7;
+  text-transform: uppercase;
+}
+.page__soon {
+  margin: 0;
+  font: 400 12px / 1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hud-ink);
+}
