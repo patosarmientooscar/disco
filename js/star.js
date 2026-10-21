@@ -25,6 +25,7 @@ const ENTER = { duration: 1.4, turns: 2 };   // vueltas completas: acaba de fren
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
 const FRONT_BRAKE = 0.85;          // con el modo frontal dominando, frena el giro extra
+const HERO_SPIN = 0.3;             // rad/s: en el hero gira muy despacio sobre su eje Y, sin parar (~21 s por vuelta)
 const TAU = Math.PI * 2;
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
@@ -177,6 +178,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let lastPx = 0;
   const heroEl = document.getElementById('hero-main');
   const lastTarget = { ry: 0, position: new THREE.Vector3(), scale: 0 };
+  let heroSpin = 0;
 
   loop.add((time, ratio) => {
     if (!entered || hidden || !curve) return;
@@ -193,6 +195,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     angularVel = THREE.MathUtils.clamp(angularVel, -SPIN_MAX, SPIN_MAX);
     if (w > 0.5) angularVel *= Math.pow(FRONT_BRAKE, ratio); // en el hero no sigue girando
     rotYExtra += angularVel * ratio;
+    if (entry.k >= 1) heroSpin += HERO_SPIN * (ratio / 60); // empieza cuando la entrada ya ha acabado de frente
 
     // aún llegando a su sitio (los lerps son lentos): a 60 fps hasta que se asiente
     const settling = Math.abs(current.ry - lastTarget.ry) > 0.001 || current.position.distanceToSquared(lastTarget.position) > 1e-3 // > ~0.03 u: no cuenta el retraso de la flotación
@@ -214,12 +217,15 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const freeY = progress * TURNS * TAU + rotYExtra;
     const freeX = Math.sin(time * 0.5) * 0.06 + THREE.MathUtils.clamp(velocity * 0.001, -0.22, 0.22);
     const freeZ = Math.sin(time * 0.35) * 0.05;
-    const frontY = Math.round(freeY / TAU) * TAU;
-    const ry = freeY + (frontY - freeY) * w;
+    // en el hero: el ángulo del giro lento más cercano a la rotación libre (nunca más de media vuelta)
+    const toHero = THREE.MathUtils.euclideanModulo(heroSpin - freeY + Math.PI, TAU) - Math.PI;
+    const ry = freeY + toHero * w;
     const rx = freeX * (1 - w);
     const rz = freeZ * (1 - w);
 
     const lerp = LERP + (FRONT_LERP - LERP) * w;
+    // si el objetivo salta una vuelta entera (se ve igual), la rotación actual salta con él: sin vueltas de más
+    if (current.init && Math.abs(ry - lastTarget.ry) > Math.PI) current.ry += Math.round((ry - lastTarget.ry) / TAU) * TAU;
     const a = current.init ? 1 - Math.pow(1 - lerp, ratio) : 1;
     const ap = current.init ? 1 - Math.pow(1 - POS_LERP, ratio) : 1;
     current.init = true;
