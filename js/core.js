@@ -13,9 +13,12 @@ export function initCore() {
     add(fn) { tasks.add(fn); return () => tasks.delete(fn); },
   };
 
+  // scroll pausado y con inercia (antes lerp 0.1); con movimiento reducido, nativo
   const lenis = new Lenis({
     autoRaf: false,
-    lerp: reduced.matches ? 1 : 0.1,
+    lerp: reduced.matches ? 1 : 0.055,
+    wheelMultiplier: reduced.matches ? 1 : 0.7,
+    touchMultiplier: reduced.matches ? 1 : 1.1,
     smoothWheel: !reduced.matches,
   });
   lenis.on('scroll', ScrollTrigger.update);

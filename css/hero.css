@@ -13,6 +13,20 @@
   background: #000;
 }
 
+/* escena (se aleja con el telón) y velo negro encima */
+.hero__stage {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  transform-origin: 50% 40%;
+}
+.hero__shade {
+  position: absolute; inset: 0;
+  z-index: 3;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .hero__media,
 .hero__canvas {
   position: absolute; inset: 0;
@@ -28,7 +42,7 @@
 .hero.is-gl .hero__canvas { opacity: 1; }
 
 /* viñeta inferior: transparente → rgba(0,0,0,.45) en el 35% de abajo */
-.hero::before {
+.hero__stage::before {
   content: "";
   position: absolute; inset: auto 0 0;
   height: 35%;
@@ -38,7 +52,7 @@
 }
 
 /* grano de película: ruido SVG que salta de posición a 12 fps */
-.hero::after {
+.hero__stage::after {
   content: "";
   position: absolute; inset: -50%;
   z-index: 1;
@@ -144,7 +158,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero::after { animation: none; }
+  .hero__stage::after { animation: none; }
   .hero__scroll-line,
   .hero__scroll-arrow { animation: none; }
 }

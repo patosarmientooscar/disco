@@ -510,7 +510,8 @@ function setupFluid({ hero, img, loop }) {
 
   let settled = true;
   loop.add((time, ratio) => {
-    if (!ready || !onScreen) return;
+    // tapado del todo por la sección siguiente (telón, js/scroll-fx.js): no simula ni pinta
+    if (!ready || !onScreen || hero.classList.contains('is-covered')) return;
     if (performance.now() > activeUntil) {
       // quieto 3 s: velocidad y mapa ~0 → a cero exacto, un último frame y deja de simular
       if (!settled) {

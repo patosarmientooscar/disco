@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/hero.css">
+  <link rel="stylesheet" href="css/team.css">
   <link rel="stylesheet" href="css/services.css">
   <link rel="stylesheet" href="css/intro-loader.css">
   <link rel="stylesheet" href="css/nav.css">
@@ -153,22 +154,68 @@
 
     <!-- Hero v2: foto roja a pantalla completa; hero.js la pinta con OGL y le añade la estela líquida del ratón -->
     <section class="hero" id="hero-main" aria-labelledby="hero-title">
-      <picture class="hero__media">
-        <source srcset="assets/hero/hero-red.webp" type="image/webp">
-        <img src="assets/hero/hero-red.jpg" width="2560" height="1706" decoding="async" fetchpriority="high" data-hero-img
-             alt="Dos personas bailando, movidas, iluminadas en rojo sobre fondo negro">
-      </picture>
-      <h1 class="hero__title" id="hero-title" aria-label="Disco no es solo la pista, es la energía, el ritmo detrás de cada negocio">
-        <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>Disco no es solo la pista</span></span>
-        <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>es la energía, el ritmo</span></span>
-        <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>detrás de cada negocio</span></span>
-      </h1>
-      <div class="hero__scroll" data-hero-scroll aria-hidden="true">
-        <span class="hero__scroll-mark">
-          <i class="hero__scroll-line"></i>
-          <svg class="hero__scroll-arrow" viewBox="0 0 10 6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
-        </span>
-        <p class="hero__scroll-text">Scroll to<br>explore</p>
+      <!-- escena del hero: se aleja (scale) cuando la sección siguiente sube por encima (telón, js/scroll-fx.js) -->
+      <div class="hero__stage">
+        <picture class="hero__media">
+          <source srcset="assets/hero/hero-red.webp" type="image/webp">
+          <img src="assets/hero/hero-red.jpg" width="2560" height="1706" decoding="async" fetchpriority="high" data-hero-img
+               alt="Dos personas bailando, movidas, iluminadas en rojo sobre fondo negro">
+        </picture>
+        <h1 class="hero__title" id="hero-title" aria-label="Disco no es solo la pista, es la energía, el ritmo detrás de cada negocio">
+          <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>Disco no es solo la pista</span></span>
+          <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>es la energía, el ritmo</span></span>
+          <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>detrás de cada negocio</span></span>
+        </h1>
+        <div class="hero__scroll" data-hero-scroll aria-hidden="true">
+          <span class="hero__scroll-mark">
+            <i class="hero__scroll-line"></i>
+            <svg class="hero__scroll-arrow" viewBox="0 0 10 6" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
+          </span>
+          <p class="hero__scroll-text">Scroll to<br>explore</p>
+        </div>
+      </div>
+      <i class="hero__shade" aria-hidden="true"></i>
+    </section>
+
+    <!-- Cofundadores: sin título visible; se entiende por las dos caras, los nombres y la frase.
+         Sube por encima del hero (telón). Estilos en css/team.css, animaciones en js/team.js. -->
+    <section class="team" id="equipo" aria-label="Cofundadores de disco">
+      <div class="team__inner">
+        <div class="team__intro">
+          <p class="team__phrase" data-team-phrase>La energía, el ambiente, las historias. Eso es lo que se queda.</p>
+          <p class="team__sub" data-rise>Capturamos momentos de tu negocio para que la gente no los olvide.</p>
+        </div>
+
+        <figure class="team__person team__person--luna" data-speed="0.92">
+          <div class="team__frame" data-team-frame>
+            <div class="team__zoom" data-team-zoom>
+              <picture>
+                <source type="image/webp" srcset="assets/team/luna-lopez-720.webp 720w, assets/team/luna-lopez-1280.webp 1280w" sizes="(min-width: 768px) 30vw, 78vw">
+                <img src="assets/team/luna-lopez.jpg" width="1280" height="1600" loading="lazy" decoding="async"
+                     alt="Luna López, cofundadora de disco">
+              </picture>
+            </div>
+          </div>
+          <figcaption class="team__name" data-team-name>
+            <span class="team__name-in"><span class="team__who">Luna López</span><span class="team__role">Cofundadora</span></span>
+          </figcaption>
+        </figure>
+
+        <!-- TODO: foto real de Bruno (sustituir assets/team/bruno-marin.jpg y sus .webp de 1280 y 720, mismo nombre) -->
+        <figure class="team__person team__person--bruno" data-speed="1.12">
+          <div class="team__frame" data-team-frame>
+            <div class="team__zoom" data-team-zoom>
+              <picture>
+                <source type="image/webp" srcset="assets/team/bruno-marin-720.webp 720w, assets/team/bruno-marin-1280.webp 1280w" sizes="(min-width: 768px) 30vw, 78vw">
+                <img src="assets/team/bruno-marin.jpg" width="1280" height="1600" loading="lazy" decoding="async"
+                     alt="Bruno Marín, cofundador de disco">
+              </picture>
+            </div>
+          </div>
+          <figcaption class="team__name" data-team-name>
+            <span class="team__name-in"><span class="team__who">Bruno Marín</span><span class="team__role">Cofundador</span></span>
+          </figcaption>
+        </figure>
       </div>
     </section>
 

@@ -1,0 +1,112 @@
+/* ---------- cofundadores (js/team.js) ----------
+   Clean: mucho aire, sin adornos. Fondo casi negro, mismo mundo nocturno que el hero.
+   La sección no crea contexto propio: su fondo queda por debajo del destello 3D (z-index 1) y su
+   contenido (.team__inner, z-index 2) por encima. Sube por encima del hero fijado (telón). */
+.team {
+  --team-gray: #a8a3a1;
+  --team-margin: clamp(24px, 5vw, 96px);
+  position: relative;
+  padding: clamp(120px, 18vh, 220px) var(--team-margin);
+  background: #0b0909;
+  color: #fff;
+  border-radius: 28px 28px 0 0; /* se cierran a 0 al ocupar la pantalla (js/scroll-fx.js) */
+}
+
+.team__inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: clamp(48px, 8vh, 80px);
+}
+
+.team__phrase {
+  max-width: 16ch;
+  margin: 0;
+  font: 500 clamp(30px, 4.2vw, 72px) / 1.05 var(--font-display);
+  letter-spacing: -0.01em;
+}
+/* cada línea en su máscara (js/team.js la parte en líneas reales) */
+.team__line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.team__line-in { display: block; }
+
+.team__sub {
+  max-width: 34ch;
+  margin: 24px 0 0;
+  font: 400 clamp(16px, 1.4vw, 22px) / 1.4 var(--font-display);
+  color: var(--team-gray);
+}
+
+/* ---------- retratos 4:5 en blanco y negro: sin bordes, sombras ni esquinas ---------- */
+.team__person { margin: 0; }
+.team__frame {
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: #141111;
+}
+.team__zoom,
+.team__zoom picture,
+.team__zoom img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.team__zoom img {
+  object-fit: cover;
+  filter: grayscale(1);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); /* expo.out */
+}
+
+.team__name { margin-top: 18px; }
+.team__name-in {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.team__who {
+  font: 500 11px / 1 var(--font-display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.team__role {
+  font: 400 13px / 1 var(--font-display);
+  color: var(--team-gray);
+}
+
+/* hover (escritorio): la foto se acerca un poco y el nombre sube 4px. Nada más. */
+@media (hover: hover) and (pointer: fine) {
+  .team__person:hover .team__zoom img { transform: scale(1.03); }
+  .team__person:hover .team__name-in { transform: translateY(-4px); }
+}
+
+/* móvil: una columna; fotos al 78%, Luna a la izquierda y Bruno a la derecha (escalonado) */
+.team__person { width: 78%; }
+.team__person--bruno { justify-self: end; }
+
+/* ≥ 768px: rejilla de 12 columnas, composición escalonada editorial.
+   Frase en 1–7; Luna en 2–5 (10vh bajo la subfrase); Bruno en 8–11 (18vh más abajo que Luna).
+   Columnas 6–7 libres entre las fotos: por ahí pasa el destello 3D. */
+@media (min-width: 768px) {
+  .team__inner {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 24px;
+    row-gap: 0;
+    align-items: start;
+  }
+  .team__intro { grid-column: 1 / 8; grid-row: 1; }
+  .team__person { width: auto; }
+  .team__person--luna { grid-column: 2 / 6; grid-row: 2; margin-top: 10vh; }
+  .team__person--bruno { grid-column: 8 / 12; grid-row: 2; margin-top: 28vh; justify-self: stretch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .team { border-radius: 0; }
+  .team__zoom img,
+  .team__name-in { transition: none; }
+}

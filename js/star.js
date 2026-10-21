@@ -286,6 +286,7 @@ function waypoints(mobile, ScrollTrigger) {
   const top = services ? services.getBoundingClientRect().top + scrollY : max / 2;
   const pin = ScrollTrigger.getAll().find((st) => st.pin && services?.contains(st.pin));
   const hero = { at: 0, x: 0, y: 0.08, s: 1 };          // encima de la frase, sin tocarla ni al menú
+  const team = teamPoints(mobile);                       // cofundadores: a la derecha de la frase y luego entre las fotos
   // móvil: en el hueco entre el último servicio y "¿Hablamos de tu local?" (medido al final del scroll)
   const endY = (() => {
     const last = services && [...services.querySelectorAll('.service')].pop();
@@ -303,10 +304,11 @@ function waypoints(mobile, ScrollTrigger) {
     const h = services ? services.offsetHeight : max;
     return [
       hero,
+      ...team,
       { at: top, x: side, y: 0.2, s: 0.4 },
       { at: Math.min(max - 1, top + h * 0.5), x: -side, y: -0.1, s: 0.36 },
       end,
-    ].sort((a, b) => a.at - b.at);
+    ].filter(Boolean).sort((a, b) => a.at - b.at);
   }
 
   // escritorio: el hueco entre el texto de la lista y el encuadre del visor
@@ -321,9 +323,39 @@ function waypoints(mobile, ScrollTrigger) {
   })();
   return [
     hero,
+    ...team,
     { at: pin.start, x: gapX, y: 0.05, s: 0.4 },     // s 0.4 ≈ 18% del alto de pantalla
     { at: pin.end, x: gapX, y: -0.1, s: 0.36 },
     end,
+  ].filter(Boolean);
+}
+
+// Cofundadores: 1) mientras la frase cruza el centro de la pantalla, a su derecha (la frase ocupa las
+// columnas 1–7 y el hueco de las fotos cae en ese mismo rango: sin este punto el destello la cruzaría);
+// 2) en el hueco entre las dos fotos (columnas 6–7), a la altura del centro de la
+// foto de Luna, escala 0.30. Se mide sin transformaciones (parallax / entradas): offsetTop / offsetLeft.
+// at = el scroll en el que el centro de la foto de Luna está en el centro de la pantalla (ahí su parallax
+// es 0). En móvil (una columna) va en el margen libre a la derecha de Luna.
+function teamPoints(mobile) {
+  const luna = document.querySelector('.team__person--luna .team__frame');
+  const bruno = document.querySelector('.team__person--bruno .team__frame');
+  const phrase = document.querySelector('.team__phrase');
+  if (!luna || !bruno || !phrase) return [];
+  const box = (el) => {
+    let x = 0;
+    let y = 0;
+    for (let e = el; e; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; }
+    return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+  };
+  const l = box(luna);
+  const b = box(bruno);
+  const at = Math.max(1, l.y + l.h / 2 - innerHeight / 2);
+  const gap = mobile ? (l.x + l.w + document.documentElement.clientWidth) / 2 : (l.x + l.w + b.x) / 2;
+  const p = box(phrase);
+  const right = Math.min(0.62, ((p.x + p.w) / innerWidth) * 2 - 1 + 0.45); // a la derecha del texto
+  return [
+    { at: Math.max(1, p.y + p.h / 2 - innerHeight / 2), x: mobile ? 0.55 : right, y: mobile ? 0.55 : 0.1, s: 0.35 },
+    { at, x: (gap / innerWidth) * 2 - 1, y: 0, s: 0.3 },
   ];
 }
 

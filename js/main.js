@@ -4,6 +4,8 @@ import { runIntroLoader } from './intro-loader.js';
 import { initHero } from './hero.js';
 import { initServices } from './services.js';
 import { initNav } from './nav.js';
+import { initScrollFx } from './scroll-fx.js';
+import { initTeam } from './team.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
 const { gsap, ScrollTrigger, lenis, loop, reduced } = initCore();
@@ -28,6 +30,10 @@ runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starL
   // por si no hubo loading (sin "disco:intro-done"); si ya entraron, no hacen nada
   hero.show();
   nav.appear();
+  // scroll que sube: telón (hero fijo mientras los cofundadores suben por encima), parallax y entradas
+  const fx = initScrollFx({ gsap, ScrollTrigger, reduced });
+  fx.curtain(document.getElementById('hero-main'), document.getElementById('equipo'));
+  initTeam({ gsap, ScrollTrigger, reduced });
   hero.watchCta();
   window.disco.services = initServices({ gsap, ScrollTrigger, reduced, loop });
   nav.watchInk(); // después del pin de servicios
