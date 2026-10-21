@@ -7,7 +7,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 // debajo del texto y del menú (z-index, ver css/star.css). Render dentro del loop único (gsap.ticker).
 // Render y entorno: copia del visor aprobado por Oscar.
 const MODEL = 'assets/3d/disco-star.glb';
-const MODEL_HEIGHT = 2.84;          // unidades del modelo (ancho 2.0, grosor 0.50); v1 en legacy/assets/3d/
+const MODEL_HEIGHT = 2.84;          // unidades del modelo (ancho 2.0, grosor 0.50); v1 y v2 en legacy/assets/3d/
 const MAX_DPR = 2;
 const FOV = 28;
 const CAMERA_Z = 7.6;               // en vertical: max(7.6, 5.2 / aspect)
@@ -19,8 +19,11 @@ const SCRUB = 1.2;                  // inercia del recorrido: le da peso, graved
 const LERP = 0.08;
 const SPIN_GAIN = 0.0009;           // velocidad de Lenis → velocidad angular extra
 const SPIN_FRICTION = 0.94;
-const ENTER = { duration: 1.4, turns: 1.5 };
-const STATIC_POSE = { y: 0.5, x: 0.12 }; // movimiento reducido: 3/4, que se vea el volumen
+const ENTER = { duration: 1.4, turns: 2 };   // vueltas completas: acaba de frente
+const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
+const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
+const FRONT_BRAKE = 0.85;          // con el modo frontal dominando, frena el giro extra
+const TAU = Math.PI * 2;
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let renderer;
@@ -53,35 +56,20 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   star.visible = false;
   scene.add(star);
 
-  // --- modelo: los materiales del GLB se sustituyen por plata pulida (por nombre de material) ---
-  //   "disco-star-silver" (caras): purpurina, reutilizando su normalMap y su rugosidad por escama
-  //   "disco-star-side" (lateral): plata lisa pulida, sin mapas
+  // --- modelo: los materiales del GLB se sustituyen por plata (por nombre de material), sin texturas ---
+  //   caras y lateral: plata pulida; el grabado de "disco": plata mate (por eso se lee el logo)
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const loaded = loader.loadAsync(MODEL).then((gltf) => {
-    const maxAniso = renderer.capabilities.getMaxAnisotropy();
-    const silver = { color: 0xe4e6ea, metalness: 1, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.4 };
+    const silver = { color: 0xe4e6ea, metalness: 1, envMapIntensity: 1.4 };
+    const MATERIALS = {
+      'disco-star-face': { ...silver, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.03 },
+      'disco-star-side': { ...silver, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.03 },
+      'disco-star-engrave': { ...silver, roughness: 0.42, clearcoat: 0 },
+    };
     gltf.scene.traverse((o) => {
       if (!o.isMesh) return;
       const old = o.material;
-      if (old.name === 'disco-star-side') {
-        o.material = new THREE.MeshPhysicalMaterial({ ...silver, roughness: 0.12 });
-      } else {
-        const { normalMap, roughnessMap } = old;
-        [normalMap, roughnessMap].forEach((t) => {
-          if (!t) return;
-          t.wrapS = t.wrapT = THREE.RepeatWrapping;
-          t.anisotropy = maxAniso;
-          t.needsUpdate = true;
-        });
-        if (normalMap) normalMap.colorSpace = THREE.NoColorSpace;
-        o.material = new THREE.MeshPhysicalMaterial({
-          ...silver,
-          roughness: 1,
-          roughnessMap,
-          normalMap,
-          normalScale: new THREE.Vector2(0.4, 0.4),
-        });
-      }
+      o.material = new THREE.MeshPhysicalMaterial(MATERIALS[old.name] || MATERIALS['disco-star-face']);
       old.dispose();
     });
     star.add(gltf.scene);
@@ -119,12 +107,12 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     return target;
   };
 
-  // --- movimiento reducido: quieto en el hero, de 3/4, sin recorrido ni giro ---
+  // --- movimiento reducido: quieto en el hero, de frente, sin recorrido ni giro ---
   if (reduced.matches) {
     const pose = place({ position: new THREE.Vector3() }, { x: 0, y: 0.08, s: 1 });
     star.position.copy(pose.position);
     star.scale.setScalar(pose.scale);
-    star.rotation.set(STATIC_POSE.x, STATIC_POSE.y, 0);
+    star.rotation.set(0, 0, 0);
     const draw = () => {
       const p = place({ position: new THREE.Vector3() }, { x: 0, y: 0.08, s: 1 });
       star.position.copy(p.position);
@@ -174,18 +162,26 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   document.addEventListener('visibilitychange', () => { hidden = document.hidden; });
   let frame = 0;
   let lastPx = 0;
+  const heroEl = document.getElementById('hero-main');
 
   loop.add((time, ratio) => {
     if (!entered || hidden || !curve) return;
     frame++;
     const velocity = lenis.velocity || 0;
 
+    // modo frontal: en el centro del hero el destello mira a cámara con "disco" legible (w = 1);
+    // al bajar se libera poco a poco la rotación del scroll (w → 0)
+    const heroH = heroEl ? heroEl.offsetHeight : innerHeight;
+    const w = 1 - THREE.MathUtils.smoothstep(lenis.scroll, 0, FRONT_ZONE * heroH);
+
     // giro extra por la velocidad del scroll: más rápido, más gira; al parar frena suave
     angularVel = (angularVel + velocity * SPIN_GAIN * ratio) * Math.pow(SPIN_FRICTION, ratio);
+    if (w > 0.5) angularVel *= Math.pow(FRONT_BRAKE, ratio); // en el hero no sigue girando
     rotYExtra += angularVel * ratio;
 
+    const settling = Math.abs(current.rx) + Math.abs(current.rz) > 0.002 && w > 0; // recolocándose de frente
     const moving = Math.abs(velocity) > 0.01 || Math.abs(angularVel) > 0.0005
-      || Math.abs(scroll.px - lastPx) > 0.1 || entry.k < 1 || dirty;
+      || Math.abs(scroll.px - lastPx) > 0.1 || entry.k < 1 || dirty || settling;
     lastPx = scroll.px;
     // en reposo solo queda la flotación, que es lenta: a 30 fps basta
     if (!moving && frame % 2) return;
@@ -195,12 +191,19 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     place(target, { x: p.x, y: p.y, s: p.z });
     target.position.y += Math.sin(time * 0.9) * 0.04;
 
+    // rotación libre (scroll + velocidad + balanceo) y pose frontal: la vuelta completa más cercana,
+    // sin balanceo en X/Z (en el hero solo flota en vertical, para que el grabado se lea quieto)
     const progress = scroll.px / Math.max(1, ScrollTrigger.maxScroll(window));
-    const ry = progress * TURNS * Math.PI * 2 + rotYExtra;
-    const rx = Math.sin(time * 0.7) * 0.08 + THREE.MathUtils.clamp(velocity * 0.002, -0.35, 0.35);
-    const rz = Math.sin(time * 0.5) * 0.06;
+    const freeY = progress * TURNS * TAU + rotYExtra;
+    const freeX = Math.sin(time * 0.7) * 0.08 + THREE.MathUtils.clamp(velocity * 0.002, -0.35, 0.35);
+    const freeZ = Math.sin(time * 0.5) * 0.06;
+    const frontY = Math.round(freeY / TAU) * TAU;
+    const ry = freeY + (frontY - freeY) * w;
+    const rx = freeX * (1 - w);
+    const rz = freeZ * (1 - w);
 
-    const a = current.init ? 1 - Math.pow(1 - LERP, ratio) : 1;
+    const lerp = LERP + (FRONT_LERP - LERP) * w;
+    const a = current.init ? 1 - Math.pow(1 - lerp, ratio) : 1;
     current.init = true;
     current.position.lerp(target.position, a);
     current.scale += (target.scale - current.scale) * a;
@@ -217,7 +220,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
   return {
     loaded,
-    // con "disco:intro-done", a la vez que la frase del hero: escala 0 → 1 y 1.5 vueltas
+    // con "disco:intro-done", a la vez que la frase del hero: escala 0 → 1 y 2 vueltas (acaba de frente)
     enter() {
       if (entered) return;
       loaded.then(() => {
