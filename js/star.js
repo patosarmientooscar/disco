@@ -9,6 +9,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 const MODEL = 'assets/3d/disco-star.glb';
 const MODEL_HEIGHT = 2.84;          // unidades del modelo (ancho 2.0, grosor 0.50); v1–v3 en legacy/assets/3d/
 const MAX_DPR = 2;
+const ENV_INTENSITY = 1.15;         // brillo de los reflejos (el visor usaba 1.4; Oscar lo quiere un poco menos brillante)
 const FOV = 28;
 const CAMERA_Z = 7.6;               // en vertical: max(7.6, 5.2 / aspect)
 const HERO_SIZE = 0.45;             // alto del destello en el hero (fracción de la pantalla): el protagonista
@@ -82,7 +83,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
         normalMap,
         normalScale: old.normalScale.clone(),
         metalness: 1,
-        envMapIntensity: 1.4,
+        envMapIntensity: ENV_INTENSITY,
         clearcoat: engrave ? 0 : 1,
         clearcoatRoughness: 0.03,
       });
