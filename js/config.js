@@ -11,25 +11,13 @@ export const config = {
   email: 'hola@disco.es',
 
   // Loading: lo que se precarga de verdad (el % refleja su carga) y su duración mínima.
+  // El vídeo de las lentes está en el HTML (<video data-intro-video>, webm + mp4).
   intro: {
-    video: 'assets/intro/camera-lens.mp4',
     images: ['assets/hero/layer1-sketch.webp', 'assets/hero/layer2-clay.webp', 'assets/hero/layer3-final.webp'],
     minSeconds: 2.8,
   },
 
-  // Secuencia de frames de la cámara (vídeo a 24 fps). Móvil: 1 de cada 2 frames.
-  sequence: {
-    fps: 24,
-    mobileQuery: '(max-width: 768px)', // mismo corte que pixel-field.js y #prehero-bg
-    desktop: { dir: 'assets/seq/desktop', count: 193, step: 1 },
-    mobile: { dir: 'assets/seq/mobile', count: 97, step: 2 },
-    // Cámara en el frame 1 (fracción del frame): bbox x 345–890, y 43–657 de 1280×720.
-    // En móvil se escala para que ocupe ~85% del ancho, recortando solo el negro de los lados.
-    // (Si cambia, revisar la altura de #prehero-bg en móvil en prehero.css.)
-    cameraBox: { width: 546 / 1280, cx: 617.5 / 1280, cy: 350 / 720 },
-    mobileFill: 0.85,
-    frame: (dir, i) => `${dir}/${String(i + 1).padStart(4, '0')}.webp`,
-  },
+  // (LEGACY PRE-HERO: la configuración de la secuencia de frames de la cámara está en la historia de git.)
 };
 
 export const whatsappUrl = () =>

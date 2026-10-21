@@ -1,3 +1,6 @@
+/* LEGACY PRE-HERO — cámara de cine + "disco.es" en píxeles + scroll por las lentes (y su HUD,
+   flash blanco y apertura en círculo). No se carga. Sustituido por la intro del prompt 3 (2026-10-21). */
+
 // Scroll por la cámara: #prehero se fija ~500vh y el scroll recorre el vídeo frame a frame.
 // Primer 10%: se van HUD y CTA. Primer 40%: el fondo de píxeles se aleja (scale + opacity,
 // sin blur: costaba ~5 fps en retina). Hacia atrás, al revés.

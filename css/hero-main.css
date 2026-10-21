@@ -1,21 +1,10 @@
-/* ---------- capa blanca sobre el vídeo (dentro del pre-hero fijado) ---------- */
-.prehero__white {
-  position: absolute; inset: 0;
-  z-index: 2;
-  background: var(--blanco-flash);
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* ---------- hero principal ----------
-   Se solapa con la última pantalla del pin (margen negativo = alto del pre-hero):
-   cuando el pin termina, ocupa exactamente la pantalla y se abre desde el centro.
-   Alto fijo: tilted-grid.js usa container-type:size (unidades cqh/cqw). */
+   Primera sección: aparece al terminar la intro (blanco del vídeo de lentes).
+   Alto fijo: tilted-grid.js usa container-type:size (unidades cqh/cqw).
+   (LEGACY PRE-HERO: antes se solapaba con el pin de la cámara y se abría en círculo.) */
 .hero-main {
   position: relative;
   z-index: 2;
-  margin-top: -100vh;
-  margin-top: -100svh;
   height: 100vh;
   height: 100svh;
   display: flex;
@@ -25,7 +14,6 @@
   background: var(--blanco-flash);
   color: var(--negro-sensor);
   text-align: center;
-  clip-path: circle(0% at 50% 50%);
 }
 /* el texto va por encima de la fila de fotos */
 .hero-main__top,
@@ -113,8 +101,7 @@
   }
 }
 
-/* movimiento reducido: fundido en lugar del círculo; el punto no parpadea */
+/* movimiento reducido: el punto no parpadea */
 @media (prefers-reduced-motion: reduce) {
-  .hero-main { clip-path: none; opacity: 0; }
   .btn-rec__dot { animation: none; }
 }

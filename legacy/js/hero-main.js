@@ -1,3 +1,6 @@
+/* LEGACY PRE-HERO — cámara de cine + "disco.es" en píxeles + scroll por las lentes (y su HUD,
+   flash blanco y apertura en círculo). No se carga. Sustituido por la intro del prompt 3 (2026-10-21). */
+
 // Apertura al hero principal: al llegar al último frame (fin del pin), capa #F4F2EC a pantalla
 // completa y #hero-main se abre desde el centro. Hacia atrás, el círculo se cierra y vuelve el vídeo.
 const CLOSED = 'circle(0% at 50% 50%)';

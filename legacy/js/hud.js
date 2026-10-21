@@ -1,3 +1,6 @@
+/* LEGACY PRE-HERO — cámara de cine + "disco.es" en píxeles + scroll por las lentes (y su HUD,
+   flash blanco y apertura en círculo). No se carga. Sustituido por la intro del prompt 3 (2026-10-21). */
+
 const pad = (n) => String(n).padStart(2, '0');
 
 export function initHud({ loop, fps: FPS }) {

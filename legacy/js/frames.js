@@ -1,3 +1,6 @@
+/* LEGACY PRE-HERO — cámara de cine + "disco.es" en píxeles + scroll por las lentes (y su HUD,
+   flash blanco y apertura en círculo). No se carga. Sustituido por la intro del prompt 3 (2026-10-21). */
+
 import { config } from './config.js';
 
 // Precarga de la secuencia de la cámara. Guarda los Image para pintarlos luego en el canvas

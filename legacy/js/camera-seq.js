@@ -1,3 +1,6 @@
+/* LEGACY PRE-HERO — cámara de cine + "disco.es" en píxeles + scroll por las lentes (y su HUD,
+   flash blanco y apertura en círculo). No se carga. Sustituido por la intro del prompt 3 (2026-10-21). */
+
 // Cámara del vídeo pintada frame a frame en un canvas a pantalla completa.
 // Los frames llevan alpha (fondo quitado): la cámara tapa de verdad los píxeles de detrás.
 const MAX_DPR = 2;

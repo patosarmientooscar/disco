@@ -1,5 +1,8 @@
+import { playIntroShot } from './intro-shot.js';
+
 // Loading: el logo de disco se dibuja a lápiz y se rellena, con una barra que refleja la carga real.
-// Al llegar a 100% dispara "disco:loaded". Resuelve cuando el loading ha desaparecido.
+// Al llegar a 100% dispara "disco:loaded"; después luz roja + flash + zoom por las lentes
+// (intro-shot.js) y, ya en blanco, "disco:intro-done". Resuelve cuando el loading ha desaparecido.
 const SVGNS = 'http://www.w3.org/2000/svg';
 const LETTERS = ['d', 'i', 's', 'c', 'o'];
 const STROKE = 2;          // unidades del viewBox (≈1.2px con el logo a 560px)
@@ -113,11 +116,9 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro }) {
     img.src = src;
   });
 
+  // el mismo <video> que luego se reproduce (no se descarga dos veces)
   const videoSrc = track();
-  const video = document.createElement('video');
-  video.muted = true;
-  video.preload = 'auto';
-  video.playsInline = true;
+  const video = el.querySelector('[data-intro-video]');
   const buffered = () => {
     if (videoSrc.value === 1 || !video.duration || !video.buffered.length) return;
     videoSrc.value = Math.min(0.99, video.buffered.end(video.buffered.length - 1) / video.duration);
@@ -125,8 +126,15 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro }) {
   video.addEventListener('progress', buffered);
   video.addEventListener('canplaythrough', () => { videoSrc.value = 1; }, { once: true });
   video.addEventListener('error', () => { videoSrc.value = 1; }, { once: true });
-  video.src = intro.video;
-  video.load();
+  // con <source>, si ninguna sirve el error llega en la última
+  video.querySelector('source:last-of-type')?.addEventListener('error', () => { videoSrc.value = 1; });
+  if (reduced.matches) {
+    videoSrc.value = 1; // sin vídeo con movimiento reducido: no hace falta descargarlo
+    video.preload = 'none';
+  } else {
+    video.load();
+  }
+  if (video.readyState >= 4) videoSrc.value = 1;
 
   const fonts = track();
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { fonts.value = 1; });
@@ -160,17 +168,17 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro }) {
       window.removeEventListener('resize', placeBar);
       window.dispatchEvent(new CustomEvent('disco:loaded'));
 
-      // provisional hasta el prompt 3 (luz roja + flash + lentes): el loading se funde y sigue la web
-      gsap.to(el, {
-        opacity: 0,
-        duration: 0.4,
-        ease: 'power1.inOut',
-        onComplete: () => {
-          el.remove();
-          document.documentElement.classList.remove('is-locked');
-          lenis.start();
-          resolve();
-        },
+      // luz roja → flash → lentes → blanco; luego fuera el loading y el vídeo
+      playIntroShot({ gsap, reduced, root: el }).then(() => {
+        video.pause();
+        video.querySelectorAll('source').forEach((s) => s.remove());
+        video.removeAttribute('src');
+        video.load(); // libera el vídeo
+        el.remove();
+        document.documentElement.classList.remove('is-locked');
+        lenis.start();
+        window.dispatchEvent(new CustomEvent('disco:intro-done'));
+        resolve();
       });
     });
   });

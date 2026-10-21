@@ -16,8 +16,6 @@
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/hud.css">
-  <link rel="stylesheet" href="css/prehero.css">
   <link rel="stylesheet" href="css/hero-main.css">
   <link rel="stylesheet" href="css/services.css">
   <link rel="stylesheet" href="css/intro-loader.css">
@@ -83,18 +81,31 @@
       <span class="intro__pct" data-intro-pct aria-hidden="true">000%</span>
       <span class="intro__fill" data-intro-fill></span>
     </div>
+    <!-- prompt 3: piloto rojo sobre la estrella, flash y zoom por las lentes -->
+    <i class="intro__pilot" data-intro-pilot aria-hidden="true"></i>
+    <video class="intro__video" data-intro-video muted playsinline preload="auto" aria-hidden="true">
+      <source src="assets/intro/lens-zoom.webm" type="video/webm">
+      <source src="assets/intro/lens-zoom.mp4" type="video/mp4">
+    </video>
+    <div class="intro__ghost" data-intro-ghost aria-hidden="true"></div>
+    <i class="intro__preflash" data-intro-preflash aria-hidden="true"></i>
+    <i class="intro__burst" data-intro-burst aria-hidden="true"></i>
+    <i class="intro__white" data-intro-white aria-hidden="true"></i>
   </div>
 
   <a class="skip" href="#contenido">Saltar al contenido</a>
 
   <main id="contenido">
-    <!-- Pre-hero: píxeles "disco.es" (pixel-field.js) + cámara del vídeo (camera-seq.js); ambos crean su canvas -->
-    <section class="prehero" id="prehero" aria-label="disco.es">
-      <!-- host del campo de píxeles: todo el pre-hero en desktop, la franja de arriba en móvil -->
-      <div class="prehero__bg" id="prehero-bg"></div>
-      <!-- capa blanca al llegar al punto blanco del vídeo -->
-      <div class="prehero__white" data-whiteout aria-hidden="true"></div>
-    </section>
+    <!-- LEGACY PRE-HERO (no se usa; código en legacy/)
+      (nota: Pre-hero: píxeles "disco.es" (pixel-field.js) + cámara del vídeo (camera-seq.js); ambos crean su canvas)
+      <section class="prehero" id="prehero" aria-label="disco.es">
+        (nota: host del campo de píxeles: todo el pre-hero en desktop, la franja de arriba en móvil)
+        <div class="prehero__bg" id="prehero-bg"></div>
+        (nota: capa blanca al llegar al punto blanco del vídeo)
+        <div class="prehero__white" data-whiteout aria-hidden="true"></div>
+      </section>
+
+    -->
 
     <!-- Hero principal: se abre desde el centro al llegar al último frame.
          tilted-grid.js inserta detrás la fila curvada de fotos. -->
@@ -220,7 +231,8 @@
     </section>
   </main>
 
-  <!-- HUD mínimo: REC + timecode -->
+  <!-- LEGACY PRE-HERO: HUD y CTA claro (no se usa; código en legacy/)
+  (nota: HUD mínimo: REC + timecode)
   <div class="hud" data-hud aria-hidden="true">
     <div class="hud__slot hud__slot--tl">
       <span class="hud__rec"><i class="hud__rec-dot"></i>REC</span>
@@ -230,17 +242,21 @@
     </div>
   </div>
 
-  <!-- CTA del pre-hero (claro); se va al empezar el scroll por la cámara -->
+  (nota: CTA del pre-hero (claro); se va al empezar el scroll por la cámara)
   <a class="cta" data-cta href="#" target="_blank" rel="noopener">
     <i class="cta__dot" aria-hidden="true"></i>Pide tu presupuesto
   </a>
+
+  -->
 
   <!-- CTA fijo (oscuro) del resto de la página: aparece cuando el del hero principal sale de pantalla -->
   <a class="btn-rec btn-rec--fixed" data-cta data-cta-fixed href="#" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
     <i class="btn-rec__dot" aria-hidden="true"></i>Pide tu presupuesto
   </a>
 
+  <!-- LEGACY PRE-HERO: flash blanco de transición (no se usa; código en legacy/)
   <div class="flash" data-flash aria-hidden="true"></div>
+  -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
