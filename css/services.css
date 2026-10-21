@@ -1,0 +1,178 @@
+/* ---------- servicios: "el visor" ---------- */
+.services {
+  position: relative;
+  z-index: 2;
+  background: var(--blanco-flash);
+  color: var(--negro-sensor);
+}
+
+.services__pin {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(16px, 4vh, 48px);
+  /* abajo deja sitio al CTA fijo para que no tape el encuadre */
+  padding: clamp(48px, 8vh, 96px) clamp(16px, 4vw, 56px) clamp(104px, 15vh, 140px);
+}
+
+.services__eyebrow {
+  margin: 0 0 12px;
+  font: 400 12px / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  color: rgb(7 7 10 / 0.6);
+}
+.services__title {
+  margin: 0;
+  font: 600 clamp(28px, 3vw, 44px) / 1 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.services__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 96px);
+  align-items: center;
+  min-height: 0;
+}
+
+/* ---------- lista: el activo sólido, los demás en contorno ---------- */
+.services__list { list-style: none; margin: 0; padding: 0; }
+.service + .service { margin-top: clamp(2px, 0.8vh, 10px); }
+
+.service__name {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.18em;
+  margin: 0;
+  font: 600 clamp(48px, 7vw, 120px) / 0.98 var(--font-display);
+  letter-spacing: -0.03em;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--negro-sensor);
+  transition: color 0.3s ease;
+}
+.service.is-active .service__name { color: var(--negro-sensor); }
+.service__num {
+  margin-top: 0.42em;
+  font: 400 12px / 1 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--negro-sensor);
+  -webkit-text-stroke: 0;
+}
+
+/* en desktop solo el activo despliega su texto (altura animada desde JS) */
+.service__detail { height: 0; overflow: hidden; }
+.service.is-active .service__detail { height: auto; }
+.service__detail-inner {
+  display: grid;
+  gap: 14px;
+  max-width: 46ch;
+  padding: 14px 0 6px;
+}
+.service__desc {
+  margin: 0;
+  font: 500 clamp(16px, 1.3vw, 19px) / 1.4 var(--font-display);
+  color: #3A3A40;
+}
+.service__deliverables {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 0; padding: 0;
+  list-style: none;
+  font: 400 12px / 1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+/* ---------- encuadre de visor ---------- */
+.viewer {
+  justify-self: end;
+  width: min(100%, calc((100vh - 380px) * 0.8));
+  margin: 0;
+}
+.viewer__hud {
+  margin: 0 0 16px;
+  min-height: 1.2em;
+  font: 400 12px / 1.2 var(--font-mono);
+  letter-spacing: 0.06em;
+  white-space: pre;
+  font-variant-numeric: tabular-nums;
+}
+.viewer__hud [hidden] { display: none; }
+/* desktop: el <p> lleva sangría del HTML; solo las etiquetas conservan sus dobles espacios */
+.viewer .viewer__hud { white-space: normal; }
+.viewer .viewer__hud > span { white-space: pre; }
+.rec-dot {
+  display: inline-block;
+  width: 7px; height: 7px; margin-right: 0.6em;
+  border-radius: 50%;
+  background: var(--rojo-rec);
+  vertical-align: 0.05em;
+  animation: blink var(--beat) steps(1, end) infinite;
+}
+
+.viewer__frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: #E6E3DB;
+}
+.viewer__img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+.viewer__img.is-active { opacity: 1; }
+.viewer__flash {
+  position: absolute; inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+/* esquinas en L, por fuera de la foto */
+.viewer__brackets { position: absolute; inset: -12px; pointer-events: none; }
+.br { position: absolute; width: 28px; height: 28px; border: 0 solid var(--negro-sensor); }
+.br--tl { top: 0; left: 0; border-top-width: 1.5px; border-left-width: 1.5px; }
+.br--tr { top: 0; right: 0; border-top-width: 1.5px; border-right-width: 1.5px; }
+.br--bl { bottom: 0; left: 0; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.br--br { bottom: 0; right: 0; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+/* el encuadre de cada servicio solo existe en la versión apilada */
+.service__viewer { display: none; margin: 0; }
+
+/* ---------- cierre ---------- */
+.services__outro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(20px, 3vh, 32px);
+  padding: clamp(64px, 14vh, 160px) clamp(16px, 4vw, 56px) clamp(80px, 16vh, 180px);
+  text-align: center;
+}
+.services__outro-title {
+  margin: 0;
+  font: 600 clamp(32px, 4vw, 60px) / 1 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- apilado: móvil y movimiento reducido (sin pin ni flash) ---------- */
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  .services__pin { height: auto; display: block; }
+  .services__head { margin-bottom: clamp(32px, 6vh, 56px); }
+  .services__body { display: block; }
+  .viewer { display: none; }
+
+  .service + .service { margin-top: clamp(56px, 10vh, 96px); }
+  .service__viewer { display: block; margin: 0 12px 24px; max-width: 520px; }
+  .service__name { color: var(--negro-sensor); -webkit-text-stroke: 0; }
+  .service__detail { height: auto; overflow: visible; }
+}
+
+@media (max-width: 768px) {
+  .service__name { font-size: clamp(48px, 15vw, 72px); }
+  /* deja sitio a la barra fija del CTA */
+  .services__outro { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-dot { animation: none; }
+}

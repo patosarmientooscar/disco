@@ -96,7 +96,10 @@
   bottom: calc(var(--hud-inset) + var(--hud-pad));
   visibility: hidden;
   opacity: 0;
+  transition: opacity 0.2s linear, visibility 0.2s;
 }
+/* mientras otro CTA igual está en pantalla (cierre de servicios), el fijo se aparta */
+.btn-rec--fixed.is-muted { opacity: 0 !important; visibility: hidden !important; }
 
 @media (max-width: 768px) {
   .hero-main { padding-top: clamp(56px, 10svh, 96px); }

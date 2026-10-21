@@ -9,6 +9,7 @@ import { initScrollCamera } from './scroll-camera.js';
 import { initHeroMain } from './hero-main.js';
 import { initHeroContent } from './hero-content.js';
 import { heroPhotos } from './photos.js';
+import { initServices } from './services.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -77,6 +78,8 @@ runLoader({ gsap, lenis, reduced, frames }).then(() => {
     pin = initScrollCamera({ gsap, ScrollTrigger, reduced, camera, field, frames, hud, fps: config.sequence.fps });
     initHeroMain({ gsap, ScrollTrigger, reduced, pin, onOpen: heroContent.show, onClose: heroContent.hide });
     heroContent.watchCta();
+    // después del pin de la cámara: así su posición cuenta los 500vh de ese pin
+    window.disco.services = initServices({ gsap, ScrollTrigger, reduced, loop });
     window.disco.pin = pin;
   });
 });

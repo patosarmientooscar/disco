@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/hud.css">
   <link rel="stylesheet" href="css/prehero.css">
   <link rel="stylesheet" href="css/hero-main.css">
+  <link rel="stylesheet" href="css/services.css">
   <link rel="stylesheet" href="css/loader.css">
 
   <script>
@@ -65,6 +66,114 @@
           <i class="btn-rec__dot" aria-hidden="true"></i>Pide tu presupuesto
         </a>
         <p class="hero-main__tagline">Productora de foto, vídeo y edición en Madrid · Restaurantes · Discotecas · Eventos · Locales</p>
+      </div>
+    </section>
+
+    <!-- Servicios: "el visor". Desktop: pin con la lista a la izquierda y un encuadre a la derecha.
+         Móvil / movimiento reducido: los 3 servicios apilados, cada uno con su encuadre. -->
+    <section class="services" id="servicios" aria-labelledby="services-title">
+      <div class="services__pin" data-services-pin>
+        <header class="services__head">
+          <p class="services__eyebrow">SERVICIOS — 03</p>
+          <h2 class="services__title" id="services-title">Lo que hacemos</h2>
+        </header>
+
+        <div class="services__body">
+          <ol class="services__list">
+            <li class="service is-active" data-service>
+              <figure class="service__viewer">
+                <p class="viewer__hud">ISO 400  f/2.8  1/200</p>
+                <div class="viewer__frame">
+                  <img class="viewer__img is-active" src="assets/servicios/foto.webp" width="1366" height="1708" loading="lazy" decoding="async"
+                       alt="Terraza con sombrilla blanca, palmera y gente sentada en las mesas junto al agua">
+                  <i class="viewer__flash" aria-hidden="true"></i>
+                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+                </div>
+              </figure>
+              <h3 class="service__name"><span class="service__num">01</span>Foto</h3>
+              <div class="service__detail">
+                <div class="service__detail-inner">
+                  <p class="service__desc">Fotografía de producto, espacio y ambiente. Platos que dan hambre, barras que llaman, salas llenas.</p>
+                  <ul class="service__deliverables">
+                    <li>Sesión en tu local</li>
+                    <li>Retoque y color</li>
+                    <li>Formatos para web y redes</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+            <li class="service" data-service>
+              <figure class="service__viewer">
+                <p class="viewer__hud"><i class="rec-dot" aria-hidden="true"></i>REC  4K 25p</p>
+                <div class="viewer__frame">
+                  <img class="viewer__img is-active" src="assets/servicios/video.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                       alt="Persona en movimiento, iluminada en rojo sobre fondo negro">
+                  <i class="viewer__flash" aria-hidden="true"></i>
+                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+                </div>
+              </figure>
+              <h3 class="service__name"><span class="service__num">02</span>Vídeo</h3>
+              <div class="service__detail">
+                <div class="service__detail-inner">
+                  <p class="service__desc">Reels, vídeos de marca y cobertura de eventos. Grabamos el ritmo real de tu negocio.</p>
+                  <ul class="service__deliverables">
+                    <li>Reels y TikTok</li>
+                    <li>Vídeo de marca</li>
+                    <li>Aftermovie de eventos</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+            <li class="service" data-service>
+              <figure class="service__viewer">
+                <p class="viewer__hud">TIMELINE  <span data-edit-tc>00:00:12:04</span></p>
+                <div class="viewer__frame">
+                  <img class="viewer__img is-active" src="assets/servicios/edicion.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                       alt="Silueta movida de una persona con gorra, en blanco y negro">
+                  <i class="viewer__flash" aria-hidden="true"></i>
+                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+                </div>
+              </figure>
+              <h3 class="service__name"><span class="service__num">03</span>Edición</h3>
+              <div class="service__detail">
+                <div class="service__detail-inner">
+                  <p class="service__desc">Montaje, color y sonido con ritmo. Convertimos horas de material en segundos que se recuerdan.</p>
+                  <ul class="service__deliverables">
+                    <li>Montaje al beat</li>
+                    <li>Etalonaje</li>
+                    <li>Subtítulos y versiones</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+          </ol>
+
+          <!-- encuadre único de desktop: muestra la foto del servicio activo -->
+          <figure class="viewer" data-viewer>
+            <p class="viewer__hud">
+              <span data-viewer-hud>ISO 400  f/2.8  1/200</span>
+              <span data-viewer-hud hidden><i class="rec-dot" aria-hidden="true"></i>REC  4K 25p</span>
+              <span data-viewer-hud hidden>TIMELINE  <span data-edit-tc>00:00:12:04</span></span>
+            </p>
+            <div class="viewer__frame" data-viewer-frame>
+              <img class="viewer__img is-active" data-viewer-img src="assets/servicios/foto.webp" width="1366" height="1708" loading="lazy" decoding="async"
+                   alt="Terraza con sombrilla blanca, palmera y gente sentada en las mesas junto al agua">
+              <img class="viewer__img" data-viewer-img src="assets/servicios/video.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                   alt="Persona en movimiento, iluminada en rojo sobre fondo negro">
+              <img class="viewer__img" data-viewer-img src="assets/servicios/edicion.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                   alt="Silueta movida de una persona con gorra, en blanco y negro">
+              <i class="viewer__flash" aria-hidden="true"></i>
+              <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      <div class="services__outro">
+        <p class="services__outro-title">¿Hablamos de tu local?</p>
+        <a class="btn-rec" data-cta href="#" target="_blank" rel="noopener">
+          <i class="btn-rec__dot" aria-hidden="true"></i>Pide tu presupuesto
+        </a>
       </div>
     </section>
   </main>
