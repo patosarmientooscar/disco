@@ -24,6 +24,18 @@
 
   <script>
     document.documentElement.classList.add('js');
+    // Abierto con doble clic (file://): el navegador bloquea los módulos JS y la web no arranca.
+    if (location.protocol === 'file:') {
+      document.addEventListener('DOMContentLoaded', function () {
+        var loader = document.getElementById('loader');
+        if (loader) loader.remove();
+        var note = document.createElement('p');
+        note.className = 'file-note';
+        note.innerHTML = '<span>Esta web no funciona abriendo <code>index.html</code> con doble clic.<br>' +
+          'Abre <code>abrir-web.bat</code> (en la misma carpeta) o visita <code>http://localhost:5173</code>.</span>';
+        document.body.prepend(note);
+      });
+    }
     // Red de seguridad: si main.js no llega, la página se muestra igualmente.
     setTimeout(function () {
       var loader = document.getElementById('loader');

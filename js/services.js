@@ -37,8 +37,9 @@ export function initServices({ gsap, ScrollTrigger, reduced, loop }) {
     .fromTo(frame.querySelector('.viewer__brackets'), { scale: 1 },
       { scale: 0.94, duration: 0.15, ease: 'power2.out', yoyo: true, repeat: 1 }, 0);
 
-  // con el CTA del cierre en pantalla, el CTA fijo se aparta (no dos botones iguales a la vez)
-  ScrollTrigger.create({
+  // con el CTA del cierre en pantalla, el CTA fijo se aparta (no dos botones iguales a la vez).
+  // Se crea después del pin de la sección: si no, su posición no cuenta esos 300vh.
+  const muteFixedCta = () => ScrollTrigger.create({
     trigger: section.querySelector('.services__outro .btn-rec'),
     start: 'top bottom',
     end: 'bottom top',
@@ -59,6 +60,7 @@ export function initServices({ gsap, ScrollTrigger, reduced, loop }) {
         onToggle: (self) => { if (i === 2) tcRunning = self.isActive && !reduced.matches; },
       });
     });
+    muteFixedCta();
     return null;
   }
 
@@ -82,11 +84,13 @@ export function initServices({ gsap, ScrollTrigger, reduced, loop }) {
     });
   };
 
-  return ScrollTrigger.create({
+  const pin = ScrollTrigger.create({
     trigger: section.querySelector('[data-services-pin]'),
     start: 'top top',
     end: PIN,
     pin: true,
     onUpdate: (self) => setActive(Math.min(2, Math.floor(self.progress * 3))),
   });
+  muteFixedCta();
+  return pin;
 }
