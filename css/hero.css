@@ -3,8 +3,8 @@
    la pinta igual ("cover" centrado) y añade la estela del ratón. Viñeta y grano van en CSS
    para no tener que renderizar en reposo.
    LEGACY HERO: la fila curvada (Tilted Grid) está en legacy/css/hero-main.css. */
-/* sin z-index ni isolation: el destello 3D (canvas fijo, z-index 1, js/star.js) pasa por encima de
-   la foto y del fluido y por debajo de la frase y del scroll (z-index 2) */
+/* capas: foto/fluido < frase < destello 3D (canvas fijo, z-index 1, js/star.js) < menú. La escena aísla
+   su apilado (isolation), así la frase (z-index 2 dentro de ella) queda entera por debajo del destello */
 .hero {
   position: relative;
   height: 100vh;
@@ -16,6 +16,7 @@
 /* escena (se aleja con el telón) y velo negro encima */
 .hero__stage {
   position: absolute; inset: 0;
+  isolation: isolate;
   overflow: hidden;
   transform-origin: 50% 40%;
 }
@@ -71,47 +72,49 @@
   100% { transform: translate(0, 0); }
 }
 
-/* ---------- frase ---------- */
-/* Clash Display 500 (Gasoek One solo tiene un peso, Heavy, y no se puede adelgazar) */
+/* ---------- frase: EL titular del hero, centrada (un poco por debajo del centro: 54 %) ----------
+   Detrás del destello, que la tapa en parte. js/hero.js ajusta el tamaño para que la línea más larga ocupe
+   ~86 % del ancho (escritorio) e iguala las otras con un poco de letter-spacing; aquí, el tamaño de partida.
+   La caja ocupa todo el hero (centrado con flex, sin transform: el parallax de GSAP usa y). */
 .hero {
-  --title-size: clamp(18px, 1.9vw, 34px);
+  --title-size: clamp(38px, 7vw, 128px);
   --title-bottom: clamp(28px, 5vh, 56px);
-  /* línea base de la última línea, medida desde abajo de su caja: (1.15 − 1)/2 + descendente de
-     Clash Display ≈ 0.27em (medido en el navegador). La flecha del scroll se alinea con ella. */
-  --title-baseline: calc(var(--title-bottom) + 0.27 * var(--title-size));
 }
 .hero__title {
   position: absolute;
   z-index: 2;
-  left: 50%;
-  bottom: var(--title-bottom);
-  width: max-content;
-  max-width: 92vw;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8% 4vw 0; /* centro de la caja de contenido = 54 % del alto */
   margin: 0;
-  transform: translateX(-50%);
-  font: 500 var(--title-size) / 1.15 var(--font-display);
-  letter-spacing: 0.02em;
-  color: #fff;
+  font: 500 var(--title-size) / 0.92 var(--font-display);
+  letter-spacing: -0.02em;
+  color: #f4f2ef;
   text-align: center;
   text-transform: uppercase;
-  pointer-events: none;
+  text-shadow: 0 2px 40px rgb(0 0 0 / 0.35);
+  pointer-events: none; /* el fluido sigue respondiendo al ratón */
 }
 /* cada línea en su máscara; el margen negativo deja sitio a las tildes sin mover el texto */
 .hero__line {
   display: block;
+  max-width: 100%;
   overflow: hidden;
-  padding: 0.14em 0.04em 0.06em;
-  margin: -0.14em -0.04em -0.06em;
+  padding: 0.16em 0.04em 0.06em;
+  margin: -0.16em -0.04em -0.06em;
 }
 /* en escritorio cada línea cabe entera; en móvil se parte sola, equilibrada (sin palabras sueltas) */
-.hero__line-in { display: block; text-wrap: balance; }
+.hero__line-in { display: inline-block; white-space: nowrap; } /* inline-block: js/hero.js mide el ancho del texto */
 
 /* ---------- "SCROLL TO EXPLORE": línea discontinua corta + flecha ---------- */
 .hero__scroll {
   position: absolute;
   z-index: 2;
   left: clamp(24px, 3vw, 56px);
-  bottom: var(--title-baseline); /* la punta de la flecha, a la altura de la línea base de la frase */
+  bottom: var(--title-bottom);
   display: flex;
   align-items: flex-end;
   gap: 18px;
@@ -151,6 +154,11 @@
 /* antes de la intro: frase y scroll ocultos (JS los hace entrar con "disco:intro-done") */
 .js .hero__line-in { transform: translateY(105%); opacity: 0; }
 .js .hero__scroll { opacity: 0; }
+
+@media (max-width: 767px) {
+  .hero { --title-size: clamp(30px, 9.5vw, 48px); }
+  .hero__line-in { white-space: normal; text-wrap: balance; }
+}
 
 /* móvil: el indicador chocaría con la frase */
 @media (max-width: 768px) {

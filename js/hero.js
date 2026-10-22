@@ -217,11 +217,13 @@ void main() {
 export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
   const hero = document.getElementById('hero-main');
   const img = hero.querySelector('[data-hero-img]');
+  const title = hero.querySelector('.hero__title');
   const lines = hero.querySelectorAll('[data-hero-line]');
   const scroll = hero.querySelector('[data-hero-scroll]');
   const fixedCta = document.querySelector('[data-cta-fixed]');
 
   if (!reduced.matches && hasWebGL()) setupFluid({ hero, img, loop });
+  fitTitle(title, lines);
 
   // --- entrada de la frase y del "scroll to explore" (al terminar la intro) ---
   let shown = false;
@@ -236,14 +238,25 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
         .to(scroll, { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0.4);
     } else {
       // y: 0 anula el translateY(105%) del CSS que GSAP leería en px (se sumaría al yPercent)
-      tl.fromTo(lines, { y: 0, yPercent: 105, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.2, ease: 'expo.out', stagger: 0.12 })
-        .to(scroll, { opacity: 1, duration: 0.8, ease: 'power2.out' }, 0.12 * (lines.length - 1) + 0.4);
+      // cada línea desde abajo con su máscara, a la vez que el destello entra girando
+      tl.fromTo(lines, { y: 0, yPercent: 105, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.3, ease: 'expo.out', stagger: 0.1 })
+        .to(scroll, { opacity: 1, duration: 0.8, ease: 'power2.out' }, 0.1 * (lines.length - 1) + 0.4);
     }
   };
   window.addEventListener('disco:intro-done', show, { once: true });
 
   return {
     show,
+    // parallax 0.85: mientras el hero está fijo (telón) y lo de abajo sube a velocidad 1, la frase sube a 0.85
+    // (el destello va por su camino): se nota que están en capas distintas
+    watchParallax() {
+      if (reduced.matches) return;
+      gsap.to(title, {
+        y: () => -0.85 * hero.offsetHeight,
+        ease: 'none',
+        scrollTrigger: { trigger: hero, start: 'top top', end: () => `+=${hero.offsetHeight}`, scrub: true, invalidateOnRefresh: true },
+      });
+    },
     // CTA fijo: aparece cuando el hero ha salido por arriba y se queda el resto de la página
     watchCta() {
       ScrollTrigger.create({
@@ -262,6 +275,37 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
       });
     },
   };
+}
+
+// Escritorio: la línea más larga ocupa ~86 % del ancho (tamaño entre 38 y 128px) y las otras se igualan a ella
+// con un poco de letter-spacing (como mucho +0.05em; nada de justificar con huecos). Móvil: el tamaño del CSS.
+const TITLE_FILL = 0.86;
+const TITLE_MIN = 38;
+const TITLE_MAX = 128;
+const TITLE_TRACK = -0.02;   // em, el del CSS
+const TITLE_TRACK_MAX = 0.05;
+function fitTitle(title, lines) {
+  const desktop = matchMedia('(min-width: 768px)');
+  const fit = () => {
+    title.style.removeProperty('font-size');
+    lines.forEach((l) => l.style.removeProperty('letter-spacing'));
+    if (!desktop.matches) return;
+    const base = parseFloat(getComputedStyle(title).fontSize);
+    const longest = Math.max(...[...lines].map((l) => l.scrollWidth));
+    const size = Math.min(TITLE_MAX, Math.max(TITLE_MIN, (base * innerWidth * TITLE_FILL) / longest));
+    title.style.fontSize = `${size}px`;
+    const widths = [...lines].map((l) => l.scrollWidth);
+    const target = Math.max(...widths);
+    lines.forEach((l, i) => {
+      const chars = Math.max(1, l.textContent.length - 1);
+      const extra = Math.min(TITLE_TRACK_MAX, (target - widths[i]) / chars / size);
+      if (extra > 0.001) l.style.letterSpacing = `${(TITLE_TRACK + extra).toFixed(4)}em`;
+    });
+  };
+  fit();
+  if (document.fonts) document.fonts.ready.then(fit);
+  let raf = 0;
+  window.addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); });
 }
 
 function hasWebGL() {
