@@ -20,10 +20,10 @@ export const config = {
     { name: 'LinkedIn', handle: '[TU PÁGINA DE LINKEDIN]', url: '' },
   ],
 
-  // Loading: lo que se precarga de verdad (el % refleja su carga) y su duración mínima.
+  // Loading: lo que se precarga de verdad (el nivel del agua refleja su carga) y su duración mínima.
   intro: {
     images: ['assets/hero/hero-red.webp'], // foto del hero v2, la misma que pinta el <picture> (jpg = fallback)
-    minSeconds: 2.8,
+    minSeconds: 2.6,
   },
 
   // (LEGACY PRE-HERO: la configuración de la secuencia de frames de la cámara está en la historia de git.)

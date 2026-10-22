@@ -16,7 +16,7 @@ export function playIntroShot({ gsap, reduced, root, reveal }) {
   const burst = root.querySelector('[data-intro-burst]');
   const white = root.querySelector('[data-intro-white]');
   const clear = () => {
-    gsap.set([svg, pilot, burst, root.querySelector('[data-intro-bar]')], { opacity: 0 });
+    gsap.set([svg, pilot, burst], { opacity: 0 });
     root.style.background = 'transparent';
     reveal();
   };
@@ -39,11 +39,11 @@ export function playIntroShot({ gsap, reduced, root, reveal }) {
   gsap.set(pilot, { left: c.x - host.left, top: c.y - host.top, width: d, height: d });
   gsap.set(burst, { left: c.x - host.left, top: c.y - host.top });
 
-  // imagen fantasma: copia del logo ya relleno (sin trazos, sin ids ni recortes)
+  // imagen fantasma: copia del logo relleno (sin agua, contornos, ids ni recortes)
   const copy = svg.cloneNode(true);
-  copy.querySelectorAll('[id^="letter-"], #logo-star, defs').forEach((n) => n.remove());
+  copy.querySelectorAll('[aria-hidden], defs').forEach((n) => n.remove());
+  copy.querySelectorAll('path').forEach((n) => n.removeAttribute('fill'));
   copy.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
-  copy.querySelectorAll('[clip-path]').forEach((n) => n.removeAttribute('clip-path'));
   copy.removeAttribute('role');
   copy.removeAttribute('aria-label');
   copy.setAttribute('aria-hidden', 'true');
@@ -70,7 +70,7 @@ export function playIntroShot({ gsap, reduced, root, reveal }) {
     .addLabel('release', `shot+=${0.045 + BURN}`);
 
   // 4) afterimage: el logo en negativo, apenas visible, se desvanece con blur creciente
-  tl.fromTo(ghost, { opacity: 0.18, filter: 'blur(0px)' }, { opacity: 0, filter: 'blur(8px)', duration: 0.5, ease: 'power1.out' }, 'release');
+  tl.fromTo(ghost, { opacity: 0.18, filter: 'blur(0px)' }, { opacity: 0, filter: 'blur(8px)', duration: 0.5, ease: 'power1.out', immediateRender: false }, 'release');
 
   // 5) del blanco directamente al hero
   tl.to(white, { opacity: 0, duration: DISSOLVE, ease: 'expo.out' }, 'release');

@@ -1,17 +1,16 @@
 import { playIntroShot } from './intro-shot.js';
+import { createWater, outline } from './water.js';
 
-// Loading: el logo de disco se dibuja a lápiz y se rellena, con una barra que refleja la carga real.
-// Al llegar a 100% dispara "disco:loaded"; después luz roja + flash + zoom por las lentes
-// (intro-shot.js) y, ya en blanco, "disco:intro-done". Resuelve cuando el loading ha desaparecido.
+// Loading: el contorno de "disco" y del subtítulo aparece despacio y dentro de las letras sube agua; el nivel
+// del agua ES el progreso real de la carga (sin número ni barra). Lleno: la estrella se llena de plata y
+// dispara "disco:loaded"; después luz roja + flash (intro-shot.js) y, con el blanco del flash puesto,
+// "disco:intro-done": el blanco se disuelve directamente en el hero. Resuelve entonces.
+// (El trazado a lápiz con barra y porcentaje anterior está en legacy/js/intro-loader-lentes.js.)
 const SVGNS = 'http://www.w3.org/2000/svg';
 const LETTERS = ['d', 'i', 's', 'c', 'o'];
-const STROKE = 2;          // unidades del viewBox (≈1.2px con el logo a 560px)
-const DRAW = 1.1;          // trazo de cada letra
-const STAGGER = 0.14;
-const FILL = 0.5;          // barrido de relleno de cada letra
-const STAR_DRAW = 0.6;
-const STAR_FILL = 0.35;
-const LERP = 0.12;
+const OUTLINE = 1.4;       // el contorno se dibuja en 1.4 s, todas las letras a la vez
+const LERP = 0.05;         // nivel mostrado → min(real, mínimo temporal), por frame a 60 fps
+const STAR_FILL = 0.6;
 
 // assets: promesas de otras cargas que cuentan en el progreso (p. ej. el GLB del destello 3D);
 // cuentan como hechas tanto si cargan como si fallan.
@@ -21,86 +20,57 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro, assets = [] 
 
   const svg = el.querySelector('[data-intro-logo]');
   const defs = svg.querySelector('defs');
-  const turb = svg.querySelector('[data-intro-turb]');
-  const disp = svg.querySelector('[data-intro-disp]');
   const star = svg.querySelector('#logo-star');
   const subtitle = svg.querySelector('#logo-subtitle');
-  const bar = el.querySelector('[data-intro-bar]');
-  const fill = el.querySelector('[data-intro-fill]');
-  const pct = el.querySelector('[data-intro-pct]');
+  const progress = el.querySelector('[data-intro-progress]');
+  const letters = LETTERS.map((k) => svg.querySelector(`#letter-${k}`));
 
   lenis.stop();
   document.documentElement.classList.add('is-locked');
 
-  // --- barra: abajo y centrada (CSS); mismo ancho que el subtítulo (sin contar su animación) ---
-  const placeBar = () => {
-    const box = subtitle.getBBox();
-    bar.style.width = `${box.width * svg.getScreenCTM().a}px`;
-  };
-  placeBar();
-  window.addEventListener('resize', placeBar);
+  // --- agua (letras + subtítulo, un solo clip) y contorno de todo, estrella incluida ---
+  const water = createWater(svg, [...letters, subtitle]);
+  const lines = outline(svg, [...letters, subtitle, star]);
+  [...letters, subtitle, star].forEach((p) => p.setAttribute('fill', 'none'));
 
-  // --- logo: cada pieza = trazo (el original) + relleno (copia recortada que sube) ---
-  const parts = [...LETTERS.map((k) => svg.querySelector(`#letter-${k}`)), star].map((path, i) => {
-    const box = path.getBBox();
-    const clip = document.createElementNS(SVGNS, 'clipPath');
-    const rect = document.createElementNS(SVGNS, 'rect');
-    clip.id = `intro-fill-${i}`;
-    rect.setAttribute('x', box.x - 4);
-    rect.setAttribute('width', box.width + 8);
-    rect.setAttribute('y', box.y + box.height + 4);
-    rect.setAttribute('height', 0);
-    clip.append(rect);
-    defs.append(clip);
+  // estrella: plata que sube de abajo arriba (copia recortada por un rect)
+  const box = star.getBBox();
+  const grad = document.createElementNS(SVGNS, 'linearGradient');
+  grad.id = 'intro-silver';
+  grad.setAttribute('x1', '0'); grad.setAttribute('y1', '1');
+  grad.setAttribute('x2', '0'); grad.setAttribute('y2', '0');
+  grad.innerHTML = '<stop offset="0" stop-color="#7d7d7d"/><stop offset="0.55" stop-color="#bdbdbd"/><stop offset="1" stop-color="#ececec"/>';
+  const clip = document.createElementNS(SVGNS, 'clipPath');
+  clip.id = 'intro-star-fill';
+  const rise = document.createElementNS(SVGNS, 'rect');
+  rise.setAttribute('x', box.x - 2);
+  rise.setAttribute('width', box.width + 4);
+  rise.setAttribute('y', box.y + box.height + 2);
+  rise.setAttribute('height', 0);
+  clip.append(rise);
+  defs.append(grad, clip);
+  const silver = star.cloneNode();
+  silver.removeAttribute('id');
+  silver.setAttribute('fill', 'url(#intro-silver)');
+  silver.setAttribute('clip-path', 'url(#intro-star-fill)');
+  silver.setAttribute('aria-hidden', 'true');
+  star.after(silver);
+  const starFull = { attr: { y: box.y - 2, height: box.height + 4 } };
 
-    const filled = path.cloneNode();
-    filled.removeAttribute('id');
-    filled.setAttribute('clip-path', `url(#${clip.id})`);
-    filled.setAttribute('aria-hidden', 'true');
-    path.before(filled);
-
-    const len = path.getTotalLength();
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#fff');
-    path.setAttribute('stroke-width', STROKE);
-    path.setAttribute('stroke-dasharray', len);
-    path.setAttribute('stroke-dashoffset', len);
-    path.setAttribute('filter', 'url(#intro-pencil)');
-    return { path, rect, box };
-  });
-  const fillTo = (p) => ({ attr: { y: p.box.y - 4, height: p.box.height + 8 } });
-
-  const lettersEnd = (LETTERS.length - 1) * STAGGER + DRAW; // la "o" termina su trazo
-  const drawing = gsap.timeline({ paused: true });
+  const onResize = () => { water.resize(); lines.width(); };
+  window.addEventListener('resize', onResize);
 
   if (reduced.matches) {
-    // logo relleno directamente, sin temblor
-    parts.forEach((p) => { gsap.set(p.rect, fillTo(p)); gsap.set(p.path, { opacity: 0 }); });
-    gsap.set(disp, { attr: { scale: 0 } });
+    // logo relleno directamente, sin ola
+    water.fill();
+    gsap.set(lines.g, { opacity: 0 });
+    gsap.set(rise, starFull);
   } else {
-    gsap.set(subtitle, { opacity: 0, scaleX: 1.12, transformOrigin: '50% 50%' });
-    parts.slice(0, LETTERS.length).forEach((p, i) => {
-      const at = i * STAGGER;
-      drawing
-        .to(p.path, { attr: { 'stroke-dashoffset': 0 }, duration: DRAW, ease: 'power2.inOut' }, at)
-        .to(p.rect, { ...fillTo(p), duration: FILL, ease: 'power2.out' }, at + DRAW)
-        .to(p.path, { opacity: 0, duration: FILL, ease: 'power1.out' }, at + DRAW);
-    });
-    const s = parts[LETTERS.length];
-    drawing
-      .to(s.path, { attr: { 'stroke-dashoffset': 0 }, duration: STAR_DRAW, ease: 'power2.inOut' }, lettersEnd)
-      .to(s.rect, { ...fillTo(s), duration: STAR_FILL, ease: 'power2.out' }, lettersEnd + STAR_DRAW)
-      .to(s.path, { opacity: 0, duration: STAR_FILL }, lettersEnd + STAR_DRAW)
-      // "AGENCIA DE PRODUCCIÓN": aparece y se cierra (es un path: el tracking se simula con scaleX)
-      .to(subtitle, { opacity: 1, scaleX: 1, duration: 0.8, ease: 'power2.out' }, lettersEnd)
-      // temblor de lápiz solo mientras se traza
-      .to(turb, { attr: { seed: 40 }, duration: lettersEnd + STAR_DRAW, ease: 'steps(40)' }, 0)
-      .to(disp, { attr: { scale: 0 }, duration: 0.25 }, lettersEnd + STAR_DRAW)
-      .add(() => parts.forEach((p) => p.path.removeAttribute('filter')));
+    lines.hide();
+    gsap.to(lines.strokes, { strokeDashoffset: 0, duration: OUTLINE, ease: 'sine.inOut' });
   }
-  drawing.play();
 
-  // --- progreso real: vídeo + imágenes + fuentes ---
+  // --- progreso real: imágenes + fuentes + modelo 3D ---
   const sources = [];
   const track = () => { const s = { value: 0 }; sources.push(s); return s; };
 
@@ -122,43 +92,39 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro, assets = [] 
 
   const real = () => sources.reduce((sum, s) => sum + s.value, 0) / sources.length;
 
-  // --- número y barra: min(real, mínimo en 2.8s), interpolado ---
+  // --- nivel del agua: lerp hacia min(real, mínimo temporal) ---
   return new Promise((resolve) => {
     const start = performance.now();
     let shown = 0;
     let done = false;
 
-    const render = () => {
-      const n = Math.round(shown);
-      fill.style.transform = `scaleX(${(shown / 100).toFixed(4)})`;
-      pct.textContent = `${String(n).padStart(3, '0')}%`;
-      bar.setAttribute('aria-valuenow', n);
-    };
-
     const stopTick = loop.add((time, ratio) => {
       if (done) return;
       const minimum = Math.min(1, (performance.now() - start) / (intro.minSeconds * 1000));
-      const target = Math.min(real(), minimum) * 100;
+      const target = Math.min(real(), minimum);
       shown = reduced.matches ? target : shown + (target - shown) * (1 - Math.pow(1 - LERP, ratio));
-      if (target >= 100 && shown > 99.5) shown = 100;
-      render();
-      if (shown < 100) return;
+      if (target >= 1 && shown > 0.995) shown = 1;
+      if (!reduced.matches) water.render(shown, time);
+      progress.setAttribute('aria-valuenow', Math.round(shown * 100));
+      if (shown < 1) return;
 
       done = true;
       stopTick();
-      window.removeEventListener('resize', placeBar);
+      water.fill();
       window.dispatchEvent(new CustomEvent('disco:loaded'));
 
-      // luz roja → flash; con el blanco puesto, el hero queda detrás y el blanco se disuelve en él
-      playIntroShot({
+      // estrella de plata → luz roja → flash; con el blanco puesto, el hero queda detrás y el blanco se disuelve en él
+      const silverIn = reduced.matches ? Promise.resolve() : gsap.to(rise, { ...starFull, duration: STAR_FILL, ease: 'power2.inOut' });
+      Promise.resolve(silverIn).then(() => playIntroShot({
         gsap, reduced, root: el,
         reveal() {
+          window.removeEventListener('resize', onResize);
           document.documentElement.classList.remove('is-locked');
           lenis.start();
           window.dispatchEvent(new CustomEvent('disco:intro-done'));
           resolve();
         },
-      }).then(() => el.remove());
+      })).then(() => el.remove());
     });
   });
 }
