@@ -5,7 +5,7 @@
 // mix-blend-mode: screen el negro de la foto desaparece sobre el loading y, después, sobre el hero.
 // (El flash dibujado con el logo en negativo y el zoom por las lentes: legacy/js/intro-shot-lentes.js.)
 const STAR_CENTER = { x: 1235, y: 643 }; // centro de #logo-star en el viewBox del SVG
-const PILOT_RATIO = 0.38;                 // diámetro del piloto / ancho de la estrella
+const PILOT_RATIO = 0.3;                  // diámetro del piloto (núcleo + halo) / ancho de la estrella
 const BURST = 'assets/intro/flash-burst.webp';
 const BURST_CORE = { x: 0.489, y: 0.481 }; // dónde está el núcleo del flash en la foto (fracción)
 const BURST_ASPECT = 1520 / 2688;
@@ -65,15 +65,21 @@ export function playIntroShot({ gsap, reduced, root, reveal }) {
 
   const tl = gsap.timeline();
 
-  // 1) piloto: aparece, 2 parpadeos rápidos, fijo 0.25 s y crece un pelín antes del disparo
-  tl.set(pilot, { opacity: 1 })
-    .fromTo(pilot, { scale: 0 }, { scale: 1, duration: 0.18, ease: 'back.out(2)' })
-    .to(pilot, { keyframes: { opacity: [1, 0.25, 1], easeEach: 'none' }, duration: 0.12 })
-    .to(pilot, { keyframes: { opacity: [1, 0.25, 1], easeEach: 'none' }, duration: 0.12 })
-    .to(pilot, { scale: 1.15, duration: 0.1, ease: 'power2.out' }, '+=0.25');
+  // 1) luz roja, como una cámara de verdad: 3 destellos rápidos (80 ms encendida / 70 ms apagada), encendida
+  //    fija 350 ms con una ligera vibración de intensidad (±8 %, como un LED) y se apaga 40 ms antes del flash.
+  //    Solo intensidad: sin escala ni rebote.
+  let at = 0;
+  for (let k = 0; k < 3; k++) {
+    tl.set(pilot, { opacity: 1 }, at).set(pilot, { opacity: 0 }, at + 0.08);
+    at += 0.15;
+  }
+  const hum = [1, 0.95, 1, 0.92, 0.99, 0.93, 1, 0.94, 0.98]; // pasos de ~39 ms durante los 350 ms
+  hum.forEach((o, k) => tl.set(pilot, { opacity: o }, at + (k * 0.35) / hum.length));
+  at += 0.35;
+  tl.set(pilot, { opacity: 0 }, at).addLabel('lampOff', at + 0.04);
 
   // 2) pre-flash: el burst al 25 %, pequeño, 60 ms; 3) 90 ms de oscuridad
-  tl.set(burst, { opacity: 0.25, scale: 0.35 })
+  tl.set(burst, { opacity: 0.25, scale: 0.35 }, 'lampOff')
     .set(burst, { opacity: 0 }, '+=0.06')
     .addLabel('shot', '+=0.09');
 

@@ -21,17 +21,27 @@ html.is-locked { overflow: hidden; }
 }
 
 /* ---------- piloto rojo y flash (el zoom por las lentes: legacy/css/intro-loader-lentes.css) ---------- */
-/* piloto: punto rojo redondo sobre el centro de la estrella (posición y tamaño desde JS) */
+/* piloto: la luz roja de reducción de ojos rojos de una cámara, en el centro de la estrella (posición y
+   tamaño desde JS). Núcleo casi blanco-rosado → rojo #ff2a14 → transparente, más un glow desenfocado que se
+   suma (screen). Solo cambia la intensidad (opacity), nunca la escala. */
 .intro__pilot {
   position: absolute;
   left: 0; top: 0;
   width: 0; height: 0;
   border-radius: 50%;
-  background: radial-gradient(circle, #ff1a1a 0%, #ff1a1a 38%, rgb(255 26 26 / 0) 72%);
-  box-shadow: 0 0 12px 3px rgb(255 30 30 / 0.85), 0 0 40px 10px rgb(255 0 0 / 0.35);
+  background: radial-gradient(circle, #ffd6cf 0%, #ff2a14 22%, rgb(255 42 20 / 0.45) 42%, rgb(255 42 20 / 0) 70%);
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0);
+  transform: translate(-50%, -50%);
   pointer-events: none;
+}
+.intro__pilot::before {
+  content: "";
+  position: absolute;
+  inset: -70%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 42 20 / 0.7) 0%, rgb(255 42 20 / 0.25) 35%, rgb(255 42 20 / 0) 65%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
 }
 
 /* flash real (js/intro-shot.js los crea en <body>, fuera del loading, para que screen funda también con el hero).
