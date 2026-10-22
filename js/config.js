@@ -9,6 +9,16 @@ export const config = {
     url: 'https://www.instagram.com/disco.es/',
   },
   email: 'hola@disco.es',
+  // footer (js/footer.js): lo que esté vacío sale como [HUECO] para rellenar
+  phone: '',            // [TU TELÉFONO] visible, p. ej. '+34 600 000 000'
+  responseTime: '',     // [TIEMPO DE RESPUESTA], p. ej. 'menos de 24 h'
+  // redes del footer: solo salen las que tienen url
+  socials: [
+    { name: 'Instagram', handle: '@disco.es', url: 'https://www.instagram.com/disco.es/' },
+    { name: 'TikTok', handle: '[TU USUARIO TIKTOK]', url: '' },
+    { name: 'YouTube', handle: '[TU CANAL DE YOUTUBE]', url: '' },
+    { name: 'LinkedIn', handle: '[TU PÁGINA DE LINKEDIN]', url: '' },
+  ],
 
   // Loading: lo que se precarga de verdad (el % refleja su carga) y su duración mínima.
   // El vídeo de las lentes está en el HTML (<video data-intro-video>, webm + mp4).

@@ -6,6 +6,7 @@ import { initNav } from './nav.js';
 import { initScrollFx } from './scroll-fx.js';
 import { initTeam } from './team.js';
 import { initWhy } from './why.js';
+import { initFooter } from './footer.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
 const { gsap, ScrollTrigger, lenis, loop, reduced } = initCore();
@@ -37,6 +38,7 @@ runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starL
   hero.watchCta();
   // Servicios ya no está en la home (vive en servicios.html, con js/services.js)
   initWhy({ gsap, ScrollTrigger, reduced }); // hoja de contactos: "¿Por qué nosotros?"
+  initFooter({ gsap, ScrollTrigger, reduced, loop }); // el editor de vídeo (su visor es el último punto de paso del destello)
   nav.watchInk();
   ScrollTrigger.refresh();
   // estudio 360° (mismo renderer que el destello), antes de que el destello calcule su recorrido: su pin

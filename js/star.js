@@ -40,6 +40,9 @@ const STUDIO_PATH_MOBILE = [[0, 0, 0.04, 0.55], [0.18, 0, 0.04, 0.55], [0.32, 0,
 // "FOTOGRAMA 01 / 04"); en móvil (sin pin) a un lado, por detrás de los fotogramas
 const WHY = { x: 0.58, y: 0.55, s: 0.3 };
 const WHY_MOBILE = { x: 0.6, y: 0.72, s: 0.25 };
+// footer (js/footer.js): el último punto de paso es el monitor del visor, como el clip que se está editando
+const FOOTER_SIZE = 0.22;
+const FOOTER_FRONT = 0.5;          // × alto de pantalla antes del final: pasa al giro lento de frente, como en el hero
 const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
 const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
 const STUDIO_SHADOW = 0.25;        // opacidad de la sombra de contacto en el "suelo"
@@ -175,12 +178,15 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let stops = [];
   let curve = null;
   let hold = null; // tramo del estudio en px de scroll: { start, end }
+  let finale = 0;  // px de scroll del final si acaba en el visor del footer (0 = no)
   const studioVec = new THREE.Vector3();
   const buildPath = () => {
     stops = waypoints(view.mobile, ScrollTrigger);
     curve = new THREE.CatmullRomCurve3(stops.map((p) => new THREE.Vector3(p.x, p.y, p.s)), false, 'centripetal');
     const held = stops.filter((p) => p.hold === 'studio');
     hold = held.length === 2 ? { start: held[0].at, end: held[1].at } : null;
+    const last = stops[stops.length - 1];
+    finale = last.footer ? last.at : 0;
     dirty = true;
   };
   // scroll (px) → parámetro de la curva: cada tramo entre dos puntos de paso ocupa lo mismo en la curva
@@ -231,6 +237,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const backdropMoved = backdrop ? backdrop.update(ratio) : false;
 
     // peso del estudio: 0 fuera, 1 durante el pin (rampa de STUDIO_RAMP pantallas antes y después)
+    // al llegar al visor del footer: giro lento de frente (0 → 1 en la última media pantalla)
+    const we = finale ? THREE.MathUtils.smoothstep(scroll.px, finale - FOOTER_FRONT * innerHeight, finale) : 0;
     let ws = 0;
     if (hold) {
       const ramp = STUDIO_RAMP * innerHeight;
@@ -277,9 +285,10 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     // (el ángulo equivalente más cercano a la rotación libre, como en el hero); casi sin balanceo
     const studioY = STUDIO_TURNS * TAU * THREE.MathUtils.smoothstep(stage.p, 0.05, 0.95);
     const toStudio = THREE.MathUtils.euclideanModulo(studioY - freeY + Math.PI, TAU) - Math.PI;
-    const ry = freeY + toHero * w + toStudio * ws;
-    const rx = freeX * (1 - w) * (1 - 0.7 * ws);
-    const rz = freeZ * (1 - w) * (1 - 0.7 * ws);
+    const toEnd = THREE.MathUtils.euclideanModulo(heroSpin - freeY + Math.PI, TAU) - Math.PI;
+    const ry = freeY + toHero * w + toStudio * ws + toEnd * we;
+    const rx = freeX * (1 - w) * (1 - 0.7 * ws) * (1 - we);
+    const rz = freeZ * (1 - w) * (1 - 0.7 * ws) * (1 - we);
 
     const lerp = LERP + (FRONT_LERP - LERP) * w;
     // si el objetivo salta una vuelta entera (se ve igual), la rotación actual salta con él: sin vueltas de más
@@ -419,7 +428,7 @@ function waypoints(mobile, ScrollTrigger) {
     { ...at, at: Math.min(max, Math.max(whySt.start + 1, whySt.end)), hold: 'still' },
   ] : [];
   const last = why.length ? why[why.length - 1].at : 0;
-  const end = last < max - 1 ? [{ ...at, at: max }] : [];
+  const end = last < max - 1 ? [{ ...footerPoint(mobile, max, at), at: max }] : [];
   return [hero, ...team, ...studio, ...why, ...end].sort((p, q) => p.at - q.at);
 }
 
@@ -536,4 +545,16 @@ function studioPoint(p, mobile, out) {
   const [p1, x1, y1, s1] = path[i];
   const t = THREE.MathUtils.smoothstep(p, p0, p1);
   return out.set(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, s0 + (s1 - s0) * t);
+}
+
+// Final en el footer: dentro del monitor del visor, en su mitad de arriba (abajo va el titular), medido
+// en la posición que tendrá al final del scroll. En móvil el destello no entra en el footer: se va por arriba.
+function footerPoint(mobile, max, fallback) {
+  const monitor = document.querySelector('[data-ed-monitor]');
+  if (mobile || innerWidth < 768 || !monitor || !monitor.offsetWidth) return { ...fallback, y: 1.6 };
+  const r = monitor.getBoundingClientRect();
+  const top = r.top + scrollY - max;
+  const cx = r.left + r.width / 2;
+  const cy = top + r.height * 0.34;
+  return { x: (cx / innerWidth) * 2 - 1, y: 1 - (cy / innerHeight) * 2, s: FOOTER_SIZE, footer: true };
 }
