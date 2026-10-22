@@ -52,15 +52,25 @@ export function createWater(svg, shapes) {
   });
   defs.append(clip);
 
-  // caja de todas las formas (en unidades del viewBox)
-  const boxes = shapes.map((s) => s.getBBox());
-  const x0 = Math.min(...boxes.map((b) => b.x));
-  const y0 = Math.min(...boxes.map((b) => b.y));
-  const x1 = Math.max(...boxes.map((b) => b.x + b.width));
-  const y1 = Math.max(...boxes.map((b) => b.y + b.height));
-  const W = x1 - x0;
-  const H = y1 - y0;
+  // caja de todas las formas (en unidades del viewBox). Se mide al pintar: con el logo oculto
+  // (display: none) getBBox da ceros
+  let x0, y0, x1, y1, close, maxA;
+  let W = 0;
+  let H = 0;
   const pad = 4;
+  const measure = () => {
+    if (W > 0) return true;
+    const boxes = shapes.map((s) => s.getBBox());
+    x0 = Math.min(...boxes.map((b) => b.x));
+    y0 = Math.min(...boxes.map((b) => b.y));
+    x1 = Math.max(...boxes.map((b) => b.x + b.width));
+    y1 = Math.max(...boxes.map((b) => b.y + b.height));
+    W = x1 - x0;
+    H = y1 - y0;
+    close = `L${(x1 + pad).toFixed(1)},${(y1 + pad).toFixed(1)}L${(x0 - pad).toFixed(1)},${(y1 + pad).toFixed(1)}Z`;
+    maxA = Math.max(FRONT.amp, BACK.amp) * H;
+    return W > 0;
+  };
 
   const g = document.createElementNS(SVGNS, 'g');
   g.setAttribute('clip-path', `url(#${id})`);
@@ -91,8 +101,6 @@ export function createWater(svg, shapes) {
     }
     return d;
   };
-  const close = `L${(x1 + pad).toFixed(1)},${(y1 + pad).toFixed(1)}L${(x0 - pad).toFixed(1)},${(y1 + pad).toFixed(1)}Z`;
-  const maxA = Math.max(FRONT.amp, BACK.amp) * H;
 
   let last = -1;
   return {
@@ -100,6 +108,7 @@ export function createWater(svg, shapes) {
     resize: crestWidth,
     // level 0..1 (0: nada de agua, 1: todo lleno, sin que asome ningún valle); t en segundos
     render(level, t) {
+      if (!measure()) return;
       const k = 1 - (1 - SETTLE) * level;
       // la superficie va de debajo de la caja (las crestas ni asoman) a encima (los valles no asoman)
       const base = y1 + maxA - level * (H + maxA * 2);
@@ -112,6 +121,7 @@ export function createWater(svg, shapes) {
     },
     // lleno y quieto (movimiento reducido o al terminar)
     fill() {
+      if (!measure()) return;
       const r = `M${x0 - pad},${y0 - pad}H${x1 + pad}V${y1 + pad}H${x0 - pad}Z`;
       front.setAttribute('d', r);
       back.setAttribute('d', '');

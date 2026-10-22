@@ -1,6 +1,7 @@
 import { whatsappUrl } from './config.js';
+import { initTransitions } from './transition.js';
 
-// Base común de todas las páginas: Lenis + ScrollTrigger + un único loop.
+// Base común de todas las páginas: Lenis + ScrollTrigger + un único loop + transiciones entre páginas.
 // Un único loop: gsap.ticker (un rAF) mueve Lenis, ScrollTrigger y todas las tareas.
 export function initCore() {
   const { gsap, ScrollTrigger, Lenis } = window;
@@ -33,5 +34,8 @@ export function initCore() {
   // CTAs de WhatsApp (cierre de servicios y el fijo)
   document.querySelectorAll('[data-cta]').forEach((a) => { a.href = whatsappUrl(); });
 
-  return { gsap, ScrollTrigger, lenis, loop, reduced };
+  // transición entre páginas (velo + logo que se llena de agua)
+  const transitions = initTransitions({ gsap, reduced, loop });
+
+  return { gsap, ScrollTrigger, lenis, loop, reduced, transitions };
 }

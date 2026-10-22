@@ -118,6 +118,7 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro, assets = [] 
       Promise.resolve(silverIn).then(() => playIntroShot({
         gsap, reduced, root: el,
         reveal() {
+          try { sessionStorage.setItem('disco_intro_done', '1'); } catch { /* sin storage: la intro se verá otra vez */ }
           window.removeEventListener('resize', onResize);
           document.documentElement.classList.remove('is-locked');
           lenis.start();

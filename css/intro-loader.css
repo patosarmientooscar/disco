@@ -2,6 +2,8 @@
 html.is-locked { overflow: hidden; }
 
 .intro { display: none; }
+/* ya vista en esta sesión (html.intro-skip, desde el <head>): no se pinta */
+.js.intro-skip .intro { display: none; }
 .js .intro {
   position: fixed; inset: 0;
   z-index: var(--z-loader);

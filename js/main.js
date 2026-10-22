@@ -9,7 +9,7 @@ import { initWhy } from './why.js';
 import { initFooter } from './footer.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
-const { gsap, ScrollTrigger, lenis, loop, reduced } = initCore();
+const { gsap, ScrollTrigger, lenis, loop, reduced, transitions } = initCore();
 
 // Nav de cristal: oculta hasta "disco:intro-done", entra a la vez que la frase del hero
 const nav = initNav({ gsap, ScrollTrigger, reduced });
@@ -25,8 +25,17 @@ const star = import('./star.js')
   .catch(() => null);
 const starLoaded = star.then((s) => s && s.loaded);
 
-// Loading (logo + progreso real) → luz roja → flash → el blanco se disuelve en el hero
-runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starLoaded] }).then(() => {
+// Loading (logo + progreso real) → luz roja → flash → el blanco se disuelve en el hero. Solo la primera vez por
+// sesión (html.intro-skip, desde el <head>): después, el hero entra directamente (o al abrirse el velo de la transición).
+const skipIntro = () => {
+  document.getElementById('intro-loader')?.remove();
+  return transitions.arrived.then(() => window.dispatchEvent(new CustomEvent('disco:intro-done')));
+};
+const intro = document.documentElement.classList.contains('intro-skip')
+  ? skipIntro()
+  : runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starLoaded] });
+
+intro.then(() => {
   document.body.classList.remove('is-loading');
   // por si no hubo loading (sin "disco:intro-done"); si ya entraron, no hacen nada
   hero.show();

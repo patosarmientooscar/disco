@@ -1,0 +1,37 @@
+/* ---------- transición entre páginas (js/transition.js) ----------
+   Velo #0b0909 con el logo pequeño en el centro. Al salir: el logo en línea (contorno + agua); al llegar
+   (y si el logo en línea no ha cargado): la imagen del logo ya lleno (.is-full).
+   html.is-arriving (lo pone el <head> antes de pintar): el mismo velo con CSS, hasta que js/transition.js
+   lo sustituye y lo abre. Si el JS no llega a arrancar, se quita solo a los 4 s. */
+.pt {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  background: #0b0909;
+  visibility: hidden;
+  pointer-events: none;
+}
+.pt.is-leaving { pointer-events: auto; }
+.pt__img,
+.pt__logo {
+  grid-area: 1 / 1;
+  width: clamp(140px, 18vw, 240px);
+  height: auto;
+  overflow: visible;
+}
+.pt__logo { color: #f4f2ef; }
+.pt__img { display: none; }
+.pt.is-full .pt__img { display: block; }
+.pt.is-full .pt__logo { display: none; }
+
+html.is-arriving::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: #0b0909 url("../assets/intro/disco-logo.svg") 50% 50% / clamp(140px, 18vw, 240px) auto no-repeat;
+  animation: pt-fallback 0.3s 4s forwards;
+}
+@keyframes pt-fallback { to { opacity: 0; visibility: hidden; } }

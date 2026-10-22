@@ -20,7 +20,12 @@
   <link rel="stylesheet" href="css/page.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/footer.css">
-  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="css/transition.css">
+  <script>
+    document.documentElement.classList.add('js');
+    // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
+    try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
+  </script>
 </head>
 <body class="page-services">
   <a class="skip" href="#contenido">Saltar al contenido</a>
