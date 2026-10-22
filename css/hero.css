@@ -109,39 +109,25 @@
 /* en escritorio cada línea cabe entera; en móvil se parte sola, equilibrada (sin palabras sueltas) */
 .hero__line-in { display: inline-block; white-space: nowrap; } /* inline-block: js/hero.js mide el ancho del texto */
 
-/* ---------- "SCROLL TO EXPLORE": línea discontinua corta + flecha ---------- */
+/* ---------- "SCROLL TO EXPLORE" + flecha fina debajo (la animación, en js/hero.js) ---------- */
 .hero__scroll {
   position: absolute;
   z-index: 2;
   left: clamp(24px, 3vw, 56px);
   bottom: var(--title-bottom);
   display: flex;
-  align-items: flex-end;
-  gap: 18px;
-  pointer-events: none;
-}
-.hero__scroll-mark {
-  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 12px;
+  pointer-events: none;
 }
-.hero__scroll-line {
-  flex: none;
-  width: 2px;
-  height: 56px;
-  background: repeating-linear-gradient(to bottom, #fff 0 8px, transparent 8px 14px);
-  animation: hero-dash 1.6s linear infinite;
-}
-@keyframes hero-dash { to { background-position: 0 14px; } }
 .hero__scroll-arrow {
   display: block;
-  width: 10px;
-  height: 6px;
+  width: 14px;
+  height: 22px;
   overflow: visible;
-  animation: hero-arrow 1.6s cubic-bezier(0.37, 0, 0.63, 1) infinite; /* sine.inOut */
 }
-@keyframes hero-arrow { 50% { transform: translateY(4px); } }
+.hero__scroll-arrow [data-scroll-shaft] { stroke-dasharray: 1; }
 .hero__scroll-text {
   margin: 0;
   font: 500 11px / 1.35 var(--font-display);
@@ -160,13 +146,7 @@
   .hero__line-in { white-space: normal; text-wrap: balance; }
 }
 
-/* móvil: el indicador chocaría con la frase */
-@media (max-width: 768px) {
-  .hero__scroll { display: none; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .hero__stage::after { animation: none; }
-  .hero__scroll-line,
-  .hero__scroll-arrow { animation: none; }
 }

@@ -245,6 +245,26 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
   };
   window.addEventListener('disco:intro-done', show, { once: true });
 
+  // --- "scroll to explore": la flecha baja 6px y vuelve (1.8 s); cada 3 ciclos el palo se vuelve a dibujar ---
+  const arrow = scroll.querySelector('.hero__scroll-arrow');
+  const shaft = scroll.querySelector('[data-scroll-shaft]');
+  if (!reduced.matches) {
+    gsap.timeline({ repeat: -1 })
+      .fromTo(shaft, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 0)
+      .fromTo(arrow, { y: 0 }, { y: 6, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: 5 }, 0);
+  } else {
+    gsap.set(shaft, { strokeDashoffset: 0 });
+  }
+  // se va en cuanto el usuario hace scroll (sus hijos: la opacidad del contenedor es la de la entrada)
+  let away = false;
+  const onScroll = () => {
+    const v = scrollY > 40;
+    if (v === away) return;
+    away = v;
+    gsap.to(scroll.children, { opacity: v ? 0 : 1, duration: 0.4, ease: 'power1.out', overwrite: true });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+
   return {
     show,
     // parallax 0.85: mientras el hero está fijo (telón) y lo de abajo sube a velocidad 1, la frase sube a 0.85
