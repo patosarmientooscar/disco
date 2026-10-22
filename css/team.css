@@ -20,9 +20,12 @@
   row-gap: clamp(48px, 8vh, 80px);
 }
 
+/* frase y subfrase centradas en la página */
+.team__intro { text-align: center; }
+
 .team__phrase {
   max-width: 16ch;
-  margin: 0;
+  margin: 0 auto;
   font: 500 clamp(30px, 4.2vw, 72px) / 1.05 var(--font-display);
   letter-spacing: -0.01em;
 }
@@ -37,7 +40,7 @@
 
 .team__sub {
   max-width: 34ch;
-  margin: 24px 0 0;
+  margin: 24px auto 0;
   font: 400 clamp(16px, 1.4vw, 22px) / 1.4 var(--font-display);
   color: var(--team-gray);
 }
@@ -93,7 +96,7 @@
 .team__person { width: 78%; }
 .team__person--bruno { justify-self: end; }
 
-/* ≥ 768px: rejilla de 12 columnas. Frase en 1–7; Luna en 2–5 y Bruno en 8–11, a la misma altura
+/* ≥ 768px: rejilla de 12 columnas. Frase centrada (1–12); Luna en 2–5 y Bruno en 8–11, a la misma altura
    (10vh bajo la subfrase) y apareciendo a la vez.
    Columnas 6–7 libres entre las fotos: por ahí pasa el destello 3D. */
 @media (min-width: 768px) {
@@ -103,7 +106,7 @@
     row-gap: 0;
     align-items: start;
   }
-  .team__intro { grid-column: 1 / 8; grid-row: 1; }
+  .team__intro { grid-column: 1 / -1; grid-row: 1; }
   .team__person { width: auto; }
   .team__person--luna { grid-column: 2 / 6; grid-row: 2; margin-top: 10vh; }
   .team__person--bruno { grid-column: 8 / 12; grid-row: 2; margin-top: 10vh; justify-self: stretch; }
