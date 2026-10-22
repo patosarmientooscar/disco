@@ -34,33 +34,35 @@ html.is-locked { overflow: hidden; }
   pointer-events: none;
 }
 
-/* imagen fantasma del logo (afterimage) en negativo */
-.intro__ghost {
-  position: absolute; inset: 0;
-  display: grid; place-items: center;
-  color: #d8ccff;
-  mix-blend-mode: difference;
-  opacity: 0;
+/* flash real (js/intro-shot.js los crea en <body>, fuera del loading, para que screen funda también con el hero).
+   Por encima de todo, menú incluido; por debajo del velo de las transiciones (2000). */
+.flash-burst,
+.flash-ghost,
+.flash-white {
+  position: fixed;
+  z-index: 1500;
   pointer-events: none;
 }
-.intro__ghost svg { width: clamp(240px, 38vw, 560px); height: auto; overflow: visible; }
-
-.intro__preflash,
-.intro__white {
-  position: absolute; inset: 0;
-  background: #fff;
-  opacity: 0;
-  pointer-events: none;
-}
-/* disparo principal: radial centrado en la estrella (xenón, blanco frío) */
-.intro__burst {
-  position: absolute;
+/* foto del flash sobre fondo negro puro: con screen el negro desaparece y solo queda la luz */
+.flash-burst {
   left: 0; top: 0;
-  width: 100vmax; height: 100vmax; /* a scale(4) cubre la pantalla de sobra */
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(255 255 255 / 1) 0%, rgb(244 248 255 / 1) 30%, rgb(230 238 255 / 0) 70%);
+  max-width: none;
+  mix-blend-mode: screen;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.2);
-  pointer-events: none;
+  will-change: transform, opacity;
 }
-
+/* sobreexposición del sensor: blanco ligeramente frío */
+.flash-white {
+  inset: 0;
+  z-index: 1501;
+  background: #f7f9ff;
+  opacity: 0;
+}
+/* persistencia retiniana: mancha suave con un poco de magenta y verde */
+.flash-ghost {
+  left: 0; top: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 120 220 / 1) 0%, rgb(190 255 200 / 0.8) 45%, rgb(190 255 200 / 0) 70%);
+  filter: blur(30px);
+  opacity: 0;
+}
