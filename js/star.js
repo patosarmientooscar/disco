@@ -396,9 +396,9 @@ function waypoints(mobile, ScrollTrigger) {
   const pin = ScrollTrigger.getAll().find((st) => st.pin && services?.contains(st.pin));
   const hero = { at: 0, x: 0, y: 0.08, s: 1 };          // encima de la frase, sin tocarla ni al menú
   const team = teamPoints(mobile);                       // cofundadores: a la derecha de la frase y luego entre las fotos
-  // estudio 360°: quieto en el centro del principio al final del pin (en móvil, más arriba: el texto va abajo)
+  // estudio 360°: quieto en el centro del principio al final del pin (en móvil, entre el titular y las razones)
   const studioSt = ScrollTrigger.getById('studio');
-  const held = { ...STUDIO_HOLD, y: mobile ? 0.28 : STUDIO_HOLD.y, hold: true };
+  const held = { ...STUDIO_HOLD, y: mobile ? 0.04 : STUDIO_HOLD.y, hold: true };
   const studioPts = studioSt ? [{ ...held, at: studioSt.start }, { ...held, at: studioSt.end }] : [];
   // móvil: en el hueco entre el último servicio y "¿Hablamos de tu local?" (medido al final del scroll)
   const endY = (() => {

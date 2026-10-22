@@ -5,7 +5,8 @@ import * as THREE from 'three';
 // La sección (#estudio, 400vh) deja su interior fijo (sticky) y el scroll gira el estudio entero:
 // yaw = 90° + p × 360° (empieza y acaba mirando al set naranja), cabeceo ±3°. El destello posa quieto
 // en el centro (js/star.js) y refleja el estudio (mismo giro en el entorno de reflejos).
-// Encima, "¿Por qué nosotros?". Sin WebGL o con movimiento reducido: recorte fijo del set de fondo.
+// Encima, "¿Por qué nosotros?" a la izquierda y las razones de una en una a la derecha.
+// Sin WebGL o con movimiento reducido: recorte fijo del set de fondo y todo el texto quieto.
 const PANO = 'assets/studio/studio-360.jpg';               // 5792×2896
 const PANO_MOBILE = 'assets/studio/studio-360-mobile.jpg'; // 4096×2048 (móvil y GPUs con límite de 4096)
 const PANO_ENV = 'assets/studio/studio-360-env.jpg';       // 2048×1024: reflejos del destello
@@ -17,15 +18,26 @@ const FOV = 55;
 const FOV_PORTRAIT = 70;
 const FADE = 0.08;                // fundido de la esfera: primer y último 8% del progreso
 const ENV_INTENSITY = 1.4;        // brillo de los reflejos dentro del estudio
-const COPY_IN = 0.12;             // el texto entra al llegar aquí…
-const COPY_OUT = 0.9;             // …y se va desde aquí, enlazado al scroll
+const COPY_IN = 0.12;             // el titular entra al llegar aquí…
+const COPY_OUT = 0.9;             // …y titular y razones se van desde aquí, enlazado al scroll
+// Razones (BORRADOR: Oscar las revisará): [titular, frase de apoyo]. Se ven de una en una.
+const REASONS = [
+  ['Foto, vídeo y edición', 'Todo en un mismo equipo, de la idea al contenido final.'],
+  ['Pensado para redes', 'Cada plano nace para funcionar en Instagram y TikTok.'],
+  ['Vivimos la noche de Madrid', 'Conocemos el ritmo de los locales que fotografiamos.'],
+  ['Entregas rápidas', 'Sin perder calidad ni esperar semanas.'],
+];
+const REASON_AT = [0.15, 0.34, 0.53, 0.72]; // p en el que entra cada razón (la última dura hasta COPY_OUT)
 const LOW_FPS = 40;               // móvil: por debajo de esto durante 2 s → dpr 1
 const SEAM = 0.012;               // ancho (fracción de la imagen) de la mezcla en la costura del panorama
 
 export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   const section = document.getElementById('estudio');
   if (!section) return;
-  const card = section.querySelector('[data-studio-card]');
+  const title = section.querySelector('[data-studio-title]');
+  const reasons = section.querySelector('[data-studio-reasons]');
+  const [veilLeft, veilRight] = section.querySelectorAll('.studio__veil');
+  const items = renderReasons(section.querySelector('[data-studio-list]'));
   const flash = section.querySelector('.studio__flash');
   const team = document.getElementById('equipo');
   // empieza a cargar cuando los cofundadores están a 1,5 pantallas (nunca en el loading inicial)
@@ -173,19 +185,45 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
     onRefresh: (self) => { if (self.progress > 0) section.classList.add('is-lit'); },
   });
 
-  // --- "¿Por qué nosotros?": entra todo el bloque a la vez al llegar a COPY_IN; se va desde COPY_OUT ---
+  // --- titular: entra todo a la vez al llegar a COPY_IN (tiempo, no scrub); desde COPY_OUT, titular y
+  //   razones se van hacia arriba con el scroll. Entrada y salida en el mismo elemento: combinadas a mano ---
   const copy = { k: 0, out: 1, applied: '' };
+  const veil = { r: 0 }; // aparte de copy: su tween no debe pisar la entrada del titular
   let copyShown = false;
   const copyIn = gsap.to(copy, { k: 1, duration: 1.2, ease: 'expo.out', paused: true });
-  gsap.set(card, { opacity: 0 });
-  // los dos movimientos en el mismo elemento, combinados a mano (la opacidad en un padre rompería el blur del cristal)
+  gsap.set(title, { opacity: 0 });
   const applyCopy = () => {
     const y = 60 * (1 - copy.k) - 40 * (1 - copy.out);
     const blur = 8 * (1 - copy.k);
-    const key = `${y.toFixed(2)}|${(copy.k * copy.out).toFixed(3)}|${blur.toFixed(2)}`;
+    const key = `${y.toFixed(2)}|${copy.k.toFixed(3)}|${copy.out.toFixed(3)}|${veil.r.toFixed(3)}`;
     if (key === copy.applied) return;
     copy.applied = key;
-    gsap.set(card, { y, opacity: copy.k * copy.out, filter: blur > 0.05 ? `blur(${blur}px)` : 'none' });
+    gsap.set(title, { y, opacity: copy.k * copy.out, filter: blur > 0.05 ? `blur(${blur}px)` : 'none' });
+    gsap.set(reasons, { y: -40 * (1 - copy.out), opacity: copy.out });
+    gsap.set(veilLeft, { opacity: copy.k * copy.out });
+    gsap.set(veilRight, { opacity: veil.r * copy.out });
+  };
+
+  // --- razones: una cada vez según p (al cruzar cada umbral, no scrub). La que sale sube y se va; la que
+  //   entra viene de abajo cuando la otra ya se ha ido (nunca se solapan). Hacia arriba, al revés ---
+  let current = -1;
+  const showReason = (next) => {
+    const dir = next > current ? 1 : -1;
+    const prev = items[current];
+    if (prev) {
+      gsap.killTweensOf(prev);
+      gsap.to(prev, { y: -28 * dir, opacity: 0, filter: 'blur(6px)', duration: 0.5, ease: 'power2.in' });
+    }
+    const el = items[next];
+    if (el) {
+      gsap.killTweensOf(el);
+      gsap.fromTo(el, { y: 28 * dir, opacity: 0, filter: 'blur(6px)' }, {
+        y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out', delay: prev ? 0.65 : 0,
+      });
+    }
+    // el velo de la derecha, solo mientras hay una razón
+    if ((current < 0) !== (next < 0)) gsap.to(veil, { r: next < 0 ? 0 : 1, duration: 0.8, ease: 'power2.out', overwrite: true });
+    current = next;
   };
 
   // --- móvil: si va justo (< 40 fps durante 2 s dentro del estudio), dpr 1 ---
@@ -202,6 +240,9 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
         if (copyShown) copyIn.play(); else copyIn.reverse();
       }
       copy.out = 1 - THREE.MathUtils.clamp((raw - COPY_OUT) / (1 - COPY_OUT), 0, 1);
+      let next = -1;
+      REASON_AT.forEach((at, i) => { if (raw >= at) next = i; });
+      if (next !== current) showReason(next);
       applyCopy();
 
       if (touch && active && !lowered) {
@@ -228,5 +269,28 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
     draw(r) {
       if (sphere.visible) r.render(panoScene, panoCam);
     },
+  });
+}
+
+// Las razones del array, como lista (todas en el DOM: los lectores de pantalla las leen todas)
+function renderReasons(list) {
+  if (!list) return [];
+  const total = String(REASONS.length).padStart(2, '0');
+  return REASONS.map(([head, text], i) => {
+    const li = document.createElement('li');
+    li.className = 'studio__reason';
+    const count = document.createElement('span');
+    count.className = 'studio__count';
+    count.textContent = `${String(i + 1).padStart(2, '0')} / ${total}`;
+    count.setAttribute('aria-hidden', 'true');
+    const h = document.createElement('h3');
+    h.className = 'studio__reason-title';
+    h.textContent = head;
+    const p = document.createElement('p');
+    p.className = 'studio__reason-text';
+    p.textContent = text;
+    li.append(count, h, p);
+    list.append(li);
+    return li;
   });
 }

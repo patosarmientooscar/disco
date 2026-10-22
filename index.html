@@ -222,19 +222,14 @@
 
     <!-- Estudio 360°: dentro de un estudio de fotografía. El panorama (fondo del canvas del destello,
          js/studio.js) gira con el scroll mientras el destello posa en el centro. Estilos en css/studio.css.
-         TEXTO EN BORRADOR (Oscar lo revisará): se edita aquí directamente. -->
+         Las razones (BORRADOR, Oscar las revisará) están en el array REASONS de js/studio.js. -->
     <section class="studio" id="estudio" aria-label="Por qué elegir disco" data-nav-ink="dark">
       <div class="studio__pin" data-studio-pin>
-        <div class="studio__copy" data-studio-copy>
-          <div class="studio__card" data-studio-card>
-            <h2 class="studio__title">¿Por qué nosotros<span class="studio__q">?</span></h2>
-            <p class="studio__text">Somos un equipo de foto y vídeo que vive el ritmo de la noche de Madrid. Entramos en tu local, entendemos su ambiente y lo convertimos en contenido que se siente.</p>
-            <ul class="studio__points">
-              <li>Foto, vídeo y edición, todo en un mismo equipo</li>
-              <li>Contenido pensado para redes desde el primer plano</li>
-              <li>Entregas rápidas, sin perder calidad</li>
-            </ul>
-          </div>
+        <i class="studio__veil studio__veil--left" aria-hidden="true"></i>
+        <i class="studio__veil studio__veil--right" aria-hidden="true"></i>
+        <h2 class="studio__title" data-studio-title>¿Por qué<br> nosotros<span class="studio__q">?</span></h2>
+        <div class="studio__reasons" data-studio-reasons>
+          <ol class="studio__list" data-studio-list></ol>
         </div>
         <i class="studio__flash" aria-hidden="true"></i>
       </div>

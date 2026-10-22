@@ -1,4 +1,5 @@
 /* ---------- estudio 360° + "¿Por qué nosotros?" (js/studio.js) ----------
+   A la izquierda del destello el titular; a la derecha, las razones de una en una.
    La sección mide 400vh y su interior (.studio__pin) se queda fijo mientras se recorre. El panorama no
    está aquí: es el fondo del canvas del destello (z-index 1), así que la sección solo pone el color de
    debajo (oscuro como los cofundadores hasta el flash; claro después, por si la imagen no ha cargado) y
@@ -29,85 +30,160 @@
   pointer-events: none;
 }
 
-/* bloque de texto: placa de cristal blanco, como el menú */
-/* móvil: abajo, a lo ancho, por encima del botón fijo "Pide tu presupuesto" (12px + 52px) */
-.studio__copy {
+/* velos: degradados blancos muy blandos detrás de cada lado, sin caja; dan contraste al texto pase lo que
+   pase por detrás (focos, paneles naranjas). Aparecen y se van con el texto (js/studio.js). */
+.studio__veil {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+/* móvil: titular arriba y razones abajo; las razones van sobre el suelo (más oscuro): más velo */
+.studio__veil--left {
+  background: radial-gradient(ellipse 90% 30% at 30% 21%, rgba(255, 255, 255, 0.62) 40%, rgba(255, 255, 255, 0) 75%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 38%);
+  mask-image: linear-gradient(to bottom, #000 30%, transparent 38%);
+}
+.studio__veil--right {
+  background: radial-gradient(ellipse 120% 30% at 50% 80%, rgba(255, 255, 255, 0.72) 45%, rgba(255, 255, 255, 0) 80%);
+  -webkit-mask-image: linear-gradient(to top, #000 30%, transparent 41%);
+  mask-image: linear-gradient(to top, #000 30%, transparent 41%);
+}
+
+/* titular: la misma voz que la frase de los cofundadores. Móvil: arriba a la izquierda */
+.studio__title {
+  position: absolute;
+  left: clamp(24px, 6vw, 110px);
+  top: 14vh;
+  margin: 0;
+  font: 500 clamp(40px, 11vw, 56px) / 0.95 var(--font-display);
+  letter-spacing: -0.02em;
+  color: #0b0909;
+}
+.studio__q { color: var(--studio-orange); }
+
+/* razones: una cada vez, todas en la misma celda (el bloque mide lo que la más alta).
+   Móvil: abajo, a lo ancho menos 24px */
+.studio__reasons {
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 76px;
+  bottom: 10vh;
+  padding-left: 24px;
 }
-.studio__card {
-  padding: clamp(20px, 2.4vw, 32px);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.55);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  color: #0b0909;
+/* línea fina que separa el bloque del destello */
+.studio__reasons::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 64px;
+  margin-top: -32px;
+  background: rgba(11, 9, 9, 0.2);
 }
-.studio__title {
-  margin: 0;
-  font: 600 clamp(28px, 3.2vw, 52px) / 1.02 var(--font-display);
-  letter-spacing: -0.01em;
-}
-.studio__q { color: var(--studio-orange); }
-.studio__text {
-  margin: 0.9em 0 0;
-  font: 400 clamp(15px, 1.15vw, 18px) / 1.5 var(--font-display);
-  color: #2a2626;
-}
-.studio__points {
+.studio__list {
   display: grid;
-  gap: 0.55em;
-  margin: 1.2em 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
-  font: 500 clamp(15px, 1.15vw, 18px) / 1.35 var(--font-display);
 }
-.studio__points li {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+.studio__reason {
+  grid-area: 1 / 1;
+  opacity: 0;
 }
-/* estrellita de 4 puntas (la del logo), 10px */
-.studio__points li::before {
-  content: '';
-  flex: none;
-  width: 10px;
-  height: 10px;
-  transform: translateY(1px);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath fill='%23F35411' d='M5 0C5.6 3.6 6.4 4.4 10 5 6.4 5.6 5.6 6.4 5 10 4.4 6.4 3.6 5.6 0 5 3.6 4.4 4.4 3.6 5 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+.studio__count {
+  display: block;
+  margin-bottom: 14px;
+  font: 500 12px / 1 var(--font-display);
+  letter-spacing: 0.16em;
+  color: var(--studio-orange);
+}
+.studio__reason-title {
+  margin: 0;
+  font: 500 clamp(26px, 2.6vw, 44px) / 1.05 var(--font-display);
+  letter-spacing: -0.01em;
+  color: #0b0909;
+}
+.studio__reason-text {
+  max-width: 26ch;
+  margin: 12px 0 0;
+  font: 400 clamp(15px, 1.15vw, 19px) / 1.45 var(--font-display);
+  color: #3a3434;
 }
 
 @media (min-width: 768px) {
-  .studio__copy {
-    /* centrado en 56vh (el centro de 12vh–100vh) sin transform: el transform es de las animaciones */
-    left: clamp(24px, 6vw, 110px);
-    right: auto;
-    top: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    padding-top: 12vh;
-    max-width: 30rem;
+  /* meseta hasta el 40%: el velo llega entero a los bordes del texto y luego se difumina. A la derecha
+     .68 (no .55): con ropa negra, el sofá o los monitores detrás no llegaba a 4.5:1 */
+  .studio__veil--left { background: radial-gradient(ellipse 60% 70% at 20% 52%, rgba(255, 255, 255, 0.62) 40%, rgba(255, 255, 255, 0) 75%); }
+  .studio__veil--right { background: radial-gradient(ellipse 50% 60% at 82% 52%, rgba(255, 255, 255, 0.68) 40%, rgba(255, 255, 255, 0) 75%); }
+  /* los velos no llegan al destello (columna central, ~44–56%): sin esto lo dejaban lechoso */
+  .studio__veil--left {
+    -webkit-mask-image: linear-gradient(to right, #000 34%, transparent 46%);
+    mask-image: linear-gradient(to right, #000 34%, transparent 46%);
+  }
+  .studio__veil--right {
+    -webkit-mask-image: linear-gradient(to left, #000 33%, transparent 45%);
+    mask-image: linear-gradient(to left, #000 33%, transparent 45%);
+  }
+  /* a los lados del destello, a la misma altura (52vh). translate (no transform): el transform es de las animaciones */
+  .studio__title {
+    top: 52vh;
+    translate: 0 -50%;
+    font-size: clamp(44px, 6.2vw, 108px);
+  }
+  .studio__reasons {
+    left: auto;
+    right: clamp(24px, 6vw, 110px);
+    top: 52vh;
+    bottom: auto;
+    width: min(26rem, 30vw);
+    translate: 0 -50%;
+    padding-left: 28px;
   }
 }
 
 /* sin WebGL o con movimiento reducido: sin pin ni giro; un recorte fijo del set naranja de fondo
-   (la imagen se pone desde js/studio.js al acercarse, para no cargarla con la página) */
+   (la imagen se pone desde js/studio.js al acercarse, para no cargarla con la página) y las cuatro
+   razones a la vez, una debajo de otra */
 .studio.is-still {
   height: auto;
   background: #f4f2ef var(--studio-still, none) 50% 58% / auto 220% no-repeat;
 }
 .studio.is-still .studio__pin {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
   height: auto;
   min-height: 100vh;
   min-height: 100svh;
+  padding: 14vh 12px 76px; /* abajo: por encima del botón fijo "Pide tu presupuesto" */
 }
+/* las cuatro razones apiladas ocupan casi todo el alto: un velo uniforme en vez de los dos blandos */
+.studio.is-still .studio__veil--left {
+  opacity: 1;
+  background: rgba(244, 242, 239, 0.74);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.studio.is-still .studio__veil--right { display: none; }
+.studio.is-still .studio__title,
+.studio.is-still .studio__reasons {
+  position: relative;
+  inset: auto;
+  translate: none;
+}
+.studio.is-still .studio__title { margin-left: 12px; }
+.studio.is-still .studio__reasons::before { top: 0; height: 100%; margin-top: 0; }
+.studio.is-still .studio__list { gap: 32px; }
+.studio.is-still .studio__reason { grid-area: auto; opacity: 1; }
 @media (min-width: 768px) {
-  .studio.is-still .studio__copy { top: 0; bottom: 0; }
-}
-@media (max-width: 767px) {
-  .studio.is-still .studio__pin { display: flex; align-items: flex-end; padding: 60vh 12px 76px; }
-  .studio.is-still .studio__copy { position: static; }
+  .studio.is-still .studio__pin {
+    flex-direction: row;
+    align-items: center;
+    padding: 12vh clamp(24px, 6vw, 110px);
+  }
+  .studio.is-still .studio__title { margin-left: 0; }
+  .studio.is-still .studio__reasons { width: min(26rem, 34vw); }
 }
