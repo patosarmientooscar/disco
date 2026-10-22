@@ -1,43 +1,45 @@
 import * as THREE from 'three';
+import { createStudioUI } from './studio-ui.js';
 
 // Estudio de fotografía 360°: un panorama equirectangular en una esfera alrededor de la cámara, dibujado
 // como fondo en el MISMO canvas y renderer que el destello 3D (star.setBackdrop), dentro del loop único.
-// La sección (#estudio, 400vh) deja su interior fijo (sticky) y el scroll gira el estudio entero:
-// yaw = 90° + p × 360° (empieza y acaba mirando al set naranja), cabeceo ±3°. El destello posa quieto
-// en el centro (js/star.js) y refleja el estudio (mismo giro en el entorno de reflejos).
-// Encima, "¿Por qué nosotros?" a la izquierda y las razones de una en una a la derecha.
+// La sección (#estudio, 600vh) deja su interior fijo (sticky) y el scroll lleva la cámara por el estudio:
+// del set naranja a cada puesto de trabajo (Luna = FOTO, cámara de cine = VÍDEO, monitores = EDICIÓN),
+// parándose en cada uno, y una vuelta larga de vuelta al set. El destello (js/star.js) refleja el
+// estudio (mismo giro en el entorno de reflejos). Encima, "¿Qué hacemos?" (js/studio-ui.js).
 // Sin WebGL o con movimiento reducido: recorte fijo del set de fondo y todo el texto quieto.
 const PANO = 'assets/studio/studio-360.jpg';               // 5792×2896
 const PANO_MOBILE = 'assets/studio/studio-360-mobile.jpg'; // 4096×2048 (móvil y GPUs con límite de 4096)
 const PANO_ENV = 'assets/studio/studio-360-env.jpg';       // 2048×1024: reflejos del destello
 const SCRUB = 1.5;
 const SMOOTH = 0.05;              // suavizado extra del giro (por frame a 60 fps, independiente del frame rate)
-const YAW0 = Math.PI / 2;         // con +90° el set naranja (centro de la imagen) queda delante
 const PITCH = THREE.MathUtils.degToRad(3);
 const FOV = 55;
 const FOV_PORTRAIT = 70;
 const FADE = 0.08;                // fundido de la esfera: primer y último 8% del progreso
 const ENV_INTENSITY = 1.4;        // brillo de los reflejos dentro del estudio
-const COPY_IN = 0.12;             // el titular entra al llegar aquí…
-const COPY_OUT = 0.9;             // …y titular y razones se van desde aquí, enlazado al scroll
-// Razones (BORRADOR: Oscar las revisará): [titular, frase de apoyo]. Se ven de una en una.
-const REASONS = [
-  ['Foto, vídeo y edición', 'Todo en un mismo equipo, de la idea al contenido final.'],
-  ['Pensado para redes', 'Cada plano nace para funcionar en Instagram y TikTok.'],
-  ['Vivimos la noche de Madrid', 'Conocemos el ritmo de los locales que fotografiamos.'],
-  ['Entregas rápidas', 'Sin perder calidad ni esperar semanas.'],
+// Puestos del estudio: yaw (giro de la esfera, grados) que deja cada objeto en el centro de la pantalla y
+// su latitud. Con esta esfera el yaw es directamente el ángulo de la imagen + 90° (el set, en el centro de
+// la imagen, queda delante con 90°). Medidos en capturas de esta esfera (los del visor de Claude —188/6,
+// 215/8, 205/−2— caían en el cuerpo de Luna, debajo de la cámara de cine y en la mesa).
+const SET = 90;
+const SPOTS = [
+  { yaw: 180, lat: 16 },  // FOTO: la cámara de Luna
+  { yaw: 216, lat: 14 },  // VÍDEO: la cámara de cine
+  { yaw: 206, lat: 5 },   // EDICIÓN: los monitores
 ];
-const REASON_AT = [0.15, 0.34, 0.53, 0.72]; // p en el que entra cada razón (la última dura hasta COPY_OUT)
+// en cada parada el objeto queda un poco a la derecha del centro: a la izquierda está el título de cinta
+// (y los objetos están altos, a su altura); a la derecha, abajo, la claqueta
+const ASIDE = -5;
+const ASIDE_MOBILE = 0;    // en vertical el encuadre es estrecho: el objeto, centrado…
+const LOOK_UP_MOBILE = THREE.MathUtils.degToRad(9); // …y la cámara mira algo hacia arriba: el objeto baja y deja sitio al destello
+const DRIFT = 1.5;         // grados: en las paradas el estudio sigue moviéndose un poco con el scroll
 const LOW_FPS = 40;               // móvil: por debajo de esto durante 2 s → dpr 1
 const SEAM = 0.012;               // ancho (fracción de la imagen) de la mezcla en la costura del panorama
 
 export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   const section = document.getElementById('estudio');
   if (!section) return;
-  const title = section.querySelector('[data-studio-title]');
-  const reasons = section.querySelector('[data-studio-reasons]');
-  const [veilLeft, veilRight] = section.querySelectorAll('.studio__veil');
-  const items = renderReasons(section.querySelector('[data-studio-list]'));
   const flash = section.querySelector('.studio__flash');
   const team = document.getElementById('equipo');
   // empieza a cargar cuando los cofundadores están a 1,5 pantallas (nunca en el loading inicial)
@@ -53,6 +55,7 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   // --- sin WebGL o movimiento reducido: sin pin ni giro, el set naranja de fondo y el texto encima ---
   if (reduced.matches || !star) {
     section.classList.add('is-still', 'is-lit');
+    createStudioUI({ gsap, section, still: true });
     // URL absoluta: en la variable CSS se resolvería desde css/
     whenNear(() => section.style.setProperty('--studio-still', `url("${new URL(PANO_MOBILE, location.href)}")`));
     return;
@@ -88,10 +91,24 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   sphere.renderOrder = -1;
   sphere.visible = false;
   panoScene.add(sphere);
+  // anclas de los puestos: hijas de la esfera (giran con el estudio). Dirección en la imagen: ángulo
+  // (yaw − 90°) desde el centro, como lee la esfera la equirectangular (centro de la imagen en +X)
+  const anchors = SPOTS.map(({ yaw, lat }) => {
+    const a = new THREE.Object3D();
+    const th = THREE.MathUtils.degToRad(yaw - SET);
+    const ph = THREE.MathUtils.degToRad(lat);
+    a.position.set(Math.cos(th) * Math.cos(ph), Math.sin(ph), Math.sin(th) * Math.cos(ph)).multiplyScalar(40);
+    sphere.add(a);
+    return a;
+  });
+  const v = new THREE.Vector3();
+  const ui = createStudioUI({ gsap, section, still: false });
+  let portrait = false;
 
   const resize = () => {
     panoCam.aspect = innerWidth / innerHeight;
     panoCam.fov = panoCam.aspect >= 1 ? FOV : FOV_PORTRAIT;
+    portrait = innerWidth < 768;
     panoCam.updateProjectionMatrix();
   };
   resize();
@@ -185,47 +202,6 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
     onRefresh: (self) => { if (self.progress > 0) section.classList.add('is-lit'); },
   });
 
-  // --- titular: entra todo a la vez al llegar a COPY_IN (tiempo, no scrub); desde COPY_OUT, titular y
-  //   razones se van hacia arriba con el scroll. Entrada y salida en el mismo elemento: combinadas a mano ---
-  const copy = { k: 0, out: 1, applied: '' };
-  const veil = { r: 0 }; // aparte de copy: su tween no debe pisar la entrada del titular
-  let copyShown = false;
-  const copyIn = gsap.to(copy, { k: 1, duration: 1.2, ease: 'expo.out', paused: true });
-  gsap.set(title, { opacity: 0 });
-  const applyCopy = () => {
-    const y = 60 * (1 - copy.k) - 40 * (1 - copy.out);
-    const blur = 8 * (1 - copy.k);
-    const key = `${y.toFixed(2)}|${copy.k.toFixed(3)}|${copy.out.toFixed(3)}|${veil.r.toFixed(3)}`;
-    if (key === copy.applied) return;
-    copy.applied = key;
-    gsap.set(title, { y, opacity: copy.k * copy.out, filter: blur > 0.05 ? `blur(${blur}px)` : 'none' });
-    gsap.set(reasons, { y: -40 * (1 - copy.out), opacity: copy.out });
-    gsap.set(veilLeft, { opacity: copy.k * copy.out });
-    gsap.set(veilRight, { opacity: veil.r * copy.out });
-  };
-
-  // --- razones: una cada vez según p (al cruzar cada umbral, no scrub). La que sale sube y se va; la que
-  //   entra viene de abajo cuando la otra ya se ha ido (nunca se solapan). Hacia arriba, al revés ---
-  let current = -1;
-  const showReason = (next) => {
-    const dir = next > current ? 1 : -1;
-    const prev = items[current];
-    if (prev) {
-      gsap.killTweensOf(prev);
-      gsap.to(prev, { y: -28 * dir, opacity: 0, filter: 'blur(6px)', duration: 0.5, ease: 'power2.in' });
-    }
-    const el = items[next];
-    if (el) {
-      gsap.killTweensOf(el);
-      gsap.fromTo(el, { y: 28 * dir, opacity: 0, filter: 'blur(6px)' }, {
-        y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out', delay: prev ? 0.65 : 0,
-      });
-    }
-    // el velo de la derecha, solo mientras hay una razón
-    if ((current < 0) !== (next < 0)) gsap.to(veil, { r: next < 0 ? 0 : 1, duration: 0.8, ease: 'power2.out', overwrite: true });
-    current = next;
-  };
-
   // --- móvil: si va justo (< 40 fps durante 2 s dentro del estudio), dpr 1 ---
   const touch = matchMedia('(pointer: coarse), (max-width: 767px)').matches;
   let slow = 0;
@@ -233,18 +209,6 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
 
   star.setBackdrop({
     update(ratio) {
-      // el texto: entra/sale según el progreso real (sin suavizar) del pin
-      const raw = state.p;
-      if ((raw >= COPY_IN) !== copyShown) {
-        copyShown = !copyShown;
-        if (copyShown) copyIn.play(); else copyIn.reverse();
-      }
-      copy.out = 1 - THREE.MathUtils.clamp((raw - COPY_OUT) / (1 - COPY_OUT), 0, 1);
-      let next = -1;
-      REASON_AT.forEach((at, i) => { if (raw >= at) next = i; });
-      if (next !== current) showReason(next);
-      applyCopy();
-
       if (touch && active && !lowered) {
         slow = 60 / ratio < LOW_FPS ? slow + ratio / 60 : 0;
         if (slow > 2) { lowered = true; star.setDpr(1); }
@@ -256,14 +220,22 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       star.setStage(p);
       const fade = THREE.MathUtils.smoothstep(p, 0, FADE) * (1 - THREE.MathUtils.smoothstep(p, 1 - FADE, 1));
       const show = fade > 0.001 && resident && !!panoTex;
+      // giro del estudio y dónde caen los puestos en pantalla (también sin textura: el AF va igual)
+      const yaw = THREE.MathUtils.degToRad(yawAt(p, portrait ? ASIDE_MOBILE : ASIDE));
+      sphere.rotation.y = yaw;
+      panoCam.rotation.x = Math.sin(p * Math.PI * 2) * PITCH + (portrait ? LOOK_UP_MOBILE : 0);
+      star.setEnvRotation(yaw, envTex);
+      sphere.updateMatrixWorld(true);
+      panoCam.updateMatrixWorld();
+      ui.update(state.p, anchors.map((an) => {
+        an.getWorldPosition(v).project(panoCam);
+        if (v.z > 1) return null; // detrás de la cámara
+        return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight };
+      }));
       const changed = p !== prev || sphere.visible !== show;
       sphere.visible = show;
       if (!show) return changed;
       mat.opacity = fade;
-      const yaw = YAW0 + p * Math.PI * 2;
-      sphere.rotation.y = yaw;
-      panoCam.rotation.x = Math.sin(p * Math.PI * 2) * PITCH;
-      star.setEnvRotation(yaw, envTex);
       return changed;
     },
     draw(r) {
@@ -272,25 +244,22 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   });
 }
 
-// Las razones del array, como lista (todas en el DOM: los lectores de pantalla las leen todas)
-function renderReasons(list) {
-  if (!list) return [];
-  const total = String(REASONS.length).padStart(2, '0');
-  return REASONS.map(([head, text], i) => {
-    const li = document.createElement('li');
-    li.className = 'studio__reason';
-    const count = document.createElement('span');
-    count.className = 'studio__count';
-    count.textContent = `${String(i + 1).padStart(2, '0')} / ${total}`;
-    count.setAttribute('aria-hidden', 'true');
-    const h = document.createElement('h3');
-    h.className = 'studio__reason-title';
-    h.textContent = head;
-    const p = document.createElement('p');
-    p.className = 'studio__reason-text';
-    p.textContent = text;
-    li.append(count, h, p);
-    list.append(li);
-    return li;
-  });
+// Recorrido de la cámara por el estudio (yaw en grados según p): set → Luna → cámara de cine → monitores
+// → vuelta larga al set. En las paradas apenas se mueve (±DRIFT); entre ellas, paneos suaves.
+function yawAt(p, aside) {
+  const [foto, video, edit] = SPOTS.map((sp) => sp.yaw + aside);
+  const keys = [
+    [0, SET - DRIFT], [0.18, SET + DRIFT],
+    [0.32, foto - DRIFT, 'pan'], [0.46, foto + DRIFT],
+    [0.54, video - DRIFT, 'pan'], [0.68, video + DRIFT],
+    [0.74, edit - DRIFT, 'pan'], [0.88, edit + DRIFT],
+    [1, SET + 360, 'pan'],
+  ];
+  let i = 1;
+  while (i < keys.length - 1 && p > keys[i][0]) i++;
+  const [p0, y0] = keys[i - 1];
+  const [p1, y1, kind] = keys[i];
+  const t = THREE.MathUtils.clamp((p - p0) / (p1 - p0), 0, 1);
+  const e = kind === 'pan' ? (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2) : t; // power2.inOut
+  return y0 + (y1 - y0) * e;
 }

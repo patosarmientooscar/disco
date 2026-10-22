@@ -2,10 +2,10 @@ import { config } from './config.js';
 import { initCore } from './core.js';
 import { runIntroLoader } from './intro-loader.js';
 import { initHero } from './hero.js';
-import { initServices } from './services.js';
 import { initNav } from './nav.js';
 import { initScrollFx } from './scroll-fx.js';
 import { initTeam } from './team.js';
+import { initWhy } from './why.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
 const { gsap, ScrollTrigger, lenis, loop, reduced } = initCore();
@@ -35,12 +35,13 @@ runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starL
   fx.curtain(document.getElementById('hero-main'), document.getElementById('equipo'));
   initTeam({ gsap, ScrollTrigger, reduced });
   hero.watchCta();
-  window.disco.services = initServices({ gsap, ScrollTrigger, reduced, loop });
-  nav.watchInk(); // después del pin de servicios
+  // Servicios ya no está en la home (vive en servicios.html, con js/services.js)
+  initWhy({ gsap, ScrollTrigger, reduced }); // hoja de contactos: "¿Por qué nosotros?"
+  nav.watchInk();
   ScrollTrigger.refresh();
   // estudio 360° (mismo renderer que el destello), antes de que el destello calcule su recorrido: su pin
   // es un punto de paso. Sin three (CDN caído) o sin modelo: el estudio queda como imagen fija.
-  // El destello entra a la vez que la frase; su recorrido se calcula ya con el pin de servicios.
+  // El destello entra a la vez que la frase; su recorrido se calcula ya con los pines del estudio y de "por qué".
   star.then(async (s) => {
     if (s) await s.loaded;
     try {
@@ -50,6 +51,7 @@ runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starL
       const studio = document.getElementById('estudio');
       studio?.classList.add('is-still', 'is-lit');
       studio?.style.setProperty('--studio-still', `url("${new URL('assets/studio/studio-360-mobile.jpg', location.href)}")`);
+      if (studio) import('./studio-ui.js').then((m) => m.createStudioUI({ gsap, section: studio, still: true })).catch(() => {});
     }
     ScrollTrigger.refresh();
     if (s) { s.watchScroll(); s.enter(); }

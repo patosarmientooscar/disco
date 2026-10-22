@@ -31,7 +31,15 @@ const SIDE_TEXTURE = true;
 const HERO_SPIN = 0.3;             // rad/s: en el hero gira muy despacio sobre su eje Y, sin parar (~21 s por vuelta)
 const TAU = Math.PI * 2;
 // estudio 360° (js/studio.js): quieto en el centro todo el pin, como la modelo de la sesión
-const STUDIO_HOLD = { x: 0, y: 0.06, s: 0.55 };
+// estudio 360° (js/studio.js): su recorrido va con el progreso p del pin, no con el scroll de la página.
+// [p, x, y, s]: en el centro mientras se pega el título; en las paradas se aparta abajo a la izquierda (en
+// móvil, arriba y más pequeño, entre el título y la claqueta); al final vuelve al centro, de frente
+const STUDIO_PATH = [[0, 0, 0.06, 0.55], [0.18, 0, 0.06, 0.55], [0.32, -0.55, -0.3, 0.38], [0.88, -0.55, -0.3, 0.38], [1, 0, 0.06, 0.55]];
+const STUDIO_PATH_MOBILE = [[0, 0, 0.04, 0.55], [0.18, 0, 0.04, 0.55], [0.32, 0, 0.42, 0.3], [0.88, 0, 0.42, 0.3], [1, 0, 0.04, 0.55]];
+// "¿Por qué nosotros?" (js/why.js): arriba a la derecha todo el pin (x 0.58: con 0.62 rozaba el contador
+// "FOTOGRAMA 01 / 04"); en móvil (sin pin) a un lado, por detrás de los fotogramas
+const WHY = { x: 0.58, y: 0.55, s: 0.3 };
+const WHY_MOBILE = { x: 0.6, y: 0.72, s: 0.25 };
 const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
 const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
 const STUDIO_SHADOW = 0.25;        // opacidad de la sombra de contacto en el "suelo"
@@ -167,10 +175,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let stops = [];
   let curve = null;
   let hold = null; // tramo del estudio en px de scroll: { start, end }
+  const studioVec = new THREE.Vector3();
   const buildPath = () => {
     stops = waypoints(view.mobile, ScrollTrigger);
     curve = new THREE.CatmullRomCurve3(stops.map((p) => new THREE.Vector3(p.x, p.y, p.s)), false, 'centripetal');
-    const held = stops.filter((p) => p.hold);
+    const held = stops.filter((p) => p.hold === 'studio');
     hold = held.length === 2 ? { start: held[0].at, end: held[1].at } : null;
     dirty = true;
   };
@@ -179,8 +188,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const n = stops.length;
     let i = 0;
     while (i < n - 2 && px > stops[i + 1].at) i++;
-    // entre los dos puntos del estudio (iguales) se queda quieto: sin pasar por la curva, que ahí haría un bucle
-    if (stops[i].hold && stops[i + 1].hold && px >= stops[i].at) return curve.points[i];
+    // entre los dos puntos de un pin no pasa por la curva (con dos puntos iguales haría un bucle): en el
+    // estudio sigue su propio recorrido (según su progreso); en los demás, quieto
+    if (stops[i].hold && stops[i + 1].hold && px >= stops[i].at) {
+      return stops[i].hold === 'studio' ? studioPoint(stage.p, view.mobile, studioVec) : curve.points[i];
+    }
     const span = stops[i + 1].at - stops[i].at || 1;
     const f = THREE.MathUtils.clamp((px - stops[i].at) / span, 0, 1);
     return curve.getPoint((i + f) / (n - 1));
@@ -315,7 +327,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
         gsap.fromTo(entry, { k: 0, spin: -ENTER.turns * Math.PI * 2 }, { k: 1, spin: 0, duration: ENTER.duration, ease: 'expo.out' });
       });
     },
-    // después del pin de servicios (sus posiciones cuentan en los puntos de paso)
+    // después de crear los pines del estudio y de "por qué" (sus posiciones cuentan en los puntos de paso)
     watchScroll() {
       if (watching) return;
       watching = true;
@@ -387,62 +399,28 @@ function radialTexture() {
 }
 
 // Puntos de paso de la home: x, y de pantalla normalizados (-1..1), s = escala (1 = alto del hero),
-// at = posición de scroll (px) en la que el destello está ahí. Nunca encima de un bloque de texto:
-// en servicios (escritorio) va al hueco entre la lista y el visor; en el estudio 360°, quieto en el centro.
+// at = posición de scroll (px) en la que el destello está ahí. Nunca encima de un bloque de texto.
+// hold: los dos extremos de un pin ('studio': el estudio 360°, con su propio recorrido; 'still': quieto).
 function waypoints(mobile, ScrollTrigger) {
   const max = Math.max(1, ScrollTrigger.maxScroll(window));
-  const services = document.getElementById('servicios');
-  const top = services ? services.getBoundingClientRect().top + scrollY : max / 2;
-  const pin = ScrollTrigger.getAll().find((st) => st.pin && services?.contains(st.pin));
   const hero = { at: 0, x: 0, y: 0.08, s: 1 };          // encima de la frase, sin tocarla ni al menú
   const team = teamPoints(mobile);                       // cofundadores: a la derecha de la frase y luego entre las fotos
-  // estudio 360°: quieto en el centro del principio al final del pin (en móvil, entre el titular y las razones)
+  const pt = ([, x, y, s]) => ({ x, y, s });
+  const path = mobile ? STUDIO_PATH_MOBILE : STUDIO_PATH;
   const studioSt = ScrollTrigger.getById('studio');
-  const held = { ...STUDIO_HOLD, y: mobile ? 0.04 : STUDIO_HOLD.y, hold: true };
-  const studioPts = studioSt ? [{ ...held, at: studioSt.start }, { ...held, at: studioSt.end }] : [];
-  // móvil: en el hueco entre el último servicio y "¿Hablamos de tu local?" (medido al final del scroll)
-  const endY = (() => {
-    const last = services && [...services.querySelectorAll('.service')].pop();
-    const outro = services && services.querySelector('.services__outro-title');
-    if (!mobile || !last || !outro) return 0.3;
-    const docTop = (el) => el.getBoundingClientRect().top + scrollY;
-    const mid = (docTop(last) + last.offsetHeight + docTop(outro)) / 2 - max; // px en pantalla al final
-    return 1 - (mid / innerHeight) * 2;
-  })();
-  const end = { at: max, x: 0, y: endY, s: mobile ? 0.4 : 0.5 };
-
-  if (mobile || !pin) {
-    // apilado: alterna a los lados, por detrás del contenido
-    const side = mobile ? 0.45 : 0.62;
-    const h = services ? services.offsetHeight : max;
-    return [
-      hero,
-      ...team,
-      ...studioPts,
-      { at: top, x: side, y: 0.2, s: 0.4 },
-      { at: Math.min(max - 1, top + h * 0.5), x: -side, y: -0.1, s: 0.36 },
-      end,
-    ].filter(Boolean).sort((a, b) => a.at - b.at);
-  }
-
-  // escritorio: el hueco entre el texto de la lista y el encuadre del visor
-  const gapX = (() => {
-    const list = services.querySelector('.services__list');
-    const viewer = services.querySelector('[data-viewer-frame]');
-    if (!list || !viewer) return 0.1;
-    const right = Math.max(...[...list.querySelectorAll('.service__name, .service__desc, .service__deliverables')]
-      .map((e) => e.getBoundingClientRect().right));
-    const left = viewer.getBoundingClientRect().left;
-    return ((right + left) / 2 / innerWidth) * 2 - 1;
-  })();
-  return [
-    hero,
-    ...team,
-    ...studioPts,
-    { at: pin.start, x: gapX, y: 0.05, s: 0.4 },     // s 0.4 ≈ 18% del alto de pantalla
-    { at: pin.end, x: gapX, y: -0.1, s: 0.36 },
-    end,
-  ].filter(Boolean).sort((a, b) => a.at - b.at);
+  const studio = studioSt ? [
+    { ...pt(path[0]), at: studioSt.start, hold: 'studio' },
+    { ...pt(path[path.length - 1]), at: studioSt.end, hold: 'studio' },
+  ] : [];
+  const whySt = ScrollTrigger.getById('why');
+  const at = mobile ? WHY_MOBILE : WHY;
+  const why = whySt ? [
+    { ...at, at: whySt.start, hold: 'still' },
+    { ...at, at: Math.min(max, Math.max(whySt.start + 1, whySt.end)), hold: 'still' },
+  ] : [];
+  const last = why.length ? why[why.length - 1].at : 0;
+  const end = last < max - 1 ? [{ ...at, at: max }] : [];
+  return [hero, ...team, ...studio, ...why, ...end].sort((p, q) => p.at - q.at);
 }
 
 // Cofundadores: 1) mientras la frase cruza el centro de la pantalla, a su derecha (la frase ocupa las
@@ -547,4 +525,15 @@ function texturizeSide(root) {
   m.color.copy(side.material.color);
   side.material.dispose();
   side.material = m;
+}
+
+// Punto del recorrido del estudio para su progreso p (entre claves, suave)
+function studioPoint(p, mobile, out) {
+  const path = mobile ? STUDIO_PATH_MOBILE : STUDIO_PATH;
+  let i = 1;
+  while (i < path.length - 1 && p > path[i][0]) i++;
+  const [p0, x0, y0, s0] = path[i - 1];
+  const [p1, x1, y1, s1] = path[i];
+  const t = THREE.MathUtils.smoothstep(p, p0, p1);
+  return out.set(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, s0 + (s1 - s0) * t);
 }

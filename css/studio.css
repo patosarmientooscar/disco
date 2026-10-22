@@ -1,19 +1,19 @@
-/* ---------- estudio 360° + "¿Por qué nosotros?" (js/studio.js) ----------
-   A la izquierda del destello el titular; a la derecha, las razones de una en una.
-   La sección mide 400vh y su interior (.studio__pin) se queda fijo mientras se recorre. El panorama no
+/* ---------- estudio 360° — "¿Qué hacemos?" (js/studio.js + js/studio-ui.js) ----------
+   La sección mide 600vh y su interior (.studio__pin) se queda fijo mientras se recorre. El panorama no
    está aquí: es el fondo del canvas del destello (z-index 1), así que la sección solo pone el color de
    debajo (oscuro como los cofundadores hasta el flash; claro después, por si la imagen no ha cargado) y
-   su interior va por encima del canvas (z-index 2). */
+   su interior va por encima del canvas (z-index 2). Sin velos: lo que se lee va sobre objetos negros
+   (la cinta americana del título y la claqueta). */
 .studio {
   --studio-orange: #F35411;
   position: relative;
-  height: 400vh;
+  height: 600vh;
   background: #0b0909;
 }
 .studio.is-lit { background: #f4f2ef; }
 
 .studio__pin {
-  position: sticky; /* el pin: fijo mientras se recorren los 400vh */
+  position: sticky; /* el pin: fijo mientras se recorren los 600vh */
   top: 0;
   z-index: 2;
   height: 100vh;
@@ -30,122 +30,188 @@
   pointer-events: none;
 }
 
-/* velos: degradados blancos muy blandos detrás de cada lado, sin caja; dan contraste al texto pase lo que
-   pase por detrás (focos, paneles naranjas). Aparecen y se van con el texto (js/studio.js). */
-.studio__veil {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-/* móvil: titular arriba y razones abajo; las razones van sobre el suelo (más oscuro): más velo */
-.studio__veil--left {
-  background: radial-gradient(ellipse 90% 30% at 30% 21%, rgba(255, 255, 255, 0.62) 40%, rgba(255, 255, 255, 0) 75%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 38%);
-  mask-image: linear-gradient(to bottom, #000 30%, transparent 38%);
-}
-.studio__veil--right {
-  background: radial-gradient(ellipse 120% 30% at 50% 80%, rgba(255, 255, 255, 0.72) 45%, rgba(255, 255, 255, 0) 80%);
-  -webkit-mask-image: linear-gradient(to top, #000 30%, transparent 41%);
-  mask-image: linear-gradient(to top, #000 30%, transparent 41%);
-}
-
-/* titular: la misma voz que la frase de los cofundadores. Móvil: arriba a la izquierda */
-.studio__title {
+/* ---------- título en cinta americana negra (la misma que marca la cruz del set) ---------- */
+.tape-title {
   position: absolute;
   left: clamp(24px, 6vw, 110px);
-  top: 14vh;
+  top: 10vh;
   margin: 0;
-  font: 500 clamp(40px, 11vw, 56px) / 0.95 var(--font-display);
-  letter-spacing: -0.02em;
-  color: #0b0909;
+  font: 500 clamp(40px, 5.4vw, 92px) / 1 var(--font-display);
+  color: #f4f2ef;
 }
-.studio__q { color: var(--studio-orange); }
+/* .tape: giro, sombra y la entrada (clip-path + aplaste, js/studio-ui.js). .tape__in: la cinta en sí */
+.tape {
+  display: block;
+  width: max-content;
+  rotate: -2.5deg;
+  transform-origin: 0% 50%;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+.tape--2 {
+  margin: 10px 0 0 0.6em;
+  rotate: 1.5deg;
+}
+.tape__in {
+  display: block;
+  padding: 0.08em 0.35em;
+  /* textura sutil de cinta: ruido feTurbulence al 12% sobre el negro */
+  background: #121010 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+  /* extremos cortados a mano: dientes irregulares de 3–5px */
+  clip-path: polygon(3px 0, calc(100% - 1px) 0, calc(100% - 4px) 12%, 100% 25%, calc(100% - 3px) 38%, calc(100% - 1px) 51%, calc(100% - 5px) 63%, calc(100% - 2px) 76%, 100% 88%, calc(100% - 4px) 100%, 1px 100%, 4px 87%, 0 74%, 3px 61%, 1px 48%, 5px 36%, 2px 23%, 4px 11%);
+}
+.tape--2 .tape__in {
+  clip-path: polygon(1px 0, calc(100% - 3px) 0, 100% 13%, calc(100% - 5px) 27%, calc(100% - 2px) 40%, calc(100% - 4px) 54%, 100% 67%, calc(100% - 3px) 80%, calc(100% - 1px) 100%, 4px 100%, 0 86%, 3px 72%, 5px 59%, 1px 45%, 4px 31%, 0 17%, 3px 7%);
+}
+.tape__q { color: var(--studio-orange); }
 
-/* razones: una cada vez, todas en la misma celda (el bloque mide lo que la más alta).
-   Móvil: abajo, a lo ancho menos 24px */
-.studio__reasons {
+/* los servicios: para lectores de pantalla (la claqueta es decorativa y se rellena desde aquí) */
+.studio__scenes {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 10vh;
-  padding-left: 24px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
-/* línea fina que separa el bloque del destello */
-.studio__reasons::before {
-  content: '';
+
+/* ---------- recuadro de enfoque (AF): 4 esquinas; sigue a su objeto en el panorama ---------- */
+.af {
+  --af: 96px;
   position: absolute;
   left: 0;
-  top: 50%;
-  width: 1px;
-  height: 64px;
-  margin-top: -32px;
-  background: rgba(11, 9, 9, 0.2);
+  top: 0;
+  width: var(--af);
+  height: var(--af);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.55));
+  transition: color 0.15s linear;
+  will-change: transform;
 }
-.studio__list {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.af.is-locked { color: var(--studio-orange); }
+.af__c {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0 solid currentColor;
 }
-.studio__reason {
-  grid-area: 1 / 1;
+.af__c--tl { left: 0; top: 0; border-width: 2px 0 0 2px; }
+.af__c--tr { right: 0; top: 0; border-width: 2px 2px 0 0; }
+.af__c--bl { left: 0; bottom: 0; border-width: 0 0 2px 2px; }
+.af__c--br { right: 0; bottom: 0; border-width: 0 2px 2px 0; }
+.af__label {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 0;
+  padding: 5px 7px 4px;
+  background: #0b0909;
+  color: #f4f2ef;
+  font: 500 11px / 1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
   opacity: 0;
 }
-.studio__count {
-  display: block;
-  margin-bottom: 14px;
-  font: 500 12px / 1 var(--font-display);
-  letter-spacing: 0.16em;
-  color: var(--studio-orange);
+.af__label b { color: var(--studio-orange); font-weight: 500; }
+
+/* línea fina del recuadro a la claqueta (se dibuja con stroke-dashoffset; pathLength = 1) */
+.af-link {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.55));
 }
-.studio__reason-title {
-  margin: 0;
-  font: 500 clamp(26px, 2.6vw, 44px) / 1.05 var(--font-display);
-  letter-spacing: -0.01em;
-  color: #0b0909;
-}
-.studio__reason-text {
-  max-width: 26ch;
-  margin: 12px 0 0;
-  font: 400 clamp(15px, 1.15vw, 19px) / 1.45 var(--font-display);
-  color: #3a3434;
+.af-link line {
+  stroke: #fff;
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
 }
 
+/* ---------- claqueta: una sola, cambia de contenido en cada parada ----------
+   Abajo a la derecha, por encima del botón fijo "Pide tu presupuesto" */
+.clap {
+  position: absolute;
+  right: clamp(24px, 5vw, 96px);
+  bottom: 120px;
+  width: clamp(300px, 26vw, 420px);
+  visibility: hidden;
+}
+/* barra de arriba (la que claquea): bisagra a la izquierda */
+.clap__bar {
+  position: relative;
+  height: 40px;
+  border-radius: 4px 4px 0 0;
+  background: repeating-linear-gradient(-45deg, var(--studio-orange) 0 22px, #f4f2ef 22px 44px);
+  transform-origin: 0% 100%;
+  overflow: hidden;
+}
+.clap__bar::before { /* bisagra */
+  content: '';
+  position: absolute;
+  left: 8px;
+  bottom: 7px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #0b0909;
+  box-shadow: 0 0 0 2px #9c9490;
+}
+.clap__flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+}
+.clap__body {
+  padding: 22px;
+  border-radius: 0 0 6px 6px;
+  background: #0b0909;
+  overflow: hidden;
+}
+.clap__meta {
+  display: flex;
+  gap: 1.6em;
+  margin: 0;
+  font: 400 11px / 1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.14em;
+  color: #9c9490;
+}
+.clap__service {
+  margin: 14px 0 0;
+  font: 500 clamp(40px, 3.6vw, 60px) / 1 var(--font-display);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #f4f2ef;
+}
+.clap__text {
+  max-width: 30ch;
+  margin: 12px 0 0;
+  font: 400 clamp(15px, 1.1vw, 18px) / 1.45 var(--font-display);
+  color: #cfc9c6;
+}
+
+/* móvil: título arriba, claqueta abajo a lo ancho (por encima del botón fijo) */
+@media (max-width: 767px) {
+  .clap {
+    left: 12px;
+    right: 12px;
+    bottom: 76px;
+    width: auto;
+  }
+  .clap__body { padding: 18px; }
+  .clap__text { margin-top: 10px; }
+}
 @media (min-width: 768px) {
-  /* meseta hasta el 40%: el velo llega entero a los bordes del texto y luego se difumina. A la derecha
-     .68 (no .55): con ropa negra, el sofá o los monitores detrás no llegaba a 4.5:1 */
-  .studio__veil--left { background: radial-gradient(ellipse 60% 70% at 20% 52%, rgba(255, 255, 255, 0.62) 40%, rgba(255, 255, 255, 0) 75%); }
-  .studio__veil--right { background: radial-gradient(ellipse 50% 60% at 82% 52%, rgba(255, 255, 255, 0.68) 40%, rgba(255, 255, 255, 0) 75%); }
-  /* los velos no llegan al destello (columna central, ~44–56%): sin esto lo dejaban lechoso */
-  .studio__veil--left {
-    -webkit-mask-image: linear-gradient(to right, #000 34%, transparent 46%);
-    mask-image: linear-gradient(to right, #000 34%, transparent 46%);
-  }
-  .studio__veil--right {
-    -webkit-mask-image: linear-gradient(to left, #000 33%, transparent 45%);
-    mask-image: linear-gradient(to left, #000 33%, transparent 45%);
-  }
-  /* a los lados del destello, a la misma altura (52vh). translate (no transform): el transform es de las animaciones */
-  .studio__title {
-    top: 52vh;
-    translate: 0 -50%;
-    font-size: clamp(44px, 6.2vw, 108px);
-  }
-  .studio__reasons {
-    left: auto;
-    right: clamp(24px, 6vw, 110px);
-    top: 52vh;
-    bottom: auto;
-    width: min(26rem, 30vw);
-    translate: 0 -50%;
-    padding-left: 28px;
-  }
+  .tape-title { top: 14vh; }
 }
 
 /* sin WebGL o con movimiento reducido: sin pin ni giro; un recorte fijo del set naranja de fondo
-   (la imagen se pone desde js/studio.js al acercarse, para no cargarla con la página) y las cuatro
-   razones a la vez, una debajo de otra */
+   (la imagen se pone desde js/studio.js al acercarse, para no cargarla con la página) y las tres
+   claquetas a la vez, cerradas */
 .studio.is-still {
   height: auto;
   background: #f4f2ef var(--studio-still, none) 50% 58% / auto 220% no-repeat;
@@ -153,37 +219,26 @@
 .studio.is-still .studio__pin {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 48px;
+  gap: 56px;
   height: auto;
   min-height: 100vh;
   min-height: 100svh;
-  padding: 14vh 12px 76px; /* abajo: por encima del botón fijo "Pide tu presupuesto" */
+  padding: 14vh clamp(12px, 6vw, 110px) 96px;
 }
-/* las cuatro razones apiladas ocupan casi todo el alto: un velo uniforme en vez de los dos blandos */
-.studio.is-still .studio__veil--left {
-  opacity: 1;
-  background: rgba(244, 242, 239, 0.74);
-  -webkit-mask-image: none;
-  mask-image: none;
+.studio.is-still .tape-title { position: relative; inset: auto; }
+.studio.is-still .af,
+.studio.is-still .af-link { display: none; }
+.studio.is-still .studio__claps {
+  display: grid;
+  gap: 24px;
+  margin-top: auto;
 }
-.studio.is-still .studio__veil--right { display: none; }
-.studio.is-still .studio__title,
-.studio.is-still .studio__reasons {
+.studio.is-still .clap {
   position: relative;
   inset: auto;
-  translate: none;
+  width: auto;
+  visibility: visible;
 }
-.studio.is-still .studio__title { margin-left: 12px; }
-.studio.is-still .studio__reasons::before { top: 0; height: 100%; margin-top: 0; }
-.studio.is-still .studio__list { gap: 32px; }
-.studio.is-still .studio__reason { grid-area: auto; opacity: 1; }
-@media (min-width: 768px) {
-  .studio.is-still .studio__pin {
-    flex-direction: row;
-    align-items: center;
-    padding: 12vh clamp(24px, 6vw, 110px);
-  }
-  .studio.is-still .studio__title { margin-left: 0; }
-  .studio.is-still .studio__reasons { width: min(26rem, 34vw); }
+@media (min-width: 1024px) {
+  .studio.is-still .studio__claps { grid-template-columns: repeat(3, 1fr); }
 }

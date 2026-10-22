@@ -1,0 +1,202 @@
+/* ---------- "¿Por qué nosotros?" — hoja de contactos (js/why.js) ----------
+   Papel claro con un negativo de 35 mm. Escritorio: la tira pasa en horizontal con el scroll (la sección
+   mide 100vh + 380vh de pin; interior sticky) y el fotograma del centro se revela. Móvil y movimiento
+   reducido (.is-static): los fotogramas uno debajo de otro (por defecto aquí). El interior va por encima
+   del canvas del destello (z-index 2); el papel, por debajo. */
+.why {
+  --paper: #f4f2ef;
+  --orange: #F35411;
+  --band: clamp(260px, 42vh, 440px);
+  --frame-h: calc(var(--band) - 88px);
+  --frame-w: calc(var(--frame-h) * 1.5);
+  --hole: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='14'%3E%3Crect x='8' width='10' height='14' rx='2.5' fill='%23f4f2ef'/%3E%3C/svg%3E");
+  position: relative;
+  background: var(--paper);
+  color: #0b0909;
+}
+
+.why__pin {
+  position: relative;
+  z-index: 2;
+  padding: 120px 12px 110px;
+}
+
+.why__title {
+  margin: 0 0 0 12px;
+  font: 500 clamp(44px, 6.2vw, 108px) / 0.95 var(--font-display);
+  letter-spacing: -0.02em;
+}
+.why__q { color: var(--orange); }
+
+.why__counter {
+  display: none;
+  margin: 0;
+  font: 400 12px / 1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.12em;
+  color: #6f6763;
+}
+
+/* ---------- la tira (por defecto: un trozo de negativo por fotograma, en vertical) ---------- */
+.why__band { display: none; }
+.why__frames {
+  display: grid;
+  gap: 48px;
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.why__frame {
+  position: relative;
+  margin: 0;
+  padding: 34px 10px;
+  background: var(--hole) 0 6px / 26px 14px repeat-x, var(--hole) 0 calc(100% - 6px) / 26px 14px repeat-x, #141111;
+}
+.why__photo {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  background: #0b0909;
+}
+/* más ancha que el marco: se mueve un poco más lenta que él (parallax, js/why.js) */
+.why__photo img {
+  display: block;
+  width: 116%;
+  max-width: none; /* base.css limita las imágenes al 100% */
+  height: 100%;
+  margin-left: -8%;
+  object-fit: cover;
+  will-change: transform, filter;
+}
+/* velo ámbar del negativo (desaparece al revelarse) */
+.why__amber {
+  position: absolute;
+  inset: 34px 10px;
+  background: rgba(243, 84, 17, 0.18);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+/* rotulado del borde de la película */
+.why__edge,
+.why__num {
+  position: absolute;
+  font: 400 10px / 1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.2em;
+  color: rgba(243, 84, 17, 0.7);
+}
+.why__edge { left: 14px; top: 22px; }
+.why__num {
+  left: 14px;
+  right: 50%;
+  bottom: 22px;
+  display: flex;
+  justify-content: space-between;
+}
+.why__num b { font-weight: 400; }
+
+/* marca de lápiz graso (js/why.js la dibuja alrededor de la foto) */
+.why__mark {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.why__mark path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.why__caption { margin-top: 20px; }
+.why__n {
+  font: 400 13px / 1 'IBM Plex Mono', monospace;
+  color: var(--orange);
+}
+.why__head {
+  margin: 10px 0 0;
+  font: 500 clamp(24px, 2.4vw, 40px) / 1.05 var(--font-display);
+  letter-spacing: -0.01em;
+}
+.why__text {
+  max-width: 30ch;
+  margin: 8px 0 0;
+  font: 400 clamp(15px, 1.1vw, 18px) / 1.45 var(--font-display);
+  color: #4a4340;
+}
+
+/* movimiento reducido en pantalla ancha: dos columnas */
+@media (min-width: 768px) {
+  .why.is-static .why__pin { padding: 140px clamp(24px, 6vw, 110px) 120px; }
+  .why.is-static .why__title { margin-left: 0; }
+  .why.is-static .why__frames { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; }
+}
+
+/* ---------- escritorio: la tira en horizontal, fija mientras se recorre el pin ---------- */
+@media (min-width: 768px) {
+  .why:not(.is-static) { height: 480vh; }
+  .why:not(.is-static) .why__pin {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100lvh;
+    padding: 0;
+    overflow: hidden;
+  }
+  .why:not(.is-static) .why__title {
+    position: absolute;
+    left: clamp(24px, 6vw, 110px);
+    top: 120px;
+    margin: 0;
+  }
+  .why:not(.is-static) .why__counter {
+    display: block;
+    position: absolute;
+    right: clamp(24px, 6vw, 110px);
+    top: 128px;
+  }
+  /* la tira entera se mueve en x (js/why.js); centrada en vertical con top, sin transform */
+  .why:not(.is-static) .why__track {
+    position: absolute;
+    left: 0;
+    top: calc(56% - var(--band) / 2);
+    width: max-content;
+  }
+  .why:not(.is-static) .why__band {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: var(--band);
+    background: var(--hole) 0 9px / 26px 14px repeat-x, var(--hole) 0 calc(100% - 9px) / 26px 14px repeat-x, #141111;
+  }
+  /* tira vacía antes del primer fotograma y después del último, para que entre y salga con naturalidad */
+  .why:not(.is-static) .why__frames {
+    position: relative;
+    display: flex;
+    gap: 0;
+    margin: 0;
+    padding: 0 60vw;
+  }
+  .why:not(.is-static) .why__cell {
+    flex: none;
+    width: calc(var(--frame-w) + 40px);
+    padding: 0 20px;
+  }
+  .why:not(.is-static) .why__frame {
+    height: var(--band);
+    padding: 44px 0;
+    background: none;
+  }
+  .why:not(.is-static) .why__photo {
+    width: var(--frame-w);
+    height: var(--frame-h);
+    aspect-ratio: auto;
+  }
+  .why:not(.is-static) .why__amber { inset: 44px 0; }
+  .why:not(.is-static) .why__edge { left: 0; top: 27px; }
+  .why:not(.is-static) .why__num { left: 0; bottom: 27px; }
+  .why:not(.is-static) .why__caption { margin-top: 22px; }
+}
