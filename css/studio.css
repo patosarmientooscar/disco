@@ -1,0 +1,113 @@
+/* ---------- estudio 360° + "¿Por qué nosotros?" (js/studio.js) ----------
+   La sección mide 400vh y su interior (.studio__pin) se queda fijo mientras se recorre. El panorama no
+   está aquí: es el fondo del canvas del destello (z-index 1), así que la sección solo pone el color de
+   debajo (oscuro como los cofundadores hasta el flash; claro después, por si la imagen no ha cargado) y
+   su interior va por encima del canvas (z-index 2). */
+.studio {
+  --studio-orange: #F35411;
+  position: relative;
+  height: 400vh;
+  background: #0b0909;
+}
+.studio.is-lit { background: #f4f2ef; }
+
+.studio__pin {
+  position: sticky; /* el pin: fijo mientras se recorren los 400vh */
+  top: 0;
+  z-index: 2;
+  height: 100vh;
+  height: 100lvh;
+  overflow: hidden;
+}
+
+/* el disparo de cámara al entrar al estudio */
+.studio__flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* bloque de texto: placa de cristal blanco, como el menú */
+/* móvil: abajo, a lo ancho, por encima del botón fijo "Pide tu presupuesto" (12px + 52px) */
+.studio__copy {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 76px;
+}
+.studio__card {
+  padding: clamp(20px, 2.4vw, 32px);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: #0b0909;
+}
+.studio__title {
+  margin: 0;
+  font: 600 clamp(28px, 3.2vw, 52px) / 1.02 var(--font-display);
+  letter-spacing: -0.01em;
+}
+.studio__q { color: var(--studio-orange); }
+.studio__text {
+  margin: 0.9em 0 0;
+  font: 400 clamp(15px, 1.15vw, 18px) / 1.5 var(--font-display);
+  color: #2a2626;
+}
+.studio__points {
+  display: grid;
+  gap: 0.55em;
+  margin: 1.2em 0 0;
+  padding: 0;
+  list-style: none;
+  font: 500 clamp(15px, 1.15vw, 18px) / 1.35 var(--font-display);
+}
+.studio__points li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+/* estrellita de 4 puntas (la del logo), 10px */
+.studio__points li::before {
+  content: '';
+  flex: none;
+  width: 10px;
+  height: 10px;
+  transform: translateY(1px);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath fill='%23F35411' d='M5 0C5.6 3.6 6.4 4.4 10 5 6.4 5.6 5.6 6.4 5 10 4.4 6.4 3.6 5.6 0 5 3.6 4.4 4.4 3.6 5 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+@media (min-width: 768px) {
+  .studio__copy {
+    /* centrado en 56vh (el centro de 12vh–100vh) sin transform: el transform es de las animaciones */
+    left: clamp(24px, 6vw, 110px);
+    right: auto;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding-top: 12vh;
+    max-width: 30rem;
+  }
+}
+
+/* sin WebGL o con movimiento reducido: sin pin ni giro; un recorte fijo del set naranja de fondo
+   (la imagen se pone desde js/studio.js al acercarse, para no cargarla con la página) */
+.studio.is-still {
+  height: auto;
+  background: #f4f2ef var(--studio-still, none) 50% 58% / auto 220% no-repeat;
+}
+.studio.is-still .studio__pin {
+  height: auto;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+@media (min-width: 768px) {
+  .studio.is-still .studio__copy { top: 0; bottom: 0; }
+}
+@media (max-width: 767px) {
+  .studio.is-still .studio__pin { display: flex; align-items: flex-end; padding: 60vh 12px 76px; }
+  .studio.is-still .studio__copy { position: static; }
+}

@@ -30,6 +30,11 @@ const FRONT_BRAKE = 0.85;          // con el modo frontal dominando, frena el gi
 const SIDE_TEXTURE = true;
 const HERO_SPIN = 0.3;             // rad/s: en el hero gira muy despacio sobre su eje Y, sin parar (~21 s por vuelta)
 const TAU = Math.PI * 2;
+// estudio 360° (js/studio.js): quieto en el centro todo el pin, como la modelo de la sesión
+const STUDIO_HOLD = { x: 0, y: 0.06, s: 0.55 };
+const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
+const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
+const STUDIO_SHADOW = 0.25;        // opacidad de la sombra de contacto en el "suelo"
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let renderer;
@@ -43,6 +48,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.autoClear = false; // se limpia a mano: antes del destello puede ir el fondo del estudio (setBackdrop)
 
   const canvas = renderer.domElement;
   canvas.className = reduced.matches ? 'star-canvas star-canvas--static' : 'star-canvas';
@@ -51,7 +57,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
-  scene.environment = studio(renderer);
+  const softbox = studio(renderer);
+  scene.environment = softbox;
   const key = new THREE.DirectionalLight(0xffffff, 0.6);
   key.position.set(3, 4, 5);
   const back = new THREE.DirectionalLight(0xffe2dc, 0.6);
@@ -90,6 +97,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       old.dispose();
     });
     if (SIDE_TEXTURE) texturizeSide(gltf.scene);
+    gltf.scene.traverse((o) => { if (o.isMesh) materials.push(o.material); });
     star.add(gltf.scene);
     renderer.compile(scene, camera); // shaders listos antes de la entrada (sin tirón)
   }).catch(() => {
@@ -98,6 +106,15 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     renderer.dispose();
   });
   let failed = false;
+  const materials = [];
+
+  // sombra de contacto para el estudio: degradado radial negro en un plano horizontal bajo el destello
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({ map: radialTexture(), transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
+  );
+  shadow.visible = false;
+  scene.add(shadow);
 
   // --- tamaño y cámara ---
   const view = { halfW: 1, halfH: 1, mobile: false };
@@ -135,6 +152,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       const p = place({ position: new THREE.Vector3() }, { x: 0, y: 0.08, s: 1 });
       star.position.copy(p.position);
       star.scale.setScalar(p.scale);
+      renderer.clear();
       renderer.render(scene, camera);
     };
     window.addEventListener('resize', draw);
@@ -148,9 +166,12 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   // --- recorrido: puntos de paso por sección, en píxeles de scroll (se recalculan en cada refresh) ---
   let stops = [];
   let curve = null;
+  let hold = null; // tramo del estudio en px de scroll: { start, end }
   const buildPath = () => {
     stops = waypoints(view.mobile, ScrollTrigger);
     curve = new THREE.CatmullRomCurve3(stops.map((p) => new THREE.Vector3(p.x, p.y, p.s)), false, 'centripetal');
+    const held = stops.filter((p) => p.hold);
+    hold = held.length === 2 ? { start: held[0].at, end: held[1].at } : null;
     dirty = true;
   };
   // scroll (px) → parámetro de la curva: cada tramo entre dos puntos de paso ocupa lo mismo en la curva
@@ -158,6 +179,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const n = stops.length;
     let i = 0;
     while (i < n - 2 && px > stops[i + 1].at) i++;
+    // entre los dos puntos del estudio (iguales) se queda quieto: sin pasar por la curva, que ahí haría un bucle
+    if (stops[i].hold && stops[i + 1].hold && px >= stops[i].at) return curve.points[i];
     const span = stops[i + 1].at - stops[i].at || 1;
     const f = THREE.MathUtils.clamp((px - stops[i].at) / span, 0, 1);
     return curve.getPoint((i + f) / (n - 1));
@@ -183,11 +206,25 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const heroEl = document.getElementById('hero-main');
   const lastTarget = { ry: 0, position: new THREE.Vector3(), scale: 0 };
   let heroSpin = 0;
+  // estudio 360° (js/studio.js): dibuja su panorama antes que el destello y le pasa su progreso p (0–1)
+  let backdrop = null;
+  const stage = { p: 0 };
+  const env = { k: ENV_INTENSITY, tl: null };
+  const applyEnv = () => { materials.forEach((m) => { m.envMapIntensity = env.k; }); dirty = true; };
 
   loop.add((time, ratio) => {
     if (!entered || hidden || !curve) return;
     frame++;
     const velocity = lenis.velocity || 0;
+    const backdropMoved = backdrop ? backdrop.update(ratio) : false;
+
+    // peso del estudio: 0 fuera, 1 durante el pin (rampa de STUDIO_RAMP pantallas antes y después)
+    let ws = 0;
+    if (hold) {
+      const ramp = STUDIO_RAMP * innerHeight;
+      ws = THREE.MathUtils.smoothstep(scroll.px, hold.start - ramp, hold.start)
+        * (1 - THREE.MathUtils.smoothstep(scroll.px, hold.end, hold.end + ramp));
+    }
 
     // modo frontal: en el centro del hero el destello mira a cámara con "disco" legible (w = 1);
     // al bajar se libera poco a poco la rotación del scroll (w → 0)
@@ -205,7 +242,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const settling = Math.abs(current.ry - lastTarget.ry) > 0.001 || current.position.distanceToSquared(lastTarget.position) > 1e-3 // > ~0.03 u: no cuenta el retraso de la flotación
       || Math.abs(current.scale - lastTarget.scale) > 1e-4;
     const moving = Math.abs(velocity) > 0.01 || Math.abs(angularVel) > 0.0005
-      || Math.abs(scroll.px - lastPx) > 0.1 || entry.k < 1 || dirty || settling;
+      || Math.abs(scroll.px - lastPx) > 0.1 || entry.k < 1 || dirty || settling || backdropMoved;
     lastPx = scroll.px;
     // en reposo solo queda la flotación, que es lenta: a 30 fps basta
     if (!moving && frame % 2) return;
@@ -213,6 +250,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
     const p = curveAt(scroll.px);
     place(target, { x: p.x, y: p.y, s: p.z });
+    const floorY = target.position.y; // sin la flotación: el "suelo" de la sombra no flota
     target.position.y += Math.sin(time * 0.9) * 0.04;
 
     // rotación libre (scroll + velocidad + balanceo) y pose frontal: la vuelta completa más cercana,
@@ -223,9 +261,13 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const freeZ = Math.sin(time * 0.35) * 0.05;
     // en el hero: el ángulo del giro lento más cercano a la rotación libre (nunca más de media vuelta)
     const toHero = THREE.MathUtils.euclideanModulo(heroSpin - freeY + Math.PI, TAU) - Math.PI;
-    const ry = freeY + toHero * w;
-    const rx = freeX * (1 - w);
-    const rz = freeZ * (1 - w);
+    // en el estudio: STUDIO_TURNS vueltas con el progreso del pin, de frente al principio y al final
+    // (el ángulo equivalente más cercano a la rotación libre, como en el hero); casi sin balanceo
+    const studioY = STUDIO_TURNS * TAU * THREE.MathUtils.smoothstep(stage.p, 0.05, 0.95);
+    const toStudio = THREE.MathUtils.euclideanModulo(studioY - freeY + Math.PI, TAU) - Math.PI;
+    const ry = freeY + toHero * w + toStudio * ws;
+    const rx = freeX * (1 - w) * (1 - 0.7 * ws);
+    const rz = freeZ * (1 - w) * (1 - 0.7 * ws);
 
     const lerp = LERP + (FRONT_LERP - LERP) * w;
     // si el objetivo salta una vuelta entera (se ve igual), la rotación actual salta con él: sin vueltas de más
@@ -246,6 +288,17 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     star.position.copy(current.position);
     star.scale.setScalar(Math.max(0.0001, current.scale * entry.k));
     star.rotation.set(current.rx, current.ry + entry.spin, current.rz);
+
+    shadow.visible = ws > 0.001;
+    if (shadow.visible) {
+      const s = current.scale * entry.k;
+      shadow.position.set(current.position.x, floorY - MODEL_HEIGHT * 0.56 * s, 0);
+      shadow.scale.set(2.6 * s, 1, 1.3 * s);
+      shadow.material.opacity = STUDIO_SHADOW * ws;
+    }
+
+    renderer.clear();
+    if (backdrop) backdrop.draw(renderer);
     renderer.render(scene, camera);
   });
 
@@ -274,12 +327,68 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
         scrollTrigger: { start: 0, end: 'max', scrub: SCRUB, invalidateOnRefresh: true },
       });
     },
+
+    // --- para el estudio 360° (js/studio.js): mismo renderer, mismo loop ---
+    renderer,
+    get ok() { return !failed; },
+    // { update(ratio) → true si ha cambiado algo, draw(renderer) }: se dibuja antes que el destello
+    setBackdrop(b) { backdrop = b; dirty = true; },
+    setStage(p) { stage.p = p; },
+    // compila el shader del destello con ese entorno ya, para que el cambio no dé un tirón
+    prepareEnvironment(texture) {
+      loaded.then(() => {
+        if (failed) return;
+        const prev = scene.environment;
+        scene.environment = texture;
+        renderer.compile(scene, camera);
+        scene.environment = prev;
+      });
+    },
+    // cambia los reflejos sin salto: baja el brillo a 0.3, cambia el mapa y lo sube (0.4 s cada tramo).
+    // texture = null → vuelve al estudio de softboxes con su brillo de siempre
+    setEnvironment(texture, intensity) {
+      const map = texture || softbox;
+      const k = texture ? intensity : ENV_INTENSITY;
+      env.tl?.kill();
+      if (scene.environment === map) {
+        env.tl = gsap.to(env, { k, duration: 0.4, ease: 'sine.inOut', onUpdate: applyEnv });
+        return;
+      }
+      env.tl = gsap.timeline()
+        .to(env, { k: 0.3, duration: 0.4, ease: 'sine.in', onUpdate: applyEnv })
+        .call(() => {
+          scene.environment = map;
+          if (!texture) scene.environmentRotation.set(0, 0, 0);
+          dirty = true;
+        })
+        .to(env, { k, duration: 0.4, ease: 'sine.out', onUpdate: applyEnv });
+    },
+    // el entorno de reflejos gira igual que el panorama (solo con el entorno del estudio puesto)
+    setEnvRotation(y, texture) {
+      if (scene.environment === texture) scene.environmentRotation.y = y;
+    },
+    // dispositivo justo: baja la resolución del canvas
+    setDpr(dpr) { renderer.setPixelRatio(dpr); resize(); },
   };
+}
+
+// degradado radial negro (centro opaco → borde transparente) para la sombra de contacto
+function radialTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(0,0,0,1)');
+  grad.addColorStop(0.45, 'rgba(0,0,0,0.45)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
 }
 
 // Puntos de paso de la home: x, y de pantalla normalizados (-1..1), s = escala (1 = alto del hero),
 // at = posición de scroll (px) en la que el destello está ahí. Nunca encima de un bloque de texto:
-// en servicios (escritorio) va al hueco entre la lista y el visor.
+// en servicios (escritorio) va al hueco entre la lista y el visor; en el estudio 360°, quieto en el centro.
 function waypoints(mobile, ScrollTrigger) {
   const max = Math.max(1, ScrollTrigger.maxScroll(window));
   const services = document.getElementById('servicios');
@@ -287,6 +396,10 @@ function waypoints(mobile, ScrollTrigger) {
   const pin = ScrollTrigger.getAll().find((st) => st.pin && services?.contains(st.pin));
   const hero = { at: 0, x: 0, y: 0.08, s: 1 };          // encima de la frase, sin tocarla ni al menú
   const team = teamPoints(mobile);                       // cofundadores: a la derecha de la frase y luego entre las fotos
+  // estudio 360°: quieto en el centro del principio al final del pin (en móvil, más arriba: el texto va abajo)
+  const studioSt = ScrollTrigger.getById('studio');
+  const held = { ...STUDIO_HOLD, y: mobile ? 0.28 : STUDIO_HOLD.y, hold: true };
+  const studioPts = studioSt ? [{ ...held, at: studioSt.start }, { ...held, at: studioSt.end }] : [];
   // móvil: en el hueco entre el último servicio y "¿Hablamos de tu local?" (medido al final del scroll)
   const endY = (() => {
     const last = services && [...services.querySelectorAll('.service')].pop();
@@ -305,6 +418,7 @@ function waypoints(mobile, ScrollTrigger) {
     return [
       hero,
       ...team,
+      ...studioPts,
       { at: top, x: side, y: 0.2, s: 0.4 },
       { at: Math.min(max - 1, top + h * 0.5), x: -side, y: -0.1, s: 0.36 },
       end,
@@ -324,10 +438,11 @@ function waypoints(mobile, ScrollTrigger) {
   return [
     hero,
     ...team,
+    ...studioPts,
     { at: pin.start, x: gapX, y: 0.05, s: 0.4 },     // s 0.4 ≈ 18% del alto de pantalla
     { at: pin.end, x: gapX, y: -0.1, s: 0.36 },
     end,
-  ].filter(Boolean);
+  ].filter(Boolean).sort((a, b) => a.at - b.at);
 }
 
 // Cofundadores: 1) mientras la frase cruza el centro de la pantalla, a su derecha (la frase ocupa las

@@ -38,8 +38,22 @@ runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starL
   window.disco.services = initServices({ gsap, ScrollTrigger, reduced, loop });
   nav.watchInk(); // después del pin de servicios
   ScrollTrigger.refresh();
-  // el destello entra a la vez que la frase; su recorrido se calcula ya con el pin de servicios
-  star.then((s) => { if (s) { s.watchScroll(); s.enter(); } });
+  // estudio 360° (mismo renderer que el destello), antes de que el destello calcule su recorrido: su pin
+  // es un punto de paso. Sin three (CDN caído) o sin modelo: el estudio queda como imagen fija.
+  // El destello entra a la vez que la frase; su recorrido se calcula ya con el pin de servicios.
+  star.then(async (s) => {
+    if (s) await s.loaded;
+    try {
+      const { initStudio } = await import('./studio.js');
+      initStudio({ gsap, ScrollTrigger, reduced, loop, star: s && s.ok !== false ? s : null });
+    } catch {
+      const studio = document.getElementById('estudio');
+      studio?.classList.add('is-still', 'is-lit');
+      studio?.style.setProperty('--studio-still', `url("${new URL('assets/studio/studio-360-mobile.jpg', location.href)}")`);
+    }
+    ScrollTrigger.refresh();
+    if (s) { s.watchScroll(); s.enter(); }
+  });
 });
 
 window.disco = { gsap, lenis, loop };
