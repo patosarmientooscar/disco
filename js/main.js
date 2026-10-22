@@ -37,7 +37,7 @@ runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starL
   initTeam({ gsap, ScrollTrigger, reduced });
   hero.watchCta();
   // Servicios ya no está en la home (vive en servicios.html, con js/services.js)
-  initWhy({ gsap, ScrollTrigger, reduced }); // hoja de contactos: "¿Por qué nosotros?"
+  initWhy({ gsap, ScrollTrigger, reduced, loop }); // "¿Por qué nosotros?": enfoque + bokeh + diafragma
   initFooter({ gsap, ScrollTrigger, reduced, loop }); // el editor de vídeo (su visor es el último punto de paso del destello)
   nav.watchInk();
   ScrollTrigger.refresh();

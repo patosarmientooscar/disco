@@ -36,9 +36,10 @@ const TAU = Math.PI * 2;
 // móvil, arriba y más pequeño, entre el título y la claqueta); al final vuelve al centro, de frente
 const STUDIO_PATH = [[0, 0, 0.06, 0.55], [0.18, 0, 0.06, 0.55], [0.32, -0.55, -0.3, 0.38], [0.88, -0.55, -0.3, 0.38], [1, 0, 0.06, 0.55]];
 const STUDIO_PATH_MOBILE = [[0, 0, 0.04, 0.55], [0.18, 0, 0.04, 0.55], [0.32, 0, 0.42, 0.3], [0.88, 0, 0.42, 0.3], [1, 0, 0.04, 0.55]];
-// "¿Por qué nosotros?" (js/why.js): arriba a la derecha todo el pin (x 0.58: con 0.62 rozaba el contador
-// "FOTOGRAMA 01 / 04"); en móvil (sin pin) a un lado, por detrás de los fotogramas
-const WHY = { x: 0.58, y: 0.55, s: 0.3 };
+// "¿Por qué nosotros?" (js/why.js): en el hueco del anillo de diafragma (a la derecha, centrado en vertical),
+// como lo que el objetivo está enfocando; x se calcula con el ancho (whyPoint). En móvil (sin anillo), arriba a la derecha
+const WHY = { x: 0.84, y: 0, s: 0.32 };
+const WHY_RING_INSET = 120; // px desde el borde derecho: el centro del hueco visible del anillo
 const WHY_MOBILE = { x: 0.6, y: 0.72, s: 0.25 };
 // footer (js/footer.js): el último punto de paso es el monitor del visor, como el clip que se está editando
 const FOOTER_SIZE = 0.22;
@@ -422,7 +423,7 @@ function waypoints(mobile, ScrollTrigger) {
     { ...pt(path[path.length - 1]), at: studioSt.end, hold: 'studio' },
   ] : [];
   const whySt = ScrollTrigger.getById('why');
-  const at = mobile ? WHY_MOBILE : WHY;
+  const at = mobile ? WHY_MOBILE : { ...WHY, x: ((innerWidth - WHY_RING_INSET) / innerWidth) * 2 - 1 };
   const why = whySt ? [
     { ...at, at: whySt.start, hold: 'still' },
     { ...at, at: Math.min(max, Math.max(whySt.start + 1, whySt.end)), hold: 'still' },

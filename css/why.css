@@ -1,202 +1,149 @@
-/* ---------- "¿Por qué nosotros?" — hoja de contactos (js/why.js) ----------
-   Papel claro con un negativo de 35 mm. Escritorio: la tira pasa en horizontal con el scroll (la sección
-   mide 100vh + 380vh de pin; interior sticky) y el fotograma del centro se revela. Móvil y movimiento
-   reducido (.is-static): los fotogramas uno debajo de otro (por defecto aquí). El interior va por encima
-   del canvas del destello (z-index 2); el papel, por debajo. */
+/* ---------- "¿Por qué nosotros?" — enfoque de cámara (js/why.js) ----------
+   Papel cálido. La sección mide 100vh + 420vh de pin (móvil: + 300vh). Dos capas fijas (sticky) a la vez:
+   .why__back (bokeh y anillo de diafragma) por DEBAJO del canvas del destello (z-index 1), así el destello
+   queda dentro del anillo; .why__pin (título y razones) por ENCIMA (z-index 2).
+   La hoja de contactos anterior está en legacy/css/why-contactos.css. */
 .why {
   --paper: #f4f2ef;
   --orange: #F35411;
-  --band: clamp(260px, 42vh, 440px);
-  --frame-h: calc(var(--band) - 88px);
-  --frame-w: calc(var(--frame-h) * 1.5);
-  --hole: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='14'%3E%3Crect x='8' width='10' height='14' rx='2.5' fill='%23f4f2ef'/%3E%3C/svg%3E");
+  --why-x: clamp(24px, 10vw, 180px);
   position: relative;
+  height: 520vh;
   background: var(--paper);
   color: #0b0909;
 }
 
+.why__back,
 .why__pin {
-  position: relative;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100lvh;
+  overflow: hidden;
+}
+.why__pin {
   z-index: 2;
-  padding: 120px 12px 110px;
+  margin-top: -100vh;
+  margin-top: -100lvh;
+}
+
+.why__bokeh {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .why__title {
-  margin: 0 0 0 12px;
-  font: 500 clamp(44px, 6.2vw, 108px) / 0.95 var(--font-display);
-  letter-spacing: -0.02em;
-}
-.why__q { color: var(--orange); }
-
-.why__counter {
-  display: none;
+  position: absolute;
+  left: var(--why-x);
+  top: 124px;
   margin: 0;
-  font: 400 12px / 1 'IBM Plex Mono', monospace;
-  letter-spacing: 0.12em;
-  color: #6f6763;
+  font: 500 clamp(16px, 1.2vw, 20px) / 1 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-/* ---------- la tira (por defecto: un trozo de negativo por fotograma, en vertical) ---------- */
-.why__band { display: none; }
-.why__frames {
-  display: grid;
-  gap: 48px;
-  margin: 56px 0 0;
+/* ---------- las razones: enormes, en columna; js/why.js mueve la columna y enfoca la activa ---------- */
+.why__list {
+  position: absolute;
+  left: var(--why-x);
+  top: 0;
+  /* sin entrar en el anillo de la derecha (ni en el destello, que va en su hueco) */
+  width: min(calc(100vw - var(--why-x) - 300px), 16ch);
+  margin: 0;
   padding: 0;
   list-style: none;
+  font: 500 clamp(44px, 7.4vw, 136px) / 1 var(--font-display);
+  letter-spacing: -0.025em;
+  will-change: transform;
 }
-.why__frame {
+.why__item {
   position: relative;
-  margin: 0;
-  padding: 34px 10px;
-  background: var(--hole) 0 6px / 26px 14px repeat-x, var(--hole) 0 calc(100% - 6px) / 26px 14px repeat-x, #141111;
+  margin-bottom: 0.15em;
+  transform-origin: 0% 50%;
+  will-change: transform, filter, opacity;
 }
-.why__photo {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 3 / 2;
-  background: #0b0909;
+.why__word { display: block; }
+.why__spark {
+  display: inline-block;
+  width: 0.35em;
+  height: 0.35em;
+  margin: 0 0.22em 0.12em 0;
+  vertical-align: middle;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath fill='%23F35411' d='M5 0C5.6 3.6 6.4 4.4 10 5 6.4 5.6 5.6 6.4 5 10 4.4 6.4 3.6 5.6 0 5 3.6 4.4 4.4 3.6 5 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: scale(0);
 }
-/* más ancha que el marco: se mueve un poco más lenta que él (parallax, js/why.js) */
-.why__photo img {
-  display: block;
-  width: 116%;
-  max-width: none; /* base.css limita las imágenes al 100% */
-  height: 100%;
-  margin-left: -8%;
-  object-fit: cover;
-  will-change: transform, filter;
-}
-/* velo ámbar del negativo (desaparece al revelarse) */
-.why__amber {
+/* número y frase de la activa: debajo de la palabra (las palabras ocupan casi todo el ancho) */
+.why__meta {
   position: absolute;
-  inset: 34px 10px;
-  background: rgba(243, 84, 17, 0.18);
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-/* rotulado del borde de la película */
-.why__edge,
-.why__num {
-  position: absolute;
-  font: 400 10px / 1 'IBM Plex Mono', monospace;
-  letter-spacing: 0.2em;
-  color: rgba(243, 84, 17, 0.7);
-}
-.why__edge { left: 14px; top: 22px; }
-.why__num {
-  left: 14px;
-  right: 50%;
-  bottom: 22px;
+  left: 0;
+  top: calc(100% + 14px);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
+  letter-spacing: 0;
+  opacity: 0;
 }
-.why__num b { font-weight: 400; }
-
-/* marca de lápiz graso (js/why.js la dibuja alrededor de la foto) */
-.why__mark {
-  position: absolute;
-  overflow: visible;
-  pointer-events: none;
-  fill: none;
-  stroke: var(--orange);
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.why__mark path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.why__caption { margin-top: 20px; }
 .why__n {
-  font: 400 13px / 1 'IBM Plex Mono', monospace;
-  color: var(--orange);
-}
-.why__head {
-  margin: 10px 0 0;
-  font: 500 clamp(24px, 2.4vw, 40px) / 1.05 var(--font-display);
-  letter-spacing: -0.01em;
+  font: 500 13px / 1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+  color: #b8410e; /* el naranja de marca no llega a 4.5:1 en 13px sobre el papel */
 }
 .why__text {
-  max-width: 30ch;
-  margin: 8px 0 0;
-  font: 400 clamp(15px, 1.1vw, 18px) / 1.45 var(--font-display);
-  color: #4a4340;
+  max-width: 28ch;
+  font: 400 clamp(15px, 1.2vw, 19px) / 1.45 var(--font-display);
+  color: #3a3434;
 }
 
-/* movimiento reducido en pantalla ancha: dos columnas */
-@media (min-width: 768px) {
-  .why.is-static .why__pin { padding: 140px clamp(24px, 6vw, 110px) 120px; }
-  .why.is-static .why__title { margin-left: 0; }
-  .why.is-static .why__frames { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; }
+/* ---------- anillo de diafragma: medio fuera de pantalla a la derecha ---------- */
+.why__ring {
+  position: absolute;
+  right: -180px;
+  top: 50%;
+  width: 420px;
+  height: 420px;
+  margin-top: -210px;
+}
+.why__ring svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.why__ring circle { fill: none; stroke: rgba(11, 9, 9, 0.25); stroke-width: 1; }
+.why__ring .tick { stroke: rgba(11, 9, 9, 0.25); stroke-width: 1; }
+.why__ring text {
+  font: 400 11px / 1 'IBM Plex Mono', monospace;
+  fill: #6f6662;
+  dominant-baseline: middle;
+  transition: fill 0.25s linear;
+}
+.why__ring text.is-on { fill: var(--orange); }
+.why__ring .index { stroke: var(--orange); stroke-width: 2; stroke-linecap: round; }
+
+/* ---------- móvil: pin más corto, razones más pequeñas, sin anillo ---------- */
+@media (max-width: 767px) {
+  .why { --why-x: 20px; height: 400vh; }
+  .why__title { top: 104px; }
+  .why__list {
+    width: calc(100vw - 40px);
+    font-size: clamp(36px, 10vw, 52px);
+  }
+  .why__ring { display: none; }
 }
 
-/* ---------- escritorio: la tira en horizontal, fija mientras se recorre el pin ---------- */
-@media (min-width: 768px) {
-  .why:not(.is-static) { height: 480vh; }
-  .why:not(.is-static) .why__pin {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    height: 100lvh;
-    padding: 0;
-    overflow: hidden;
-  }
-  .why:not(.is-static) .why__title {
-    position: absolute;
-    left: clamp(24px, 6vw, 110px);
-    top: 120px;
-    margin: 0;
-  }
-  .why:not(.is-static) .why__counter {
-    display: block;
-    position: absolute;
-    right: clamp(24px, 6vw, 110px);
-    top: 128px;
-  }
-  /* la tira entera se mueve en x (js/why.js); centrada en vertical con top, sin transform */
-  .why:not(.is-static) .why__track {
-    position: absolute;
-    left: 0;
-    top: calc(56% - var(--band) / 2);
-    width: max-content;
-  }
-  .why:not(.is-static) .why__band {
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: var(--band);
-    background: var(--hole) 0 9px / 26px 14px repeat-x, var(--hole) 0 calc(100% - 9px) / 26px 14px repeat-x, #141111;
-  }
-  /* tira vacía antes del primer fotograma y después del último, para que entre y salga con naturalidad */
-  .why:not(.is-static) .why__frames {
-    position: relative;
-    display: flex;
-    gap: 0;
-    margin: 0;
-    padding: 0 60vw;
-  }
-  .why:not(.is-static) .why__cell {
-    flex: none;
-    width: calc(var(--frame-w) + 40px);
-    padding: 0 20px;
-  }
-  .why:not(.is-static) .why__frame {
-    height: var(--band);
-    padding: 44px 0;
-    background: none;
-  }
-  .why:not(.is-static) .why__photo {
-    width: var(--frame-w);
-    height: var(--frame-h);
-    aspect-ratio: auto;
-  }
-  .why:not(.is-static) .why__amber { inset: 44px 0; }
-  .why:not(.is-static) .why__edge { left: 0; top: 27px; }
-  .why:not(.is-static) .why__num { left: 0; bottom: 27px; }
-  .why:not(.is-static) .why__caption { margin-top: 22px; }
+/* ---------- movimiento reducido: sin pin ni desenfoque; las cuatro en lista, nítidas ---------- */
+.why.is-static { height: auto; }
+.why.is-static .why__back {
+  position: absolute;
+  inset: 0;
+  height: auto;
 }
+.why.is-static .why__pin {
+  position: relative;
+  height: auto;
+  margin: 0;
+  padding: 180px var(--why-x) 140px;
+}
+.why.is-static .why__title { position: static; margin-bottom: 48px; }
+.why.is-static .why__list { position: static; width: auto; max-width: 16ch; }
+.why.is-static .why__item { margin-bottom: 1.1em; }
+.why.is-static .why__spark { transform: none; }
+.why.is-static .why__meta { position: static; margin-top: 14px; opacity: 1; }
+.why.is-static .why__ring { display: none; }

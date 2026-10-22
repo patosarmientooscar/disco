@@ -245,70 +245,36 @@
       </div>
     </section>
 
-    <!-- "¿Por qué nosotros?" — hoja de contactos: un negativo de 35 mm pasa en horizontal con el scroll; el
-         fotograma del centro se revela (negativo → positivo) y se marca con lápiz graso (js/why.js, css/why.css).
-         Móvil: los fotogramas en vertical. Razones: BORRADOR (las frases de apoyo 01–03 son de Claude). -->
+    <!-- "¿Por qué nosotros?" — enfoque de cámara: las cuatro razones a distintas distancias del objetivo; con
+         el scroll el foco viaja de una a otra (la activa nítida, las demás desenfocadas), detrás un bokeh cálido
+         que "respira" en cada cambio y a la derecha el anillo de diafragma marca el progreso (js/why.js,
+         css/why.css). Razones: BORRADOR (las frases de apoyo 01–03 son de Claude); se editan aquí.
+         La hoja de contactos anterior está en legacy/html/why-contactos.html. -->
     <section class="why" id="porque" aria-labelledby="why-title" data-nav-ink="dark">
+      <div class="why__back" aria-hidden="true">
+        <canvas class="why__bokeh" data-why-bokeh></canvas>
+        <div class="why__ring" data-why-ring></div>
+      </div>
       <div class="why__pin">
-        <h2 class="why__title" id="why-title">¿Por qué<br> nosotros<span class="why__q">?</span></h2>
-        <p class="why__counter" aria-hidden="true">FOTOGRAMA <span data-why-count>01</span> / 04</p>
-        <div class="why__track" data-why-track>
-          <div class="why__band" aria-hidden="true"></div>
-          <ol class="why__frames">
-            <li class="why__cell" data-why-cell>
-              <figure class="why__frame" data-why-frame>
-                <span class="why__edge" aria-hidden="true">DISCO 400</span>
-                <div class="why__photo"><img src="assets/why/why-01.webp" srcset="assets/why/why-01-800.webp 800w, assets/why/why-01.webp 1600w" sizes="(min-width: 768px) 34vw, 92vw" width="1600" height="1066" alt="Figura movida en blanco y negro" loading="lazy" decoding="async" data-why-img></div>
-                <i class="why__amber" aria-hidden="true"></i>
-                <span class="why__num" aria-hidden="true"><b>1</b><b>1A</b></span>
-              </figure>
-              <div class="why__caption" data-why-caption>
-                <span class="why__n">01</span>
-                <h3 class="why__head">Entregas rápidas</h3>
-                <p class="why__text">Tu contenido, listo en días, no en semanas.</p>
-              </div>
-            </li>
-            <li class="why__cell" data-why-cell>
-              <figure class="why__frame" data-why-frame>
-                <span class="why__edge" aria-hidden="true">DISCO 400</span>
-                <div class="why__photo"><img src="assets/why/why-02.webp" srcset="assets/why/why-02-800.webp 800w, assets/why/why-02.webp 1600w" sizes="(min-width: 768px) 34vw, 92vw" width="1600" height="1066" alt="Chico con una raqueta en pleno golpe contra un cielo azul" loading="lazy" decoding="async" data-why-img></div>
-                <i class="why__amber" aria-hidden="true"></i>
-                <span class="why__num" aria-hidden="true"><b>2</b><b>2A</b></span>
-              </figure>
-              <div class="why__caption" data-why-caption>
-                <span class="why__n">02</span>
-                <h3 class="why__head">Vídeos profesionales</h3>
-                <p class="why__text">Equipo y calidad de cine para tu marca.</p>
-              </div>
-            </li>
-            <li class="why__cell" data-why-cell>
-              <figure class="why__frame" data-why-frame>
-                <span class="why__edge" aria-hidden="true">DISCO 400</span>
-                <div class="why__photo"><img src="assets/why/why-03.webp" srcset="assets/why/why-03-800.webp 800w, assets/why/why-03.webp 1600w" sizes="(min-width: 768px) 34vw, 92vw" width="1600" height="1066" alt="Terraza con sombrillas junto al mar" loading="lazy" decoding="async" data-why-img></div>
-                <i class="why__amber" aria-hidden="true"></i>
-                <span class="why__num" aria-hidden="true"><b>3</b><b>3A</b></span>
-              </figure>
-              <div class="why__caption" data-why-caption>
-                <span class="why__n">03</span>
-                <h3 class="why__head">Pensado para redes</h3>
-                <p class="why__text">Formatos verticales y cortes que funcionan en Instagram y TikTok.</p>
-              </div>
-            </li>
-            <li class="why__cell" data-why-cell>
-              <figure class="why__frame" data-why-frame>
-                <span class="why__edge" aria-hidden="true">DISCO 400</span>
-                <div class="why__photo"><img src="assets/why/why-04.webp" srcset="assets/why/why-04-800.webp 800w, assets/why/why-04.webp 1600w" sizes="(min-width: 768px) 34vw, 92vw" width="1600" height="1066" alt="Bola de discoteca brillando en la oscuridad" loading="lazy" decoding="async" data-why-img></div>
-                <i class="why__amber" aria-hidden="true"></i>
-                <span class="why__num" aria-hidden="true"><b>4</b><b>4A</b></span>
-              </figure>
-              <div class="why__caption" data-why-caption>
-                <span class="why__n">04</span>
-                <h3 class="why__head">Todo en el mismo equipo</h3>
-                <p class="why__text">De la idea al contenido final.</p>
-              </div>
-            </li>
-          </ol>
-        </div>
+        <h2 class="why__title" id="why-title">¿Por qué nosotros?</h2>
+        <ol class="why__list" data-why-list>
+          <li class="why__item" data-why-item>
+            <span class="why__word"><i class="why__spark" aria-hidden="true"></i>Entregas rápidas</span>
+            <span class="why__meta"><span class="why__n">01 / 04</span><span class="why__text">Tu contenido, listo en días, no en semanas.</span></span>
+          </li>
+          <li class="why__item" data-why-item>
+            <span class="why__word"><i class="why__spark" aria-hidden="true"></i>Vídeos profesionales</span>
+            <span class="why__meta"><span class="why__n">02 / 04</span><span class="why__text">Equipo y calidad de cine para tu marca.</span></span>
+          </li>
+          <li class="why__item" data-why-item>
+            <span class="why__word"><i class="why__spark" aria-hidden="true"></i>Pensado para redes</span>
+            <span class="why__meta"><span class="why__n">03 / 04</span><span class="why__text">Formatos verticales y cortes que funcionan en Instagram y TikTok.</span></span>
+          </li>
+          <li class="why__item" data-why-item>
+            <span class="why__word"><i class="why__spark" aria-hidden="true"></i>Todo en el mismo equipo</span>
+            <span class="why__meta"><span class="why__n">04 / 04</span><span class="why__text">De la idea al contenido final.</span></span>
+          </li>
+        </ol>
       </div>
     </section>
   </main>

@@ -1,190 +1,250 @@
-// "¿Por qué nosotros?" — hoja de contactos. Después del estudio "revelamos" el carrete: un negativo de
-// 35 mm pasa en horizontal con el scroll; el fotograma que llega al centro pasa de negativo a positivo y
-// un lápiz graso naranja lo marca (rectángulo a mano alzada + ✓), como al elegir la buena. Uno a la vez.
-// Escritorio: pin (sticky en css/why.css) y la tira en x con scrub. Móvil: en vertical, cada fotograma se
-// revela al cruzar la mitad de la pantalla. Movimiento reducido: todo en positivo y marcado, quieto.
-const NEGATIVE = 'invert(1) hue-rotate(180deg) saturate(0.7) contrast(0.9)';
-const POSITIVE = 'invert(0) hue-rotate(0deg) saturate(1) contrast(1)';
-const ZONE = 0.08;             // ± ancho de pantalla alrededor del centro en el que un fotograma se revela
-const FIRST = 0.12;            // p en el que el primer fotograma está en el centro…
-const LAST = 0.88;             // …y el último
+// "¿Por qué nosotros?" — enfoque de cámara. Las cuatro razones están a distintas distancias del objetivo;
+// con el scroll el foco "viaja" de una a otra como un foquista: la activa nítida, las vecinas y las lejanas
+// desenfocadas (interpolado continuo con el progreso, con un pequeño rebote de autofocus al llegar). La
+// columna sube para que la activa quede siempre en el centro. Detrás, un bokeh cálido (canvas 2D a media
+// resolución) que respira en cada cambio de foco; a la derecha, el anillo de diafragma gira y marca el
+// progreso. Todo en el loop único (gsap.ticker), solo con la sección en pantalla.
+// La hoja de contactos anterior está en legacy/js/why-contactos.js.
 const SCRUB = 1.5;
-const PARALLAX = 0.06;         // la foto va un 6% más lenta que su marco
-const SHIFT_MAX = 34;          // px: lo que da de sí la foto (116% del marco)
-const DIM = 0.35;              // texto de los fotogramas sin revelar
+const SMOOTH = 0.06;          // suavizado extra del progreso (por frame a 60 fps)
+const EDGE = 0.06;            // al principio y al final del pin el foco se queda en la primera / última
+const FOCUS = [               // por distancia al foco: activa, vecinas, lejanas
+  { blur: 0, opacity: 1, scale: 1 },
+  { blur: 10, opacity: 0.28, scale: 0.94 },
+  { blur: 18, opacity: 0.12, scale: 0.9 },
+];
+const STOPS = ['f/1.4', 'f/2', 'f/2.8', 'f/4', 'f/5.6', 'f/8', 'f/11', 'f/16'];
+const STOP_STEP = 20;         // grados entre cifras (8 cifras: 140° en total)
+// qué cifra marca la línea índice según el foco (0 … 3): 01 → f/1.4–2.8, 02 → f/4, 03 → f/5.6–8, 04 → f/11–16
+const RING_KEYS = [[-1, 0], [0, 1], [1, 3], [2, 4.5], [3, 6.5], [4, 7]];
+const META_GAP = 14;          // px entre la palabra y su frase
 
-export function initWhy({ gsap, ScrollTrigger, reduced }) {
+export function initWhy({ gsap, ScrollTrigger, reduced, loop }) {
   const section = document.getElementById('porque');
   if (!section) return;
-  const track = section.querySelector('[data-why-track]');
-  const cells = [...section.querySelectorAll('[data-why-cell]')];
-  const frames = cells.map((c) => c.querySelector('[data-why-frame]'));
-  const imgs = cells.map((c) => c.querySelector('[data-why-img]'));
-  const ambers = cells.map((c) => c.querySelector('.why__amber'));
-  const captions = cells.map((c) => c.querySelector('[data-why-caption]'));
-  const count = section.querySelector('[data-why-count]');
-  const marks = frames.map((f, i) => buildMark(f, i));
-  const layoutMarks = () => marks.forEach((m) => m.layout());
-  window.addEventListener('resize', layoutMarks);
-  imgs.forEach((img) => img.addEventListener('load', layoutMarks, { once: true }));
-  layoutMarks();
+  const list = section.querySelector('[data-why-list]');
+  const items = [...section.querySelectorAll('[data-why-item]')];
+  const metas = items.map((it) => it.querySelector('.why__meta'));
+  const sparks = items.map((it) => it.querySelector('.why__spark'));
+  const small = () => innerWidth < 768;
+  const bokeh = createBokeh(section.querySelector('[data-why-bokeh]'), small() ? 12 : 26);
+  const ring = createRing(section.querySelector('[data-why-ring]'));
 
-  // las fotos se cargan cuando la sección está a una pantalla (en la tira, las de fuera no cuentan como cerca)
-  const io = new IntersectionObserver(([e]) => {
-    if (!e.isIntersecting) return;
-    io.disconnect();
-    imgs.forEach((img) => { img.loading = 'eager'; });
-  }, { rootMargin: '100% 0px' });
-  io.observe(section);
-
-  // --- movimiento reducido: positivas, marcadas y quietas ---
+  // --- movimiento reducido: lista nítida, bokeh quieto ---
   if (reduced.matches) {
     section.classList.add('is-static');
-    gsap.set(ambers, { opacity: 0 });
-    marks.forEach((m) => m.show());
-    requestAnimationFrame(layoutMarks);
+    const still = () => { bokeh.resize(); bokeh.draw(0, 1, null); };
+    still();
+    window.addEventListener('resize', still);
     return;
   }
 
-  gsap.set(imgs, { filter: NEGATIVE });
-  gsap.set(captions, { opacity: DIM });
+  // --- medidas sin transformaciones: posición natural de cada razón y alto de la frase de la activa ---
+  let tops = [];
+  let heights = [];
+  let metaH = 0;
+  const measure = () => {
+    tops = items.map((it) => it.offsetTop);
+    heights = items.map((it) => it.offsetHeight);
+    metaH = Math.max(...metas.map((m) => m.offsetHeight)) + META_GAP * 2;
+    bokeh.resize();
+    applied = '';
+  };
 
-  // revelado: el del centro a positivo (0.9 s); el que se aleja vuelve a negativo despacio (1.2 s)
+  const state = { p: 0 };
+  gsap.to(state, {
+    p: 1,
+    ease: 'none',
+    scrollTrigger: { id: 'why', trigger: section, start: 'top top', end: 'bottom bottom', scrub: SCRUB, invalidateOnRefresh: true },
+  });
+  ScrollTrigger.addEventListener('refresh', measure);
+  window.addEventListener('resize', measure);
+
+  // respiración del foco (todo el bokeh crece un 6% y vuelve) y rebote de autofocus de la activa
+  const breath = { v: 1 };
+  const bounce = items.map(() => ({ b: 0 }));
   let active = -1;
-  const develop = (i, on) => {
-    gsap.to(imgs[i], { filter: on ? POSITIVE : NEGATIVE, duration: on ? 0.9 : 1.2, ease: on ? 'power2.out' : 'power1.inOut', overwrite: 'auto' });
-    gsap.to(ambers[i], { opacity: on ? 0 : 1, duration: on ? 0.9 : 1.2, ease: on ? 'power2.out' : 'power1.inOut', overwrite: 'auto' });
-    gsap.to(captions[i], { opacity: on ? 1 : DIM, y: on ? -10 : 0, duration: 0.6, ease: 'expo.out', overwrite: 'auto' });
-    if (on) marks[i].draw(); else marks[i].erase();
-  };
-  const setActive = (i) => {
-    if (i === active) return;
-    if (active >= 0) develop(active, false);
-    if (i >= 0) {
-      develop(i, true);
-      count.textContent = String(i + 1).padStart(2, '0');
-    }
+  let arrived = false;
+  const activate = (i) => {
+    const prev = active;
     active = i;
+    arrived = false;
+    if (prev >= 0) {
+      gsap.to(metas[prev], { opacity: 0, y: -8, duration: 0.3, ease: 'power2.in', overwrite: 'auto' });
+      gsap.to(sparks[prev], { scale: 0, rotate: 90, duration: 0.3, ease: 'power2.in', overwrite: 'auto' });
+    }
+    gsap.fromTo(metas[i], { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', overwrite: 'auto' });
+    gsap.fromTo(sparks[i], { scale: 0, rotate: -120 }, { scale: 1, rotate: 0, duration: 0.6, ease: 'expo.out', overwrite: 'auto' });
+    gsap.fromTo(breath, { v: 1 }, { v: 1.06, duration: 0.3, ease: 'sine.inOut', yoyo: true, repeat: 1, overwrite: true });
   };
 
-  gsap.matchMedia()
-    // escritorio: la tira pasa por el centro; cada fotograma, centrado en su p (de FIRST a LAST)
-    .add('(min-width: 768px)', () => {
-      let centers = [];
-      const measure = () => {
-        centers = cells.map((c) => c.offsetLeft + c.offsetWidth / 2);
-        layoutMarks();
-      };
-      const xAt = (p) => {
-        const c0 = centers[0];
-        const c1 = centers[centers.length - 1];
-        return innerWidth / 2 - (c0 + ((p - FIRST) / (LAST - FIRST)) * (c1 - c0));
-      };
-      const shift = imgs.map((img) => gsap.quickSetter(img, 'x', 'px'));
-      const tick = () => {
-        const x = gsap.getProperty(track, 'x');
-        let pick = -1;
-        centers.forEach((c, i) => {
-          const d = c + x - innerWidth / 2;
-          if (Math.abs(d) < ZONE * innerWidth) pick = i;
-          shift[i](gsap.utils.clamp(-SHIFT_MAX, SHIFT_MAX, -d * PARALLAX));
-        });
-        setActive(pick);
-      };
-      measure();
-      gsap.fromTo(track, { x: () => { measure(); return xAt(0); } }, {
-        x: () => xAt(1),
-        ease: 'none',
-        onUpdate: tick,
-        scrollTrigger: {
-          id: 'why',
-          trigger: section,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: SCRUB,
-          invalidateOnRefresh: true,
-        },
+  // mezcla de los tres estados de foco según la distancia (0 = activa, 1 = vecina, ≥ 2 = lejana)
+  const focusAt = (d) => {
+    const k = Math.min(d, 2);
+    const a = FOCUS[Math.floor(k)];
+    const b = FOCUS[Math.min(2, Math.floor(k) + 1)];
+    const t = k - Math.floor(k);
+    return { blur: a.blur + (b.blur - a.blur) * t, opacity: a.opacity + (b.opacity - a.opacity) * t, scale: a.scale + (b.scale - a.scale) * t };
+  };
+
+  let p = 0;
+  let visible = false;
+  let applied = '';
+  loop.add((time, ratio) => {
+    if (!visible || !tops.length) return;
+    const prevP = p;
+    p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
+    if (Math.abs(state.p - p) < 1e-5) p = state.p;
+    const n = items.length;
+    const f = gsap.utils.clamp(0, 1, (p - EDGE) / (1 - EDGE * 2)) * (n - 1); // foco continuo: 0 … 3
+
+    const i = Math.round(f);
+    if (i !== active) activate(i);
+    if (!arrived && Math.abs(f - i) < 0.03) {
+      arrived = true;
+      gsap.timeline().to(bounce[i], { b: 1.5, duration: 0.12, ease: 'power1.out' }).to(bounce[i], { b: 0, duration: 0.23, ease: 'power1.in' });
+    }
+
+    // las de después de la activa bajan para dejar sitio a su frase
+    const push = items.map((_, k) => metaH * gsap.utils.clamp(0, 1, k - f));
+    const center = (k) => tops[k] + push[k] + heights[k] / 2;
+    const lo = Math.floor(f);
+    const hi = Math.min(n - 1, lo + 1);
+    const c = center(lo) + (center(hi) - center(lo)) * (f - lo);
+    const listY = innerHeight / 2 - c;
+
+    const key = `${f.toFixed(4)}|${bounce.map((o) => o.b.toFixed(2)).join()}|${breath.v.toFixed(3)}|${listY.toFixed(1)}`;
+    if (key !== applied) {
+      applied = key;
+      list.style.transform = `translate3d(0, ${listY}px, 0)`;
+      items.forEach((it, k) => {
+        const st = focusAt(Math.abs(k - f));
+        const blur = st.blur + bounce[k].b;
+        it.style.transform = `translate3d(0, ${push[k]}px, 0) scale(${st.scale})`;
+        it.style.opacity = st.opacity;
+        it.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
       });
-      tick();
-    })
-    // móvil: en vertical; se revela el que cruza la mitad de la pantalla
-    .add('(max-width: 767px)', () => {
-      ScrollTrigger.create({ id: 'why', trigger: section, start: 'top top', end: 'bottom bottom' });
-      frames.forEach((f, i) => {
-        ScrollTrigger.create({
-          trigger: f,
-          start: 'top 50%',
-          end: 'bottom 50%',
-          onToggle: (self) => {
-            if (self.isActive) setActive(i);
-            else if (active === i) setActive(-1);
-          },
-        });
-      });
-      layoutMarks();
-    });
+      // banda de la razón activa (en pantalla): el bokeh se apaga ahí para no restar contraste
+      const top = innerHeight / 2 - heights[i] / 2 - 24;
+      bokeh.draw(p, breath.v, { top, bottom: top + heights[i] + metaH, right: list.getBoundingClientRect().right });
+      ring.turn(-STOP_STEP * ringStop(fRing(p)));
+    } else if (p !== prevP) {
+      ring.turn(-STOP_STEP * ringStop(fRing(p)));
+    }
+  });
+
+  ring.turn(0);
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: '10% 0px' }).observe(section);
+  measure();
+  requestAnimationFrame(measure); // con las fuentes ya puestas
+  document.fonts?.ready.then(measure);
 }
 
-// Marca de lápiz graso alrededor de la foto: un rectángulo torcido que no cierra y una ✓ en la esquina.
-// Coordenadas en px de la foto (se rehace al cambiar de tamaño); cada fotograma, su propio pulso (semilla).
-function buildMark(frame, i) {
-  const photo = frame.querySelector('.why__photo');
-  const ns = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('class', 'why__mark');
-  svg.setAttribute('aria-hidden', 'true');
-  const ring = document.createElementNS(ns, 'path');
-  const tick = document.createElementNS(ns, 'path');
-  [ring, tick].forEach((p) => { p.setAttribute('pathLength', '1'); svg.append(p); });
-  frame.append(svg);
-  const { gsap } = window;
-  const P = 16; // margen del trazo alrededor de la foto
+// foco extendido para el anillo: de -1 (principio del pin) a 4 (final), 0 … 3 en las razones
+function fRing(p) {
+  if (p < EDGE) return -1 + p / EDGE;
+  if (p > 1 - EDGE) return 3 + (p - (1 - EDGE)) / EDGE;
+  return ((p - EDGE) / (1 - EDGE * 2)) * 3;
+}
+function ringStop(f) {
+  let i = 1;
+  while (i < RING_KEYS.length - 1 && f > RING_KEYS[i][0]) i++;
+  const [f0, k0] = RING_KEYS[i - 1];
+  const [f1, k1] = RING_KEYS[i];
+  return k0 + (k1 - k0) * Math.max(0, Math.min(1, (f - f0) / (f1 - f0)));
+}
 
+// ---------- bokeh: 26 círculos desenfocados en 3 capas de profundidad (parallax), a media resolución ----------
+function createBokeh(canvas, count) {
+  const g = canvas.getContext('2d');
+  const rnd = seeded(11);
+  const COLORS = [
+    () => `rgba(243, 84, 17, ${0.1 + rnd() * 0.12})`,
+    () => `rgba(255, 210, 189, ${0.18 + rnd() * 0.12})`,
+    () => 'rgba(255, 255, 255, 0.5)',
+  ];
+  const dots = Array.from({ length: count }, () => {
+    const r = 40 + rnd() * 180;
+    const layer = r > 150 ? 0 : r > 90 ? 1 : 2;       // los grandes y borrosos, detrás y más lentos
+    return { x: rnd(), y: rnd() * 1.8, r, layer, color: COLORS[Math.floor(rnd() * 3)]() };
+  }).sort((a, b) => a.layer - b.layer);
+  const SPEED = [0.35, 0.65, 1];
+  let w = 0;
+  let h = 0;
+  const scale = 0.5;
   return {
-    layout() {
-      const w = photo.offsetWidth;
-      const h = photo.offsetHeight;
+    resize() {
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      canvas.width = Math.max(1, Math.round(w * scale));
+      canvas.height = Math.max(1, Math.round(h * scale));
+    },
+    draw(p, breath, band) {
       if (!w) return;
-      const rnd = seeded(i + 7);
-      const j = (a) => (rnd() - 0.5) * 2 * a;
-      Object.assign(svg.style, {
-        left: `${photo.offsetLeft - P}px`,
-        top: `${photo.offsetTop - P}px`,
-        width: `${w + P * 2}px`,
-        height: `${h + P * 2}px`,
+      g.setTransform(scale, 0, 0, scale, 0, 0);
+      g.clearRect(0, 0, w, h);
+      dots.forEach((d) => {
+        const r = d.r * breath;
+        const x = d.x * w;
+        const y = (d.y - p * 0.8 * SPEED[d.layer]) * h;
+        if (y < -r || y > h + r) return;
+        // detrás de la razón activa, más apagado
+        const hit = band && x - r < band.right && y + r > band.top && y - r < band.bottom;
+        const grad = g.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, d.color);
+        grad.addColorStop(0.7, d.color);
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        g.globalAlpha = hit ? 0.35 : 1;
+        g.fillStyle = grad;
+        g.beginPath();
+        g.arc(x, y, r, 0, Math.PI * 2);
+        g.fill();
       });
-      svg.setAttribute('viewBox', `0 0 ${w + P * 2} ${h + P * 2}`);
-      const x0 = P - 7;
-      const y0 = P - 6;
-      const x1 = w + P + 7;
-      const y1 = h + P + 6;
-      ring.setAttribute('d', [
-        `M ${x0 + w * 0.12 + j(6)} ${y0 + j(3)}`,
-        `Q ${(x0 + x1) / 2 + j(30)} ${y0 - 4 + j(3)} ${x1 + j(3)} ${y0 + 3 + j(3)}`,
-        `Q ${x1 + 4 + j(3)} ${(y0 + y1) / 2 + j(30)} ${x1 - 3 + j(3)} ${y1 + j(3)}`,
-        `Q ${(x0 + x1) / 2 + j(30)} ${y1 + 4 + j(3)} ${x0 + j(3)} ${y1 - 3 + j(3)}`,
-        `Q ${x0 - 4 + j(3)} ${(y0 + y1) / 2 + j(30)} ${x0 + 4 + j(3)} ${y0 + 18 + j(5)}`,
-      ].join(' '));
-      const tx = x1 - 2;
-      const ty = y0 + 2;
-      tick.setAttribute('d', `M ${tx - 16} ${ty - 2} L ${tx - 7} ${ty + 9} L ${tx + 12} ${ty - 18}`);
+      g.globalAlpha = 1;
     },
-    draw() {
-      gsap.killTweensOf([ring, tick]);
-      gsap.timeline()
-        .set([ring, tick], { opacity: 1 })
-        .fromTo(ring, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.7, ease: 'power1.inOut' })
-        .fromTo(tick, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.3, ease: 'power1.out' });
-    },
-    erase() {
-      gsap.killTweensOf([ring, tick]);
-      gsap.to([ring, tick], { opacity: 0, duration: 0.5, ease: 'power1.out', onComplete: () => gsap.set([ring, tick], { strokeDashoffset: 1 }) });
-    },
-    show() { gsap.set([ring, tick], { strokeDashoffset: 0, opacity: 1 }); },
   };
 }
 
-// pseudoaleatorio con semilla (mulberry32): el mismo trazo cada vez
+// ---------- anillo de diafragma (SVG): marcas cada 6°, cifras f/…, línea índice naranja a las 9 ----------
+function createRing(el) {
+  if (!el) return { turn() {} };
+  const R = 209;
+  const ticks = [];
+  for (let a = 0; a < 360; a += 6) {
+    const long = a % 30 === 0;
+    const rad = (a * Math.PI) / 180;
+    const r0 = long ? R - 16 : R - 9;
+    ticks.push(`<line class="tick" x1="${(Math.cos(rad) * r0).toFixed(2)}" y1="${(Math.sin(rad) * r0).toFixed(2)}" x2="${(Math.cos(rad) * R).toFixed(2)}" y2="${(Math.sin(rad) * R).toFixed(2)}"/>`);
+  }
+  // cifra k en el ángulo 180 + 20k: pasa por la línea índice (180°, a las 9) cuando el anillo ha girado −20k
+  const labels = STOPS.map((s, k) => {
+    const a = 180 + STOP_STEP * k;
+    const rad = (a * Math.PI) / 180;
+    const x = Math.cos(rad) * (R - 34);
+    const y = Math.sin(rad) * (R - 34);
+    return `<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" transform="rotate(${a - 180} ${x.toFixed(2)} ${y.toFixed(2)})">${s}</text>`;
+  });
+  el.innerHTML = `<svg viewBox="-210 -210 420 420" focusable="false"><g data-rot><circle r="${R}"/>${ticks.join('')}${labels.join('')}</g><line class="index" x1="-226" y1="0" x2="-200" y2="0"/></svg>`;
+  const rot = el.querySelector('[data-rot]');
+  const texts = [...el.querySelectorAll('text')];
+  let on = -1;
+  let last = null;
+  return {
+    turn(deg) {
+      if (last !== null && Math.abs(deg - last) < 0.01) return;
+      last = deg;
+      rot.setAttribute('transform', `rotate(${deg.toFixed(2)})`);
+      const k = Math.max(0, Math.min(STOPS.length - 1, Math.round(-deg / STOP_STEP)));
+      if (k !== on) {
+        texts[on]?.classList.remove('is-on');
+        texts[k].classList.add('is-on');
+        on = k;
+      }
+    },
+  };
+}
+
+// pseudoaleatorio con semilla (mulberry32): el mismo bokeh cada vez
 function seeded(a) {
   return () => {
     a |= 0;
