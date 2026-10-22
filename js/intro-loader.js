@@ -111,26 +111,6 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro, assets = [] 
     img.src = src;
   });
 
-  // el mismo <video> que luego se reproduce (no se descarga dos veces)
-  const videoSrc = track();
-  const video = el.querySelector('[data-intro-video]');
-  const buffered = () => {
-    if (videoSrc.value === 1 || !video.duration || !video.buffered.length) return;
-    videoSrc.value = Math.min(0.99, video.buffered.end(video.buffered.length - 1) / video.duration);
-  };
-  video.addEventListener('progress', buffered);
-  video.addEventListener('canplaythrough', () => { videoSrc.value = 1; }, { once: true });
-  video.addEventListener('error', () => { videoSrc.value = 1; }, { once: true });
-  // con <source>, si ninguna sirve el error llega en la última
-  video.querySelector('source:last-of-type')?.addEventListener('error', () => { videoSrc.value = 1; });
-  if (reduced.matches) {
-    videoSrc.value = 1; // sin vídeo con movimiento reducido: no hace falta descargarlo
-    video.preload = 'none';
-  } else {
-    video.load();
-  }
-  if (video.readyState >= 4) videoSrc.value = 1;
-
   assets.forEach((p) => {
     const s = track();
     const done = () => { s.value = 1; };
@@ -169,18 +149,16 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro, assets = [] 
       window.removeEventListener('resize', placeBar);
       window.dispatchEvent(new CustomEvent('disco:loaded'));
 
-      // luz roja → flash → lentes → blanco; luego fuera el loading y el vídeo
-      playIntroShot({ gsap, reduced, root: el }).then(() => {
-        video.pause();
-        video.querySelectorAll('source').forEach((s) => s.remove());
-        video.removeAttribute('src');
-        video.load(); // libera el vídeo
-        el.remove();
-        document.documentElement.classList.remove('is-locked');
-        lenis.start();
-        window.dispatchEvent(new CustomEvent('disco:intro-done'));
-        resolve();
-      });
+      // luz roja → flash; con el blanco puesto, el hero queda detrás y el blanco se disuelve en él
+      playIntroShot({
+        gsap, reduced, root: el,
+        reveal() {
+          document.documentElement.classList.remove('is-locked');
+          lenis.start();
+          window.dispatchEvent(new CustomEvent('disco:intro-done'));
+          resolve();
+        },
+      }).then(() => el.remove());
     });
   });
 }

@@ -25,7 +25,7 @@ const star = import('./star.js')
   .catch(() => null);
 const starLoaded = star.then((s) => s && s.loaded);
 
-// Loading (logo + progreso real) → luz roja → flash → lentes → blanco → hero
+// Loading (logo + progreso real) → luz roja → flash → el blanco se disuelve en el hero
 runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starLoaded] }).then(() => {
   document.body.classList.remove('is-loading');
   // por si no hubo loading (sin "disco:intro-done"); si ya entraron, no hacen nada

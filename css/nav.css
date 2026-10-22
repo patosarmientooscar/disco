@@ -104,7 +104,7 @@
 }
 .nav__item[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 
-/* index: oculta durante loading, flash y lentes (entra con "disco:intro-done") */
+/* index: oculta durante loading y flash (entra con "disco:intro-done") */
 .js .nav[data-nav-wait] .nav__bar { opacity: 0; visibility: hidden; }
 
 @media (max-width: 639px) {
