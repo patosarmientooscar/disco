@@ -1,6 +1,6 @@
 /* ---------- nav: píldora flotante de cristal blanco, fija en toda la web ----------
-   .nav (fija y centrada) → .nav__float (flotación, GSAP) → .nav__bar (cristal) + .nav__panel (cristal).
-   El panel es hermano de la barra, no hijo: un backdrop-filter dentro de otro solo vería la barra.
+   .nav (fija y centrada) → .nav__float (flotación, GSAP) → .nav__bar (cristal). Al abrir, la propia píldora
+   crece y se vuelve el menú: js/nav.js mete .nav__panel dentro de la barra y anima ancho, alto y radio.
    Tinta: blanca sobre fondos oscuros (hero); negra (.is-ink-dark) sobre secciones claras (data-nav-ink="dark"). */
 .nav {
   --nav-h: 64px;
@@ -19,11 +19,12 @@
   transition: color 0.3s ease;
 }
 .nav.is-ink-dark { --nav-ink: var(--negro-sensor); }
+/* abierta: cristal claro y tinta negra (las páginas van en #0b0909) */
+.nav.is-open { --nav-ink: #0b0909; --nav-glass: rgb(244 242 239 / 0.9); }
 
 .nav__float { position: relative; }
 
-.nav__bar,
-.nav__panel {
+.nav__bar {
   background: var(--nav-glass);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
@@ -35,13 +36,16 @@
 }
 
 .nav__bar {
+  position: relative;
+  overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* la fila de arriba no se mueve cuando la píldora crece */
   gap: var(--nav-gap);
   height: var(--nav-h);
   padding: 0 28px;
   border-radius: 999px;
   white-space: nowrap;
+  transition: background-color 0.5s ease;
 }
 
 .nav__toggle,
@@ -55,8 +59,15 @@
   text-transform: uppercase;
   text-decoration: none;
 }
-/* área de toque cómoda sin cambiar el tamaño visual */
-.nav__toggle, .nav__link, .nav__logo { padding: 10px 0; }
+/* toda la altura de la fila: área de toque cómoda y la fila fija arriba */
+.nav__toggle, .nav__link, .nav__logo { height: var(--nav-h); padding: 0; }
+.nav__logo { display: flex; align-items: center; }
+.nav__toggle { background: none; border: 0; cursor: pointer; }
+
+/* MENÚ ↔ CERRAR: los dos textos en la misma celda, se cruzan en vertical */
+.nav__label { display: inline-grid; overflow: hidden; }
+.nav__label > span { grid-area: 1 / 1; }
+.nav__label-b { opacity: 0; } /* el desplazamiento lo pone GSAP (js/nav.js) */
 
 /* 2 líneas finas → X */
 .nav__burger {
@@ -74,7 +85,7 @@
 .nav__toggle[aria-expanded="true"] .nav__burger i:first-child { transform: translateY(3.25px) rotate(45deg); }
 .nav__toggle[aria-expanded="true"] .nav__burger i:last-child { transform: translateY(-3.25px) rotate(-45deg); }
 
-.nav__logo { display: block; color: inherit; }
+.nav__logo { color: inherit; }
 .nav__logo-svg {
   display: block;
   height: var(--nav-logo);
@@ -82,27 +93,76 @@
   aspect-ratio: 960 / 290;
 }
 
-/* ---------- desplegable ---------- */
+/* ---------- el menú, dentro de la píldora (debajo de la fila de arriba) ---------- */
 .nav__panel {
   position: absolute;
-  top: calc(100% + 10px);
+  top: var(--nav-h);
   left: 0;
-  min-width: 260px;
-  padding: 24px;
-  border-radius: 24px;
+  right: 0;
+  padding: 18px 28px 26px;
+  white-space: normal;
 }
 .nav__panel[hidden] { display: none; }
 .nav__list { list-style: none; margin: 0; padding: 0; }
-.nav__list li + li { margin-top: 6px; }
+/* máscara: cada página entra desde abajo; el hueco de la izquierda es para la estrellita */
+.nav__list li { overflow: hidden; padding-left: 34px; }
 .nav__item {
-  display: inline-block;
-  padding: 4px 0;
-  color: inherit;
-  font: 400 28px / 1.1 var(--font-hero);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 0;
+  color: #0b0909;
+  font: 500 clamp(30px, 3.4vw, 44px) / 1.1 var(--font-display);
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   text-decoration: none;
 }
-.nav__item[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.nav__word { display: inline-block; transition: translate 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+/* estrellita de 4 puntas: delante de la página actual y al pasar el ratón */
+.nav__spark {
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  width: 0.42em;
+  height: 0.42em;
+  margin-top: -0.21em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath fill='%23F35411' d='M5 0C5.6 3.6 6.4 4.4 10 5 6.4 5.6 5.6 6.4 5 10 4.4 6.4 3.6 5.6 0 5 3.6 4.4 4.4 3.6 5 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  scale: 0;
+  rotate: -90deg;
+  transition: scale 0.35s cubic-bezier(0.16, 1, 0.3, 1), rotate 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav__item[aria-current="page"] .nav__spark,
+.nav__item:hover .nav__spark,
+.nav__item:focus-visible .nav__spark { scale: 1; rotate: 0deg; }
+.nav__item:hover .nav__word,
+.nav__item:focus-visible .nav__word { translate: 8px 0; }
+.nav__item:focus-visible { outline: 2px solid #0b0909; outline-offset: 4px; }
+
+/* pie de la píldora: Instagram y email */
+.nav__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 22px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgb(11 9 9 / 0.14);
+  font: 400 11px / 1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.nav__meta a { color: #3a3434; text-decoration: none; }
+.nav__meta a:hover { color: #0b0909; text-decoration: underline; }
+
+/* velo de la página mientras está abierto (por debajo de la nav) */
+.nav__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgb(11 9 9 / 0.25);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+}
 
 /* index: oculta durante loading y flash (entra con "disco:intro-done") */
 .js .nav[data-nav-wait] .nav__bar { opacity: 0; visibility: hidden; }
@@ -116,11 +176,4 @@
     top: 12px;
   }
   .nav__toggle { gap: 8px; }
-  /* el desplegable ocupa todo el ancho menos 24px (12 + 12), centrado con la píldora
-     (translate, no transform: GSAP anima el transform del panel al abrir) */
-  .nav__panel {
-    left: 50%;
-    translate: -50% 0;
-    width: calc(100vw - 24px);
-  }
 }
