@@ -45,7 +45,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* parpadeo a 118 BPM (punto REC de los CTA y de servicios) */
 @keyframes blink { 50% { opacity: 0; } }
 
-/* ---------- botón REC (oscuro): cierre de servicios y CTA fijo ----------
+/* ---------- botón REC (oscuro) ----------
+   (sin uso desde que se quitó "Pide presupuesto"; se queda para el próximo CTA)
    (antes en hero-main.css; el hero antiguo está en legacy/css/hero-main.css) */
 .btn-rec {
   display: inline-flex; align-items: center; gap: 12px;
@@ -65,27 +66,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* al pasar el ratón el punto deja de parpadear y se queda fijo */
 .btn-rec:hover .btn-rec__dot,
 .btn-rec:focus-visible .btn-rec__dot { animation: none; opacity: 1; }
-
-.btn-rec--fixed {
-  position: fixed;
-  z-index: var(--z-cta);
-  right: calc(var(--hud-inset) + var(--hud-pad));
-  bottom: calc(var(--hud-inset) + var(--hud-pad));
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s linear, visibility 0.2s;
-}
-/* mientras otro CTA igual está en pantalla (cierre de servicios), el fijo se aparta */
-.btn-rec--fixed.is-muted { opacity: 0 !important; visibility: hidden !important; }
-
-@media (max-width: 768px) {
-  .btn-rec--fixed {
-    left: 12px; right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    justify-content: center;
-    padding: 18px 22px;
-  }
-}
 
 /* movimiento reducido: el punto no parpadea */
 @media (prefers-reduced-motion: reduce) {

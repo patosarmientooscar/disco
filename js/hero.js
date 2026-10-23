@@ -220,7 +220,6 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
   const title = hero.querySelector('.hero__title');
   const lines = hero.querySelectorAll('[data-hero-line]');
   const scroll = hero.querySelector('[data-hero-scroll]');
-  const fixedCta = document.querySelector('[data-cta-fixed]');
 
   if (!reduced.matches && hasWebGL()) setupFluid({ hero, img, loop });
   fitTitle(title, lines);
@@ -275,23 +274,6 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
         y: () => -0.85 * hero.offsetHeight,
         ease: 'none',
         scrollTrigger: { trigger: hero, start: 'top top', end: () => `+=${hero.offsetHeight}`, scrub: true, invalidateOnRefresh: true },
-      });
-    },
-    // CTA fijo: aparece cuando el hero ha salido por arriba y se queda el resto de la página
-    watchCta() {
-      ScrollTrigger.create({
-        trigger: hero,
-        start: 'bottom top',
-        onEnter: () => {
-          gsap.to(fixedCta, { autoAlpha: 1, duration: 0.3 });
-          fixedCta.removeAttribute('tabindex');
-          fixedCta.removeAttribute('aria-hidden');
-        },
-        onLeaveBack: () => {
-          gsap.to(fixedCta, { autoAlpha: 0, duration: 0.2 });
-          fixedCta.setAttribute('tabindex', '-1');
-          fixedCta.setAttribute('aria-hidden', 'true');
-        },
       });
     },
   };

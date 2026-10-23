@@ -44,7 +44,6 @@ intro.then(() => {
   const fx = initScrollFx({ gsap, ScrollTrigger, reduced });
   fx.curtain(document.getElementById('hero-main'), document.getElementById('equipo'));
   initTeam({ gsap, ScrollTrigger, reduced });
-  hero.watchCta();
   hero.watchParallax();
   // Servicios ya no está en la home (vive en servicios.html, con js/services.js)
   initWhy({ gsap, ScrollTrigger, reduced, loop }); // "¿Por qué nosotros?": enfoque + bokeh + diafragma

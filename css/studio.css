@@ -132,7 +132,7 @@
 }
 
 /* ---------- claqueta: una sola, cambia de contenido en cada parada ----------
-   Abajo a la derecha, por encima del botón fijo "Pide tu presupuesto" */
+   Abajo a la derecha */
 .clap {
   position: absolute;
   right: clamp(24px, 5vw, 96px);

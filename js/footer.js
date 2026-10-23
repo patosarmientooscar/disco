@@ -16,7 +16,7 @@ const PAGES = [
   { name: 'Servicios', href: 'servicios.html', dur: '00:18', label: 'CLIP 02 · SERVICIOS', title: ['Foto, vídeo', 'y edición'], cta: 'Ver servicios', to: 'servicios.html', icon: 'M4 7h3l2-3h6l2 3h3v13H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
   { name: 'Portfolio', href: 'portfolio.html', dur: '00:24', label: 'CLIP 03 · PORTFOLIO', title: ['Lo que ya', 'hemos grabado'], cta: 'Ver trabajos', to: 'portfolio.html', icon: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' },
   { name: 'Nosotros', href: 'nosotros.html', dur: '00:09', label: 'CLIP 04 · NOSOTROS', title: ['Luna y Bruno,', 'detrás de la cámara'], cta: 'Conócenos', to: 'nosotros.html', icon: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M12.5 14.5c1-.3 2.2-.5 3.5-.5 3.3 0 6 2.7 6 6' },
-  { name: 'Contacto', href: 'contacto.html', dur: '00:06', label: 'CLIP 05 · CONTACTO', title: ['¿Rodamos', 'juntos?'], cta: 'Pide presupuesto', to: 'contacto.html', icon: 'M4 5h16v11H9l-5 4z' },
+  { name: 'Contacto', href: 'contacto.html', dur: '00:06', label: 'CLIP 05 · CONTACTO', title: ['¿Rodamos', 'juntos?'], cta: 'Escríbenos', to: 'contacto.html', icon: 'M4 5h16v11H9l-5 4z' },
 ];
 const THUMBS = ['inicio', 'servicios', 'portfolio', 'nosotros', 'contacto'];
 const LEGAL = [
@@ -205,11 +205,6 @@ export function initFooter({ gsap, ScrollTrigger, reduced, loop }) {
       .fromTo(state, { f: 0 }, { f: rest, duration: 1.2, ease: 'power3.inOut' }, 0.2);
   };
 
-  // con el footer en pantalla el CTA fijo se aparta (tapaba la línea de tiempo; aquí está "Entregar")
-  const fixedCta = document.querySelector('[data-cta-fixed]');
-  new IntersectionObserver(([e]) => {
-    fixedCta?.classList.toggle('is-muted', e.isIntersecting);
-  }, { rootMargin: '0px 0px -25% 0px' }).observe(root);
   new IntersectionObserver(([e]) => {
     state.visible = e.isIntersecting;
     if (!e.isIntersecting && state.playing) setPlaying(false); // pausa automática fuera de pantalla
@@ -338,7 +333,6 @@ function markup(current) {
     <nav class="ed-tabs__nav" aria-label="Pestañas de página">
       <ul>${PAGES.map((p, i) => `<li><a class="ed-tab${i === current ? ' is-current' : ''}" href="${p.href}" data-ed-tab${cur(i)}>${icon(p.icon)}${p.name}</a></li>`).join('')}</ul>
     </nav>
-    <a class="ed-deliver" href="contacto.html">Entregar · Pide presupuesto</a>
     <p class="ed-copyright">© 2026 disco. Todos los derechos reservados</p>
   </div>`;
 }
