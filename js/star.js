@@ -46,7 +46,6 @@ const FOOTER_SIZE = 0.22;
 const FOOTER_FRONT = 0.5;          // × alto de pantalla antes del final: pasa al giro lento de frente, como en el hero
 const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
 const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
-const STUDIO_SHADOW = 0.25;        // opacidad de la sombra de contacto en el "suelo"
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let renderer;
@@ -119,14 +118,6 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   });
   let failed = false;
   const materials = [];
-
-  // sombra de contacto para el estudio: degradado radial negro en un plano horizontal bajo el destello
-  const shadow = new THREE.Mesh(
-    new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ map: radialTexture(), transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
-  );
-  shadow.visible = false;
-  scene.add(shadow);
 
   // --- tamaño y cámara ---
   const view = { halfW: 1, halfH: 1, mobile: false };
@@ -271,7 +262,6 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
     const p = curveAt(scroll.px);
     place(target, { x: p.x, y: p.y, s: p.z });
-    const floorY = target.position.y; // sin la flotación: el "suelo" de la sombra no flota
     target.position.y += Math.sin(time * 0.9) * 0.04;
 
     // rotación libre (scroll + velocidad + balanceo) y pose frontal: la vuelta completa más cercana,
@@ -310,14 +300,6 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     star.position.copy(current.position);
     star.scale.setScalar(Math.max(0.0001, current.scale * entry.k));
     star.rotation.set(current.rx, current.ry + entry.spin, current.rz);
-
-    shadow.visible = ws > 0.001;
-    if (shadow.visible) {
-      const s = current.scale * entry.k;
-      shadow.position.set(current.position.x, floorY - MODEL_HEIGHT * 0.56 * s, 0);
-      shadow.scale.set(2.6 * s, 1, 1.3 * s);
-      shadow.material.opacity = STUDIO_SHADOW * ws;
-    }
 
     renderer.clear();
     if (backdrop) backdrop.draw(renderer);
@@ -392,20 +374,6 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     // dispositivo justo: baja la resolución del canvas
     setDpr(dpr) { renderer.setPixelRatio(dpr); resize(); },
   };
-}
-
-// degradado radial negro (centro opaco → borde transparente) para la sombra de contacto
-function radialTexture() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const g = c.getContext('2d');
-  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grad.addColorStop(0, 'rgba(0,0,0,1)');
-  grad.addColorStop(0.45, 'rgba(0,0,0,0.45)');
-  grad.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
 }
 
 // Puntos de paso de la home: x, y de pantalla normalizados (-1..1), s = escala (1 = alto del hero),
