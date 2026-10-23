@@ -28,6 +28,8 @@
 
   <script>
     document.documentElement.classList.add('js');
+    // al refrescar, la home empieza arriba (el destello entra en el hero); con #ancla, js/main.js lo respeta
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto.
     // La intro larga (agua + luz roja + flash) solo la primera vez por sesión; si falla el storage, se muestra.
     try {

@@ -22,7 +22,11 @@ const LERP = 0.04;                  // la rotación persigue su objetivo
 const SPIN_GAIN = 0.0004;           // velocidad de Lenis → velocidad angular extra
 const SPIN_FRICTION = 0.97;         // al parar frena muy suave (~1.5 s)
 const SPIN_MAX = 0.035;             // rad/frame: gira más si scrolleas rápido, pero siempre con calma
-const ENTER = { duration: 1.4, turns: 2 };   // vueltas completas: acaba de frente
+// entrada en el hero: aparece ya en su sitio y entra fluida, sin vueltas completas: opacidad 0 → 1,
+// escala 0.82 → 1, giro en Y de -35° → 0° (acaba exactamente de frente) y una ligera subida (y -0.06 → 0)
+const ENTER = { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180), rise: -0.06 };
+const HERO_POINT = { x: 0, y: 0.08, s: 1 };   // encima de la frase, sin tocarla ni al menú
+const VELOCITY_MUTE = 600;                    // ms tras cargar en los que se ignora la velocidad de Lenis
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
 const FRONT_BRAKE = 0.85;          // con el modo frontal dominando, frena el giro extra
@@ -201,8 +205,13 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let watching = false;
 
   // --- entrada ---
-  const entry = { k: 0, spin: 0 };
+  // p: progreso de la entrada (0 → 1, expo.out). Mientras dura, el destello está "congelado" en el hero:
+  // sin scroll, sin velocidad de Lenis, sin lerp ni ajuste de frente. Sigue congelado hasta que hay
+  // recorrido (watchScroll); entonces se activa todo partiendo de la pose actual (sin saltos).
+  const entry = { p: 0, done: false, instant: false };
   let entered = false;
+  let entering = null;
+  let live = false;
 
   // --- estado suavizado ---
   const target = { position: new THREE.Vector3(), scale: 0 };
@@ -222,10 +231,49 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const env = { k: ENV_INTENSITY, tl: null };
   const applyEnv = () => { materials.forEach((m) => { m.envMapIntensity = env.k; }); dirty = true; };
 
+  // pose del hero, colocada directamente (sin lerp); la entrada va encima
+  const heroPose = (time) => {
+    place(target, HERO_POINT);
+    target.position.y += Math.sin(time * 0.9) * 0.04 + (1 - entry.p) * ENTER.rise * view.halfH;
+    current.position.copy(target.position);
+    current.scale = target.scale;
+    current.rx = 0;
+    current.ry = 0;
+    current.rz = 0;
+    current.init = true;
+    lastTarget.ry = 0;
+    lastTarget.position.copy(target.position);
+    lastTarget.scale = target.scale;
+    star.position.copy(target.position);
+    star.scale.setScalar(target.scale * (ENTER.scale + (1 - ENTER.scale) * entry.p));
+    star.rotation.set(0, (1 - entry.p) * ENTER.turn, 0);
+    canvas.style.opacity = entry.p < 1 ? entry.p.toFixed(3) : '';
+  };
+  // fin de la congelación: velocidad, giro extra y giro lento a cero, la pose actual como punto de partida
+  const activate = () => {
+    live = true;
+    angularVel = 0;
+    rotYExtra = 0;
+    heroSpin = 0;
+    dirty = true;
+  };
+
   loop.add((time, ratio) => {
-    if (!entered || hidden || !curve) return;
+    if (!entered || hidden) return;
     frame++;
-    const velocity = lenis.velocity || 0;
+    if (!live) {
+      if (entry.done && (curve || entry.instant)) {
+        if (!curve) return;
+        activate();
+      } else {
+        if (entry.done && frame % 2) return; // ya quieto, esperando al recorrido: solo flota (30 fps)
+        heroPose(time);
+        renderer.clear();
+        renderer.render(scene, camera);
+        return;
+      }
+    }
+    const velocity = performance.now() < VELOCITY_MUTE ? 0 : lenis.velocity || 0;
     const backdropMoved = backdrop ? backdrop.update(ratio) : false;
 
     // peso del estudio: 0 fuera, 1 durante el pin (rampa de STUDIO_RAMP pantallas antes y después)
@@ -248,13 +296,13 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     angularVel = THREE.MathUtils.clamp(angularVel, -SPIN_MAX, SPIN_MAX);
     if (w > 0.5) angularVel *= Math.pow(FRONT_BRAKE, ratio); // en el hero no sigue girando
     rotYExtra += angularVel * ratio;
-    if (entry.k >= 1) heroSpin += HERO_SPIN * (ratio / 60); // empieza cuando la entrada ya ha acabado de frente
+    heroSpin += HERO_SPIN * (ratio / 60); // empieza cuando la entrada ya ha acabado de frente
 
     // aún llegando a su sitio (los lerps son lentos): a 60 fps hasta que se asiente
     const settling = Math.abs(current.ry - lastTarget.ry) > 0.001 || current.position.distanceToSquared(lastTarget.position) > 1e-3 // > ~0.03 u: no cuenta el retraso de la flotación
       || Math.abs(current.scale - lastTarget.scale) > 1e-4;
     const moving = Math.abs(velocity) > 0.01 || Math.abs(angularVel) > 0.0005
-      || Math.abs(scroll.px - lastPx) > 0.1 || entry.k < 1 || dirty || settling || backdropMoved;
+      || Math.abs(scroll.px - lastPx) > 0.1 || dirty || settling || backdropMoved;
     lastPx = scroll.px;
     // en reposo solo queda la flotación, que es lenta: a 30 fps basta
     if (!moving && frame % 2) return;
@@ -296,10 +344,10 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     lastTarget.position.copy(target.position);
     lastTarget.scale = target.scale;
 
-    // la entrada (escala y vueltas) va encima, sin suavizar: es su propia curva expo
     star.position.copy(current.position);
-    star.scale.setScalar(Math.max(0.0001, current.scale * entry.k));
-    star.rotation.set(current.rx, current.ry + entry.spin, current.rz);
+    star.scale.setScalar(Math.max(0.0001, current.scale));
+    star.rotation.set(current.rx, current.ry, current.rz);
+
 
     renderer.clear();
     if (backdrop) backdrop.draw(renderer);
@@ -308,16 +356,35 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
   return {
     loaded,
-    // con "disco:intro-done", a la vez que la frase del hero: escala 0 → 1 y 2 vueltas (acaba de frente)
-    enter() {
-      if (entered) return;
-      loaded.then(() => {
-        if (failed) return;
+    // entrada en el hero (cuando se va el flash o se abre el velo de la transición). Resuelve al acabar.
+    // instant: la URL trae un #ancla → sin entrada, directamente en su punto del recorrido
+    enter({ instant = false } = {}) {
+      if (entering) return entering;
+      entering = loaded.then(() => new Promise((resolve) => {
+        if (failed) { resolve(); return; }
         entered = true;
         star.visible = true;
-        if (!curve) buildPath();
-        gsap.fromTo(entry, { k: 0, spin: -ENTER.turns * Math.PI * 2 }, { k: 1, spin: 0, duration: ENTER.duration, ease: 'expo.out' });
-      });
+        if (instant) {
+          entry.instant = true;
+          entry.p = 1;
+          entry.done = true;
+          current.init = false; // primer frame: directamente en su sitio
+          resolve();
+          return;
+        }
+        // primer render (compila los shaders y sube las texturas) con el lienzo invisible, y la entrada
+        // en el frame siguiente: así ese tirón no cae dentro de la animación
+        heroPose(gsap.ticker.time);
+        canvas.style.opacity = '0';
+        renderer.render(scene, camera);
+        requestAnimationFrame(() => requestAnimationFrame(() => gsap.fromTo(entry, { p: 0 }, {
+          p: 1,
+          duration: ENTER.duration,
+          ease: 'expo.out',
+          onComplete: () => { entry.done = true; resolve(); },
+        })));
+      }));
+      return entering;
     },
     // después de crear los pines del estudio y de "por qué" (sus posiciones cuentan en los puntos de paso)
     watchScroll() {
@@ -381,7 +448,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 // hold: los dos extremos de un pin ('studio': el estudio 360°, con su propio recorrido; 'still': quieto).
 function waypoints(mobile, ScrollTrigger) {
   const max = Math.max(1, ScrollTrigger.maxScroll(window));
-  const hero = { at: 0, x: 0, y: 0.08, s: 1 };          // encima de la frase, sin tocarla ni al menú
+  const hero = { at: 0, ...HERO_POINT };
   const team = teamPoints(mobile);                       // cofundadores: a la derecha de la frase y luego entre las fotos
   const pt = ([, x, y, s]) => ({ x, y, s });
   const path = mobile ? STUDIO_PATH_MOBILE : STUDIO_PATH;

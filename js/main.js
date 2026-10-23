@@ -9,6 +9,12 @@ import { initWhy } from './why.js';
 import { initFooter } from './footer.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
+// Al cargar o refrescar, arriba del todo (antes de Lenis y de los ScrollTriggers): si el navegador
+// restaurase el scroll, el destello entraría en el punto de otra sección. Con #ancla se respeta.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+const anchored = location.hash.length > 1;
+if (!anchored) window.scrollTo(0, 0);
+
 const { gsap, ScrollTrigger, lenis, loop, reduced, transitions } = initCore();
 
 // Nav de cristal: oculta hasta "disco:intro-done", entra a la vez que la frase del hero
@@ -31,7 +37,8 @@ const skipIntro = () => {
   document.getElementById('intro-loader')?.remove();
   return transitions.arrived.then(() => window.dispatchEvent(new CustomEvent('disco:intro-done')));
 };
-const intro = document.documentElement.classList.contains('intro-skip')
+const skipped = document.documentElement.classList.contains('intro-skip');
+const intro = skipped
   ? skipIntro()
   : runIntroLoader({ gsap, lenis, reduced, loop, intro: config.intro, assets: [starLoaded] });
 
@@ -50,11 +57,18 @@ intro.then(() => {
   initFooter({ gsap, ScrollTrigger, reduced, loop }); // el editor de vídeo (su visor es el último punto de paso del destello)
   nav.watchInk();
   ScrollTrigger.refresh();
-  // estudio 360° (mismo renderer que el destello), antes de que el destello calcule su recorrido: su pin
-  // es un punto de paso. Sin three (CDN caído) o sin modelo: el estudio queda como imagen fija.
-  // El destello entra a la vez que la frase; su recorrido se calcula ya con los pines del estudio y de "por qué".
+  // Destello: entra en el hero cuando se va el flash (primera visita; el blanco total dura 120 ms) o cuando
+  // se abre el velo de la transición, con el layout ya definitivo (fuentes + primer refresh). Mientras entra
+  // está congelado en el hero. Después: el estudio 360° (mismo renderer; su pin es un punto de paso del
+  // recorrido, por eso va antes de watchScroll) y el recorrido por el scroll. Sin three (CDN caído) o sin
+  // modelo: el estudio queda como imagen fija.
+  const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+  const flashOut = skipped ? 0 : 120;
   star.then(async (s) => {
-    if (s) await s.loaded;
+    if (s) {
+      await Promise.all([s.loaded, fonts, new Promise((r) => setTimeout(r, flashOut))]);
+      await s.enter({ instant: anchored });
+    }
     try {
       const { initStudio } = await import('./studio.js');
       initStudio({ gsap, ScrollTrigger, reduced, loop, star: s && s.ok !== false ? s : null });
@@ -65,7 +79,7 @@ intro.then(() => {
       if (studio) import('./studio-ui.js').then((m) => m.createStudioUI({ gsap, section: studio, still: true })).catch(() => {});
     }
     ScrollTrigger.refresh();
-    if (s) { s.watchScroll(); s.enter(); }
+    if (s) s.watchScroll();
   });
 });
 
