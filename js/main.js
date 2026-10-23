@@ -7,6 +7,7 @@ import { initScrollFx } from './scroll-fx.js';
 import { initTeam } from './team.js';
 import { initWhy } from './why.js';
 import { initFooter } from './footer.js';
+import { initHomeClose } from './home-close.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
 // Al cargar o refrescar, arriba del todo (antes de Lenis y de los ScrollTriggers): si el navegador
@@ -54,6 +55,10 @@ intro.then(() => {
   hero.watchParallax();
   // Servicios ya no está en la home (vive en servicios.html, con js/services.js)
   initWhy({ gsap, ScrollTrigger, reduced, loop }); // "¿Por qué nosotros?": enfoque + bokeh + diafragma
+  // ningún texto por debajo del menú flotante
+  fx.navFade('.team__phrase, .team__sub, .team__name-in, .team__more, [data-nav-fade]');
+  fx.exitFade(document.getElementById('porque'), document.querySelector('#porque .why__pin'));
+  initHomeClose(); // cómo trabajamos + banda final (+ prueba social si hay datos)
   initFooter({ gsap, ScrollTrigger, reduced, loop }); // el editor de vídeo (su visor es el último punto de paso del destello)
   nav.watchInk();
   ScrollTrigger.refresh();

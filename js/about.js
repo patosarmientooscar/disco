@@ -6,10 +6,9 @@ const PIN = 2; // × alto de pantalla
 export function init({ gsap, ScrollTrigger, reduced }) {
   const main = document.querySelector('main.ip');
   const manifesto = document.querySelector('[data-manifesto]');
-  // palabras del manifiesto (el texto sigue leyéndose entero)
-  const words = manifesto.textContent.trim().split(/\s+/);
-  manifesto.setAttribute('aria-label', manifesto.textContent.trim());
-  manifesto.innerHTML = words.map((w) => `<span class="mw" aria-hidden="true">${w}</span>`).join(' ');
+  // palabras del manifiesto: el texto entero para lectores de pantalla, las palabras animadas ocultas para ellos
+  const text = manifesto.textContent.trim();
+  manifesto.innerHTML = `<span class="sr-only">${text}</span>${text.split(/\s+/).map((w) => `<span class="mw" aria-hidden="true">${w}</span>`).join(' ')}`;
 
   if (reduced.matches) {
     main.classList.add('ip-static');

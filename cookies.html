@@ -1,22 +1,44 @@
 <!doctype html>
+<!-- REVISAR CON UN PROFESIONAL ANTES DE PUBLICAR -->
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Cookies — disco.es</title>
-  <meta name="description" content="Cookies de disco.es.">
-  <meta name="theme-color" content="#07070A">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307070A'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FF2B2B'/%3E%3C/svg%3E">
+  <title>Política de cookies — disco.</title>
+  <meta name="description" content="disco. no usa cookies de analítica ni de terceros. Te explicamos qué guarda la web en tu navegador y por qué.">
+  <!-- canonical y og:url: cuando haya dominio (config.siteUrl, PENDIENTES.md), descomentar y cambiar [DOMINIO]
+  <link rel="canonical" href="https://[DOMINIO]/cookies.html">
+  <meta property="og:url" content="https://[DOMINIO]/cookies.html">
+  -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="disco.">
+  <meta property="og:title" content="Política de cookies — disco.">
+  <meta property="og:description" content="disco. no usa cookies de analítica ni de terceros. Te explicamos qué guarda la web en tu navegador y por qué.">
+  <meta property="og:image" content="assets/brand/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="disco. — foto, vídeo y edición en Madrid">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Política de cookies — disco.">
+  <meta name="twitter:description" content="disco. no usa cookies de analítica ni de terceros. Te explicamos qué guarda la web en tu navegador y por qué.">
+  <meta name="twitter:image" content="assets/brand/og.jpg">
+  <meta name="theme-color" content="#0b0909">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
 
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gasoek+One&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/page.css">
+  <link rel="stylesheet" href="css/interior.css">
+  <link rel="stylesheet" href="css/legal.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/footer.css">
   <link rel="stylesheet" href="css/transition.css">
@@ -53,9 +75,36 @@
     </div>
   </header>
 
-  <main id="contenido" class="page">
-    <h1 class="page__title">Cookies</h1>
-    <p class="page__soon">Próximamente</p>
+  <!-- REVISAR CON UN PROFESIONAL ANTES DE PUBLICAR. La web no usa cookies de analítica ni de terceros: por eso NO
+       hay banner. Si se añade analítica (Google Analytics, Meta Pixel…), hay que añadir banner de consentimiento
+       y actualizar esta página. -->
+  <main id="contenido" class="ip legal">
+    <header class="ih ih--short ip-wrap">
+      <p class="ip-eyebrow">LEGAL — <b>03</b></p>
+      <h1 class="ih__title legal__title">Política de cookies</h1>
+      <p class="legal__date">Última actualización: [FECHA]</p>
+    </header>
+    <article class="ip-wrap legal__body">
+      <h2>1. ¿Usamos cookies?</h2>
+      <p>Esta web <strong>no usa cookies de analítica, publicidad ni de terceros</strong>, y no rastrea tu navegación. Por eso no te mostramos un aviso de cookies.</p>
+
+      <h2>2. Qué guarda la web en tu navegador</h2>
+      <p>Para que la web funcione bien guardamos dos marcas técnicas en el almacenamiento de sesión de tu navegador (<em>sessionStorage</em>), que se borran solas al cerrar la pestaña:</p>
+      <ul>
+        <li><strong>disco_intro_done:</strong> recuerda que ya has visto la animación de entrada, para no repetírtela.</li>
+        <li><strong>disco_pt:</strong> indica que vienes de otra página de la web, para hacer la transición entre páginas.</li>
+      </ul>
+      <p>No contienen datos personales ni se comparten con nadie. Al ser estrictamente necesarias para el funcionamiento que pides, no requieren consentimiento (art. 22.2 LSSI-CE).</p>
+
+      <h2>3. Contenido de terceros</h2>
+      <p>Para mostrar las tipografías y algunas librerías, la web las carga desde servicios externos (Fontshare, Google Fonts, cdnjs, jsDelivr y unpkg). Estos servicios pueden recibir tu dirección IP técnica para entregarte los archivos. [REVISAR: alojar las fuentes en el propio servidor evita esta comunicación]</p>
+
+      <h2>4. Cómo borrar estos datos</h2>
+      <p>Cierra la pestaña o borra los datos del sitio desde la configuración de tu navegador.</p>
+
+      <h2>5. Cambios</h2>
+      <p>Si en el futuro añadimos cookies de analítica o de terceros, actualizaremos esta política y te pediremos el consentimiento antes de usarlas.</p>
+    </article>
   </main>
 
   <!-- Footer: la página "Edit" de un programa de edición (css/footer.css, js/footer.js lo monta).

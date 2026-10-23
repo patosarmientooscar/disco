@@ -10,7 +10,7 @@
 }
 .page__title {
   margin: 0;
-  font: 400 clamp(44px, 8vw, 140px) / 1 var(--font-hero);
+  font: 400 clamp(44px, 8vw, 140px) / 1 var(--font-display);
   color: #a7a7a7;
   text-transform: uppercase;
 }

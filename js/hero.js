@@ -218,6 +218,8 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
   const hero = document.getElementById('hero-main');
   const img = hero.querySelector('[data-hero-img]');
   const title = hero.querySelector('.hero__title');
+  const copy = hero.querySelector('[data-hero-copy]');
+  const after = hero.querySelectorAll('[data-hero-after]');
   const lines = hero.querySelectorAll('[data-hero-line]');
   const scroll = hero.querySelector('[data-hero-scroll]');
 
@@ -234,11 +236,14 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
     });
     if (reduced.matches) {
       tl.to(lines, { y: 0, opacity: 1, duration: 0.5, ease: 'power1.out' })
+        .to(after, { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0.3)
         .to(scroll, { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0.4);
     } else {
       // y: 0 anula el translateY(105%) del CSS que GSAP leería en px (se sumaría al yPercent)
       // cada línea desde abajo con su máscara, a la vez que el destello entra girando
       tl.fromTo(lines, { y: 0, yPercent: 105, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.3, ease: 'expo.out', stagger: 0.1 })
+        // qué vendemos y las dos acciones, después del titular (0.6 s) y sin competir con él
+        .fromTo(after, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', stagger: 0.08 }, 0.6)
         .to(scroll, { opacity: 1, duration: 0.8, ease: 'power2.out' }, 0.1 * (lines.length - 1) + 0.4);
     }
   };
@@ -270,7 +275,7 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
     // (el destello va por su camino): se nota que están en capas distintas
     watchParallax() {
       if (reduced.matches) return;
-      gsap.to(title, {
+      gsap.to(copy, {
         y: () => -0.85 * hero.offsetHeight,
         ease: 'none',
         scrollTrigger: { trigger: hero, start: 'top top', end: () => `+=${hero.offsetHeight}`, scrub: true, invalidateOnRefresh: true },

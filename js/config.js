@@ -16,6 +16,10 @@ export const config = {
   responseTime: '',     // [TIEMPO DE RESPUESTA], p. ej. 'menos de 24 h'
   // qué datos son reales: con false, ese botón o dato NO se pinta (nada de enlaces a 34600000000)
   ready: { whatsapp: false, phone: false },
+  // prueba social de la home (js/home-close.js): solo datos REALES. Con los dos arrays vacíos la sección no existe.
+  //   logos: [{ src: 'assets/clientes/casa-lola.svg', alt: 'Casa Lola' }]
+  //   quotes: [{ text: '...', name: 'Lola Pérez', business: 'Casa Lola' }]  (máximo 3)
+  proof: { logos: [], quotes: [] },
   // redes del footer: solo salen las que tienen url
   socials: [
     { name: 'Instagram', handle: '@disco.es', url: 'https://www.instagram.com/disco.es/' },

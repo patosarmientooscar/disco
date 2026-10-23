@@ -11,9 +11,20 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 - [ ] **WhatsApp:** cambia `whatsapp.phone` (ahora `34600000000`, de relleno) y pon `ready.whatsapp: true`. Mientras sea `false`, no sale ningún botón de WhatsApp.
 - [ ] **Teléfono visible:** `phone` y `ready.phone: true`. Ojo: el footer aún muestra `[TU TELÉFONO]` (no se ha tocado en este paso).
 - [ ] **Tiempo de respuesta:** `responseTime`, p. ej. `'menos de 24 h'`. Sale en Contacto y en el footer.
-- [ ] **Dominio:** `siteUrl`, p. ej. `'https://disco.es'`, para canonical y og:url (prompt N).
+- [ ] **Dominio ([DOMINIO]):** cuando exista, ponlo en `siteUrl` y además:
+  - [ ] En el `<head>` de las 8 páginas, descomenta `canonical` y `og:url` y cambia [DOMINIO].
+  - [ ] Pon `og:image` y `twitter:image` como URL completa (`https://dominio/assets/brand/og.jpg`).
+  - [ ] `sitemap.xml`: cambia [DOMINIO] en las 8 URLs.
+  - [ ] `robots.txt`: descomenta la línea `Sitemap`.
+  - [ ] JSON-LD de index.html: añade `"url"`.
+  - [ ] 404.html usa `<base href="/">`: si la web va en una subcarpeta, cámbialo.
 - [ ] **Redes:** TikTok, YouTube y LinkedIn en `socials`, solo si existen.
-- [ ] **Favicon:** `assets/brand/favicon.svg` ahora es el icono provisional de la home (prompt N).
+
+## Home (index.html)
+
+- [ ] **Prueba social:** `config.proof` en `js/config.js`. Logos de clientes (`{ src, alt }`) y 2–3 citas reales (`{ text, name, business }`). Con los dos vacíos la sección no aparece. Nada inventado.
+- [ ] **Roles del equipo (BORRADOR):** los mismos que en Nosotros. Si cambian, cámbialos en los dos sitios.
+- [ ] **"Cómo trabajamos" (BORRADOR):** los mismos 3 pasos que "Qué pasa después" de Contacto.
 
 ## Contacto (contacto.html, js/contact.js)
 
@@ -58,5 +69,7 @@ Todo se rellena en `js/portfolio-data.js`, que trae un ejemplo comentado. Las ca
 
 ## Otros
 
-- [ ] **Páginas legales:** aviso legal, privacidad y cookies siguen en "Próximamente". El formulario enlaza a privacidad.html.
+- [ ] **Páginas legales:** tienen plantilla estándar (LSSI-CE y RGPD) que hay que **REVISAR CON UN PROFESIONAL ANTES DE PUBLICAR**. Huecos: [TITULAR], [NIF], [DOMICILIO], [FECHA], datos registrales, plazos de conservación y proveedores (privacidad).
+- [ ] **Cookies:** la web no usa cookies de analítica ni de terceros, por eso no hay banner. Si se añade analítica, hay que poner banner y actualizar cookies.html.
+- [ ] **Fuentes:** se cargan de Fontshare y Google Fonts (servicios externos). Alojarlas en el propio servidor es mejor para la privacidad y la velocidad.
 - [ ] **Newsletter del footer:** sin servicio conectado (TODO en `js/footer.js`).

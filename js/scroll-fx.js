@@ -7,9 +7,11 @@
 const RISE = 0.14;          // 14vh
 const RISE_SCRUB = 1.2;
 const CURTAIN = { scale: 0.92, shade: 0.6, radius: 28 };
+// el texto no pasa por debajo del menú flotante: se desvanece entre 130 y 70 px del borde de arriba
+const NAV_FADE = { from: 130, to: 70 };
 
 export function initScrollFx({ gsap, ScrollTrigger, reduced }) {
-  if (reduced.matches) return { curtain() {} };
+  if (reduced.matches) return { curtain() {}, navFade() {}, exitFade() {} };
 
   document.querySelectorAll('[data-speed]').forEach((el) => {
     const speed = parseFloat(el.dataset.speed) || 1;
@@ -33,6 +35,28 @@ export function initScrollFx({ gsap, ScrollTrigger, reduced }) {
   });
 
   return {
+    // bloques de texto que suben con la página: se van cuando su borde de arriba llega a la barra del menú.
+    // filter: opacity() y no opacity: se multiplica con las entradas que ya animan la opacidad (data-rise, nombres)
+    navFade(targets) {
+      gsap.utils.toArray(targets).forEach((el) => {
+        gsap.fromTo(el, { filter: 'opacity(1)' }, {
+          filter: 'opacity(0)',
+          ease: 'none',
+          immediateRender: false,
+          scrollTrigger: { trigger: el, start: `top ${NAV_FADE.from}px`, end: `top ${NAV_FADE.to}px`, scrub: true },
+        });
+      });
+    },
+    // capa fijada (pin con sticky) que al soltarse sube hacia el menú: se va mientras sube
+    exitFade(section, layer) {
+      if (!section || !layer) return;
+      gsap.fromTo(layer, { opacity: 1 }, {
+        opacity: 0,
+        ease: 'none',
+        immediateRender: false,
+        scrollTrigger: { trigger: section, start: 'bottom bottom', end: 'bottom 55%', scrub: true },
+      });
+    },
     curtain(hero, next) {
       const stage = hero.querySelector('.hero__stage');
       const shade = hero.querySelector('.hero__shade');

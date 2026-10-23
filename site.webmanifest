@@ -1,0 +1,12 @@
+{
+  "name": "disco. — Productora de foto y vídeo en Madrid",
+  "short_name": "disco.",
+  "start_url": "index.html",
+  "display": "browser",
+  "background_color": "#0b0909",
+  "theme_color": "#0b0909",
+  "icons": [
+    { "src": "assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/brand/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

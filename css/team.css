@@ -6,7 +6,7 @@
   --team-gray: #a8a3a1;
   --team-margin: clamp(24px, 5vw, 96px);
   position: relative;
-  padding: clamp(120px, 18vh, 220px) var(--team-margin);
+  padding: clamp(120px, 18vh, 220px) var(--team-margin) 0;
   background: #0b0909;
   color: #fff;
   border-radius: 28px 28px 0 0; /* se cierran a 0 al ocupar la pantalla (js/scroll-fx.js) */
@@ -74,14 +74,47 @@
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .team__who {
-  font: 500 11px / 1 var(--font-display);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font: 500 clamp(20px, 1.8vw, 28px) / 1.1 var(--font-display);
+  letter-spacing: -0.01em;
 }
+/* mismos roles que en nosotros.html */
 .team__role {
-  font: 400 13px / 1 var(--font-display);
-  color: var(--team-gray);
+  font: 400 12px / 1.3 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #F35411;
 }
+
+/* "Conócenos →" a nosotros.html */
+.team__more { margin: clamp(48px, 8vh, 88px) 0 0; text-align: center; }
+.team__more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 24px;
+  border: 1px solid rgb(244 242 239 / 0.35);
+  border-radius: 999px;
+  color: #f4f2ef;
+  font: 500 15px / 1 var(--font-display);
+  text-decoration: none;
+  transition: border-color 0.25s ease, background-color 0.25s ease, color 0.25s ease;
+}
+.team__more a:hover { background: #f4f2ef; border-color: #f4f2ef; color: #0b0909; }
+.team__more b { font-weight: 500; }
+.team :focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
+
+/* frase puente al estudio: palabras de .18 a 1 con el scroll (js/team.js) */
+.team__bridge {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: clamp(96px, 22vh, 220px) 0 clamp(80px, 14vh, 160px);
+  font: 600 clamp(40px, 6.4vw, 112px) / 1 var(--font-display);
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+.team__bridge .bw { opacity: 0.18; }
 
 /* hover (escritorio): la foto se acerca un poco y el nombre sube 4px. Nada más. */
 @media (hover: hover) and (pointer: fine) {
@@ -93,7 +126,7 @@
 .team__person--bruno { --focus: 45% 28%; }
 
 /* móvil: una columna; fotos al 78%, Luna a la izquierda y Bruno a la derecha */
-.team__person { width: 78%; }
+.team__person { width: 88%; }
 .team__person--bruno { justify-self: end; }
 
 /* ≥ 768px: rejilla de 12 columnas. Frase centrada (1–12); Luna en 2–5 y Bruno en 8–11, a la misma altura
@@ -108,12 +141,15 @@
   }
   .team__intro { grid-column: 1 / -1; grid-row: 1; }
   .team__person { width: auto; }
-  .team__person--luna { grid-column: 2 / 6; grid-row: 2; margin-top: 10vh; }
-  .team__person--bruno { grid-column: 8 / 12; grid-row: 2; margin-top: 10vh; justify-self: stretch; }
+  /* fotos algo más grandes: 5 columnas cada una (antes 4); el hueco central para el destello sigue ahí */
+  .team__person--luna { grid-column: 1 / 6; grid-row: 2; margin-top: 10vh; }
+  .team__person--bruno { grid-column: 8 / 13; grid-row: 2; margin-top: 10vh; justify-self: stretch; }
+  .team__more { grid-column: 1 / -1; grid-row: 3; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .team { border-radius: 0; }
+  .team__bridge .bw { opacity: 1; }
   .team__zoom img,
   .team__name-in { transition: none; }
 }

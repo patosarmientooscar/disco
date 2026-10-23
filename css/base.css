@@ -13,7 +13,7 @@ body {
 }
 img { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-:focus-visible { outline: 2px solid var(--rojo-rec); outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px;
@@ -74,3 +74,25 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* LEGACY PRE-HERO: el CTA claro (.cta) y el flash blanco (.flash) están en legacy/css/hud.css y
    en la historia de git (base.css antes del prompt 3). */
+
+/* WhatsApp flotante (js/wa-float.js): solo móvil y solo con config.ready.whatsapp */
+.wa-float {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1.5px solid #F35411;
+  border-radius: 50%;
+  background: #0b0909;
+  color: #F35411;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+.wa-float.is-on { opacity: 1; visibility: visible; transform: none; }
+.wa-float:focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }

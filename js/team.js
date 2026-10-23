@@ -13,7 +13,22 @@ export function initTeam({ gsap, ScrollTrigger, reduced }) {
     img.loading = 'eager';
     if (img.decode) img.decode().catch(() => {});
   });
+  // frase puente al estudio ("Y todo pasa en un sitio:"): palabra a palabra, de .18 a 1 con el scroll
+  const bridge = section.querySelector('[data-bridge]');
+  if (bridge) {
+    // el texto entero para lectores de pantalla; las palabras animadas, ocultas para ellos
+    const text = bridge.textContent.trim();
+    bridge.innerHTML = `<span class="sr-only">${text}</span>${text.split(/\s+/).map((w) => `<span class="bw" aria-hidden="true">${w}</span>`).join(' ')}`;
+  }
   if (reduced.matches) return;
+  if (bridge) {
+    gsap.to(bridge.querySelectorAll('.bw'), {
+      opacity: 1,
+      ease: 'none',
+      stagger: 0.15,
+      scrollTrigger: { trigger: bridge, start: 'top 85%', end: 'center 50%', scrub: 0.6 },
+    });
+  }
 
   // --- frase: líneas reales (dependen del ancho) → se rehacen al cambiar el ancho ---
   const phrase = section.querySelector('[data-team-phrase]');

@@ -25,7 +25,12 @@ const SPIN_MAX = 0.035;             // rad/frame: gira más si scrolleas rápido
 // entrada en el hero: aparece ya en su sitio y entra fluida, sin vueltas completas: opacidad 0 → 1,
 // escala 0.82 → 1, giro en Y de -35° → 0° (acaba exactamente de frente) y una ligera subida (y -0.06 → 0)
 const ENTER = { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180), rise: -0.06 };
-const HERO_POINT = { x: 0, y: 0.08, s: 1 };   // encima de la frase, sin tocarla ni al menú
+// en el hero, delante de la frase pero sin taparla: escala 0.75, a la derecha del centro, en el hueco entre la
+// 1.ª y la 2.ª línea (se mide con las líneas reales: heroPoint). En móvil, encima del titular, sin tocarlo.
+const HERO_POINT = { x: 0, y: 0.08, s: 1 };   // si no se puede medir
+const HERO_SCALE = 0.75;
+const HERO_X = 0.3;                           // a la derecha del centro (pantalla normalizada)
+const HERO_MOBILE_GAP = 16;                   // px libres por arriba (menú) y por abajo (titular) en móvil
 const VELOCITY_MUTE = 600;                    // ms tras cargar en los que se ignora la velocidad de Lenis
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
@@ -140,6 +145,35 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   };
   let dirty = true;
   window.addEventListener('resize', resize);
+
+  // punto del hero medido con las líneas del titular (sus máscaras: no llevan la animación de entrada)
+  let heroPt = { ...HERO_POINT };
+  const measureHero = () => {
+    const hero = document.getElementById('hero-main');
+    const lines = hero ? hero.querySelectorAll('.hero__line') : [];
+    if (lines.length < 2) return;
+    const top = hero.getBoundingClientRect().top;
+    const a = lines[0].getBoundingClientRect();
+    const b = lines[1].getBoundingClientRect();
+    const H = innerHeight;
+    if (matchMedia(MOBILE).matches) {
+      const nav = document.querySelector('[data-nav] .nav__bar')?.getBoundingClientRect();
+      const from = (nav ? nav.bottom - top : 70) + HERO_MOBILE_GAP;
+      const to = a.top - top - HERO_MOBILE_GAP;
+      const s = THREE.MathUtils.clamp((to - from) / (HERO_SIZE_MOBILE * H), 0.3, HERO_SCALE);
+      const cy = (from + to) / 2;
+      heroPt = { x: 0, y: 1 - (2 * cy) / H, s };
+    } else {
+      const cy = (a.bottom + b.top) / 2 - top;
+      const gap = spaceColumn(lines);
+      const x = gap === null ? HERO_X : (gap / innerWidth) * 2 - 1;
+      heroPt = { x, y: 1 - (2 * cy) / H, s: HERO_SCALE };
+    }
+    dirty = true;
+  };
+  measureHero();
+  window.addEventListener('resize', () => requestAnimationFrame(() => requestAnimationFrame(measureHero)));
+  if (document.fonts) document.fonts.ready.then(() => requestAnimationFrame(measureHero));
   resize();
 
   // de pantalla normalizada (x, y de -1 a 1, z = 0) a mundo, y "escala 1" = alto del hero
@@ -151,12 +185,12 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
   // --- movimiento reducido: quieto en el hero, de frente, sin recorrido ni giro ---
   if (reduced.matches) {
-    const pose = place({ position: new THREE.Vector3() }, { x: 0, y: 0.08, s: 1 });
+    const pose = place({ position: new THREE.Vector3() }, heroPt);
     star.position.copy(pose.position);
     star.scale.setScalar(pose.scale);
     star.rotation.set(0, 0, 0);
     const draw = () => {
-      const p = place({ position: new THREE.Vector3() }, { x: 0, y: 0.08, s: 1 });
+      const p = place({ position: new THREE.Vector3() }, heroPt);
       star.position.copy(p.position);
       star.scale.setScalar(p.scale);
       renderer.clear();
@@ -177,7 +211,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let finale = 0;  // px de scroll del final si acaba en el visor del footer (0 = no)
   const studioVec = new THREE.Vector3();
   const buildPath = () => {
-    stops = waypoints(view.mobile, ScrollTrigger);
+    if (!scrollY) measureHero();
+    stops = waypoints(view.mobile, ScrollTrigger, heroPt);
     curve = new THREE.CatmullRomCurve3(stops.map((p) => new THREE.Vector3(p.x, p.y, p.s)), false, 'centripetal');
     const held = stops.filter((p) => p.hold === 'studio');
     hold = held.length === 2 ? { start: held[0].at, end: held[1].at } : null;
@@ -233,7 +268,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
   // pose del hero, colocada directamente (sin lerp); la entrada va encima
   const heroPose = (time) => {
-    place(target, HERO_POINT);
+    place(target, heroPt);
     target.position.y += Math.sin(time * 0.9) * 0.04 + (1 - entry.p) * ENTER.rise * view.halfH;
     current.position.copy(target.position);
     current.scale = target.scale;
@@ -443,12 +478,42 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   };
 }
 
+// Columna del titular (px de pantalla, a la derecha del centro) que mejor cae en los espacios entre palabras de
+// las líneas: por ahí baja el brazo vertical del destello y tapa lo mínimo. null si no hay espacios.
+function spaceColumn(lines) {
+  const spaces = [...lines].map((line) => {
+    const text = line.querySelector('[data-hero-line]')?.firstChild;
+    const xs = [];
+    if (!text || text.nodeType !== 3) return xs;
+    const range = document.createRange();
+    for (let i = 0; i < text.length; i++) {
+      if (text.data[i] !== ' ') continue;
+      range.setStart(text, i);
+      range.setEnd(text, i + 1);
+      const r = range.getBoundingClientRect();
+      xs.push(r.left + r.width / 2);
+    }
+    return xs;
+  }).filter((xs) => xs.length);
+  if (!spaces.length) return null;
+  const mid = innerWidth / 2;
+  let best = null;
+  let bestScore = Infinity;
+  spaces.flat().filter((x) => x > mid + innerWidth * 0.05).forEach((x) => {
+    const score = Math.max(...spaces.map((xs) => Math.min(...xs.map((s) => Math.abs(s - x)))));
+    if (score < bestScore) { bestScore = score; best = x; }
+  });
+  if (best === null) return null;
+  // el centro de la columna: la media de los espacios más cercanos de cada línea
+  return spaces.reduce((sum, xs) => sum + xs.reduce((n, s) => (Math.abs(s - best) < Math.abs(n - best) ? s : n)), 0) / spaces.length;
+}
+
 // Puntos de paso de la home: x, y de pantalla normalizados (-1..1), s = escala (1 = alto del hero),
 // at = posición de scroll (px) en la que el destello está ahí. Nunca encima de un bloque de texto.
 // hold: los dos extremos de un pin ('studio': el estudio 360°, con su propio recorrido; 'still': quieto).
-function waypoints(mobile, ScrollTrigger) {
+function waypoints(mobile, ScrollTrigger, heroPt = HERO_POINT) {
   const max = Math.max(1, ScrollTrigger.maxScroll(window));
-  const hero = { at: 0, ...HERO_POINT };
+  const hero = { at: 0, ...heroPt };
   const team = teamPoints(mobile);                       // cofundadores: a la derecha de la frase y luego entre las fotos
   const pt = ([, x, y, s]) => ({ x, y, s });
   const path = mobile ? STUDIO_PATH_MOBILE : STUDIO_PATH;
@@ -463,9 +528,18 @@ function waypoints(mobile, ScrollTrigger) {
     { ...at, at: whySt.start, hold: 'still' },
     { ...at, at: Math.min(max, Math.max(whySt.start + 1, whySt.end)), hold: 'still' },
   ] : [];
-  const last = why.length ? why[why.length - 1].at : 0;
+  // frase puente y cierre de la home: en el hueco libre de cada bloque cuando está centrado en pantalla
+  // (data-star-stop="x,y,s" en escritorio y data-star-stop-m en móvil, en el HTML). Nunca dentro de un pin.
+  const pins = [studio, why].filter((p) => p.length === 2).map(([a, b]) => [a.at, b.at]);
+  const stops = [...document.querySelectorAll('[data-star-stop]')].map((el) => {
+    const [x, y, s] = (mobile && el.dataset.starStopM ? el.dataset.starStopM : el.dataset.starStop).split(',').map(Number);
+    const r = el.getBoundingClientRect();
+    const at = Math.round(r.top + scrollY + r.height / 2 - innerHeight / 2);
+    return { x, y, s, at: Math.min(max - 2, at) };
+  }).filter((p) => p.at > 1 && !pins.some(([a, b]) => p.at >= a - 1 && p.at <= b + 1));
+  const last = Math.max(why.length ? why[why.length - 1].at : 0, ...stops.map((p) => p.at));
   const end = last < max - 1 ? [{ ...footerPoint(mobile, max, at), at: max }] : [];
-  return [hero, ...team, ...studio, ...why, ...end].sort((p, q) => p.at - q.at);
+  return [hero, ...team, ...studio, ...why, ...stops, ...end].sort((p, q) => p.at - q.at);
 }
 
 // Cofundadores: 1) mientras la frase cruza el centro de la pantalla, a su derecha (la frase ocupa las

@@ -1,5 +1,5 @@
-import { whatsappUrl } from './config.js';
 import { initTransitions } from './transition.js';
+import { initWaFloat } from './wa-float.js';
 
 // Base común de todas las páginas: Lenis + ScrollTrigger + un único loop + transiciones entre páginas.
 // Un único loop: gsap.ticker (un rAF) mueve Lenis, ScrollTrigger y todas las tareas.
@@ -31,11 +31,17 @@ export function initCore() {
     tasks.forEach((fn) => fn(time, ratio));
   });
 
-  // CTAs de WhatsApp (cierre de servicios y el fijo)
-  document.querySelectorAll('[data-cta]').forEach((a) => { a.href = whatsappUrl(); });
+  // CTAs: a contacto.html por defecto (ninguno en "#"), en la misma pestaña
+  document.querySelectorAll('[data-cta]').forEach((a) => {
+    if (!a.getAttribute('href') || a.getAttribute('href') === '#') a.href = 'contacto.html';
+    a.removeAttribute('target');
+  });
 
   // transición entre páginas (velo + logo que se llena de agua)
   const transitions = initTransitions({ gsap, reduced, loop });
+
+  // WhatsApp flotante en móvil (solo si el número es real: config.ready.whatsapp)
+  initWaFloat();
 
   return { gsap, ScrollTrigger, lenis, loop, reduced, transitions };
 }

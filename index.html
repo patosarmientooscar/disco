@@ -3,16 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>disco.es — Productora de foto y vídeo para restaurantes, discotecas y eventos en Madrid</title>
-  <meta name="description" content="disco.es — Productora de foto y vídeo para restaurantes, discotecas y eventos en Madrid">
-  <meta name="theme-color" content="#07070A">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307070A'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FF2B2B'/%3E%3C/svg%3E">
+  <title>disco. — Productora de foto y vídeo en Madrid</title>
+  <meta name="description" content="Foto, vídeo y edición para restaurantes, bares, discotecas, eventos y marcas en Madrid. Contenido con ritmo para tus redes y tu web.">
+  <!-- canonical y og:url: cuando haya dominio (config.siteUrl, PENDIENTES.md), descomentar y cambiar [DOMINIO]
+  <link rel="canonical" href="https://[DOMINIO]/">
+  <meta property="og:url" content="https://[DOMINIO]/">
+  -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="disco.">
+  <meta property="og:title" content="disco. — Productora de foto y vídeo en Madrid">
+  <meta property="og:description" content="Foto, vídeo y edición para restaurantes, bares, discotecas, eventos y marcas en Madrid. Contenido con ritmo para tus redes y tu web.">
+  <meta property="og:image" content="assets/brand/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="disco. — foto, vídeo y edición en Madrid">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="disco. — Productora de foto y vídeo en Madrid">
+  <meta name="twitter:description" content="Foto, vídeo y edición para restaurantes, bares, discotecas, eventos y marcas en Madrid. Contenido con ritmo para tus redes y tu web.">
+  <meta name="twitter:image" content="assets/brand/og.jpg">
+  <meta name="theme-color" content="#0b0909">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
 
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gasoek+One&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
@@ -20,6 +40,7 @@
   <link rel="stylesheet" href="css/team.css">
   <link rel="stylesheet" href="css/studio.css">
   <link rel="stylesheet" href="css/why.css">
+  <link rel="stylesheet" href="css/home-close.css">
   <link rel="stylesheet" href="css/intro-loader.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/footer.css">
@@ -59,6 +80,28 @@
       var nav = document.querySelector('[data-nav-wait]');
       if (nav) nav.removeAttribute('data-nav-wait');
     }, 10000);
+  </script>
+  <!-- datos de la empresa para buscadores (sin url hasta que haya dominio: config.siteUrl; ver PENDIENTES.md) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "disco.",
+    "description": "Productora de foto, vídeo y edición para restaurantes, bares, discotecas, eventos y marcas en Madrid.",
+    "email": "equipo@discoproduccion.com",
+    "areaServed": {
+      "@type": "City",
+      "name": "Madrid"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Madrid",
+      "addressCountry": "ES"
+    },
+    "sameAs": [
+      "https://www.instagram.com/disco.es/"
+    ]
+  }
   </script>
 </head>
 <body class="is-loading">
@@ -140,7 +183,7 @@
           <p class="hero-main__sub" data-hero-sub>Eso es lo que se queda.</p>
         </div>
         <div class="hero-main__bottom">
-          <a class="btn-rec" data-cta data-hero-cta href="#" target="_blank" rel="noopener">
+          <a class="btn-rec" data-cta data-hero-cta href="contacto.html">
             <i class="btn-rec__dot" aria-hidden="true"></i>Pide tu presupuesto
           </a>
           <p class="hero-main__tagline">Productora de foto, vídeo y edición en Madrid · Restaurantes · Discotecas · Eventos · Locales</p>
@@ -157,11 +200,19 @@
           <img src="assets/hero/hero-red.jpg" width="2560" height="1706" decoding="async" fetchpriority="high" data-hero-img
                alt="Dos personas bailando, movidas, iluminadas en rojo sobre fondo negro">
         </picture>
+        <!-- titular + qué vendemos + dos acciones: un solo bloque centrado (el parallax lo mueve entero) -->
+        <div class="hero__copy" data-hero-copy>
         <h1 class="hero__title" id="hero-title" aria-label="Disco no es solo la pista, es la energía, el ritmo detrás de cada negocio">
           <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>Disco no es solo la pista</span></span>
           <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>es la energía, el ritmo</span></span>
           <span class="hero__line" aria-hidden="true"><span class="hero__line-in" data-hero-line>detrás de cada negocio</span></span>
         </h1>
+        <p class="hero__context" data-hero-after>Productora de foto y vídeo · Madrid · Restaurantes · Noche · Eventos · Marcas</p>
+        <div class="hero__actions" data-hero-after>
+          <a class="hero__cta" href="contacto.html" data-cta><i class="hero__cta-dot" aria-hidden="true"></i>Pide presupuesto</a>
+          <a class="hero__more" href="servicios.html">Ver servicios <b aria-hidden="true">→</b></a>
+        </div>
+        </div>
         <div class="hero__scroll" data-hero-scroll aria-hidden="true">
           <p class="hero__scroll-text">Scroll to<br>explore</p>
           <svg class="hero__scroll-arrow" width="14" height="22" viewBox="0 0 14 22" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1v19" pathLength="1" data-scroll-shaft/><path d="M1.75 14.75 7 20l5.25-5.25"/></svg>
@@ -190,7 +241,7 @@
             </div>
           </div>
           <figcaption class="team__name" data-team-name>
-            <span class="team__name-in"><span class="team__who">Luna López</span><span class="team__role">Cofundadora</span></span>
+            <span class="team__name-in"><span class="team__who">Luna López</span><span class="team__role" data-draft>Cofundadora · Dirección y foto</span></span>
           </figcaption>
         </figure>
 
@@ -206,10 +257,14 @@
             </div>
           </div>
           <figcaption class="team__name" data-team-name>
-            <span class="team__name-in"><span class="team__who">Bruno Marín</span><span class="team__role">Cofundador</span></span>
+            <span class="team__name-in"><span class="team__who">Bruno Marín</span><span class="team__role" data-draft>Cofundador · Vídeo y edición</span></span>
           </figcaption>
         </figure>
+
+        <p class="team__more"><a href="nosotros.html">Conócenos <b aria-hidden="true">→</b></a></p>
       </div>
+      <!-- frase puente al estudio: se ilumina palabra a palabra con el scroll (js/team.js) -->
+      <p class="team__bridge" data-bridge data-nav-fade data-star-stop="0,0.46,0.3" data-star-stop-m="0,0.5,0.24">Y todo pasa en un sitio:</p>
     </section>
 
     <!-- Estudio 360° — "¿Qué hacemos?": eres el operador de cámara. El panorama (fondo del canvas del
@@ -268,6 +323,36 @@
         </ol>
       </div>
     </section>
+
+    <!-- Cierre de la home (css/home-close.css, js/home-close.js). Cómo trabajamos: los mismos 3 pasos que
+         "Qué pasa después" de contacto.html (BORRADOR). Sin pin. -->
+    <section class="hc-steps" aria-labelledby="hc-steps-title" data-nav-ink="dark" data-star-stop="0.62,0.42,0.3" data-star-stop-m="0.62,0.74,0.2">
+      <div class="hc-wrap">
+        <h2 class="hc-steps__title" id="hc-steps-title" data-nav-fade>Cómo trabajamos</h2>
+        <ol class="hc-steps__list" data-draft>
+          <li data-nav-fade><span class="hc-steps__n">01</span><h3>Te escribimos</h3><p>Revisamos lo que nos cuentas y te contactamos para conocer tu negocio.</p></li>
+          <li data-nav-fade><span class="hc-steps__n">02</span><h3>Propuesta</h3><p>Te enviamos una propuesta clara con lo que haremos, plazos y precio.</p></li>
+          <li data-nav-fade><span class="hc-steps__n">03</span><h3>Rodamos</h3><p>Vamos a tu local, grabamos y te entregamos el contenido listo para usar.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Prueba social: js/home-close.js la pinta SOLO si config.proof tiene logos o citas reales (ver PENDIENTES.md) -->
+
+    <!-- Banda final -->
+    <section class="hc-close" aria-labelledby="hc-close-title" data-star-stop="0.62,-0.32,0.32" data-star-stop-m="0.62,0.74,0.2">
+      <div class="hc-wrap">
+        <h2 class="hc-close__title" id="hc-close-title" data-nav-fade>¿Rodamos juntos<em>?</em></h2>
+        <div class="hc-close__actions" data-nav-fade>
+          <a class="hc-btn" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
+          <span class="hc-mail">
+            <a href="mailto:equipo@discoproduccion.com" data-email>equipo@discoproduccion.com</a>
+            <button class="hc-mail__copy" type="button" data-copy-email>Copiar</button>
+            <span class="hc-mail__ok" data-copied role="status" aria-live="polite"></span>
+          </span>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Footer: la página "Edit" de un programa de edición (css/footer.css, js/footer.js lo monta).
@@ -289,7 +374,7 @@
   </div>
 
   (nota: CTA del pre-hero (claro); se va al empezar el scroll por la cámara)
-  <a class="cta" data-cta href="#" target="_blank" rel="noopener">
+  <a class="cta" data-cta href="contacto.html">
     <i class="cta__dot" aria-hidden="true"></i>Pide tu presupuesto
   </a>
 

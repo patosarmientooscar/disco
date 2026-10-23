@@ -1,0 +1,18 @@
+/* ---------- páginas legales y 404 (sobre css/interior.css) ---------- */
+.legal__title { font-size: clamp(44px, 6.4vw, 112px); }
+.legal__date { margin: 20px 0 0; font: 400 12px / 1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.legal__body { max-width: 860px; margin: 0; padding-bottom: clamp(80px, 14vh, 160px); }
+.legal__body h2 { margin: 48px 0 14px; font: 500 clamp(22px, 2vw, 28px) / 1.2 var(--font-display); }
+.legal__body p,
+.legal__body li { font: 400 17px / 1.65 var(--font-display); color: #d9d2cd; }
+.legal__body p { margin: 0 0 14px; max-width: 68ch; }
+.legal__body ul { margin: 0 0 14px; padding-left: 20px; }
+.legal__body li { margin-bottom: 6px; }
+.legal__body strong { font-weight: 500; color: var(--paper); }
+.legal__body a { color: var(--paper); text-underline-offset: 4px; }
+
+/* 404 */
+.nf { min-height: 100vh; min-height: 100svh; display: grid; place-content: center; justify-items: start; gap: 20px; }
+.nf__tc { margin: 0; font: 400 12px / 1 var(--font-mono); letter-spacing: 0.12em; color: var(--orange); }
+.nf__title { margin: 0; font: 600 clamp(56px, 10vw, 184px) / 0.92 var(--font-display); letter-spacing: -0.035em; }
+.nf__text { margin: 0 0 12px; font: 400 20px / 1.4 var(--font-display); color: #d9d2cd; }

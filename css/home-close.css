@@ -1,0 +1,107 @@
+/* ---------- cierre de la home: cómo trabajamos, prueba social (si hay) y banda final (js/home-close.js) ----------
+   Las secciones no crean contexto propio: su fondo queda por debajo del destello 3D (z-index 1) y su contenido
+   (z-index 2) por encima, como el resto de la home. */
+.hc-wrap {
+  position: relative;
+  z-index: 2;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 96px);
+}
+.hc-steps :focus-visible,
+.hc-close :focus-visible,
+.hc-proof :focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
+
+/* --- cómo trabajamos: fila compacta sobre papel --- */
+.hc-steps {
+  position: relative;
+  padding: clamp(80px, 14vh, 140px) 0;
+  background: #f4f2ef;
+  color: #0b0909;
+}
+.hc-steps__title {
+  margin: 0 0 clamp(32px, 5vh, 56px);
+  font: 600 clamp(32px, 4vw, 64px) / 1 var(--font-display);
+  letter-spacing: -0.025em;
+}
+.hc-steps__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 48px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hc-steps__list li { padding-top: 20px; border-top: 1px solid rgb(11 9 9 / 0.18); }
+/* naranja oscuro: el de marca no llega a 4.5:1 en texto pequeño sobre el papel */
+.hc-steps__n { display: block; margin-bottom: 16px; font: 500 13px / 1 var(--font-mono); letter-spacing: 0.08em; color: #b8410e; }
+.hc-steps__list h3 { margin: 0 0 10px; font: 500 clamp(24px, 2.2vw, 32px) / 1.1 var(--font-display); }
+.hc-steps__list p { margin: 0; max-width: 34ch; font: 400 17px / 1.5 var(--font-display); color: #3a3434; }
+
+/* --- prueba social (solo con datos reales) --- */
+.hc-proof { position: relative; padding: clamp(72px, 12vh, 120px) 0; background: #0b0909; color: #f4f2ef; }
+.hc-proof__logos { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 28px 56px; margin: 0 0 56px; padding: 0; list-style: none; }
+.hc-proof__logos img { display: block; height: 32px; width: auto; filter: grayscale(1) brightness(1.6); opacity: 0.8; }
+.hc-proof__quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; margin: 0; }
+.hc-proof__quote { margin: 0; padding-top: 20px; border-top: 1px solid rgb(244 242 239 / 0.14); }
+.hc-proof__quote p { margin: 0 0 14px; font: 400 20px / 1.45 var(--font-display); }
+.hc-proof__quote cite { font: normal 400 12px / 1.4 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #8a807c; }
+
+/* --- banda final --- */
+.hc-close {
+  position: relative;
+  padding: clamp(96px, 18vh, 200px) 0;
+  background: #0b0909;
+  color: #f4f2ef;
+}
+.hc-close__title {
+  margin: 0;
+  font: 600 clamp(56px, 10vw, 184px) / 0.92 var(--font-display);
+  letter-spacing: -0.035em;
+}
+.hc-close__title em { font-style: normal; color: #F35411; }
+.hc-close__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 36px; margin-top: clamp(32px, 5vh, 56px); }
+.hc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: #F35411;
+  color: #0b0909;
+  font: 500 16px / 1 var(--font-display);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+.hc-btn:hover { background: #ff6a2b; }
+.hc-btn b { font-weight: 500; transition: translate 0.25s ease; }
+.hc-btn:hover b { translate: 4px 0; }
+.hc-mail { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.hc-mail a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #f4f2ef;
+  font: 500 clamp(17px, 1.4vw, 20px) / 1.2 var(--font-display);
+  text-decoration: underline;
+  text-decoration-color: rgb(244 242 239 / 0.35);
+  text-underline-offset: 6px;
+  overflow-wrap: anywhere;
+}
+.hc-mail a:hover { text-decoration-color: #f4f2ef; }
+.hc-mail__copy {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgb(244 242 239 / 0.3);
+  border-radius: 999px;
+  font: 400 12px / 1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.hc-mail__copy:hover { border-color: #f4f2ef; }
+.hc-mail__ok { font: 400 12px / 1 var(--font-mono); color: #F35411; }
+
+@media (max-width: 767px) {
+  .hc-steps__list { grid-template-columns: 1fr; }
+}

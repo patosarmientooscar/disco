@@ -1,14 +1,17 @@
 :root {
-  /* color */
-  --negro-sensor: #07070A;
+  /* color de marca */
+  --ink: #0b0909;            /* negro de la web */
+  --paper: #f4f2ef;          /* papel de los bloques claros */
+  --accent: #F35411;         /* naranja de marca */
+  /* nombres antiguos, unificados con la marca (mismo aspecto: #07070A → #0b0909 no se distingue) */
+  --negro-sensor: var(--ink);
   --blanco-flash: #F4F2EC;
-  --rojo-rec: #FF2B2B;
+  --rojo-rec: #FF2B2B;       /* solo los puntos "REC" de cámara (rojo de grabación, a propósito) */
   --hud-ink: rgb(244 242 236 / 0.7);
   --hud-line: rgb(244 242 236 / 0.45);
 
-  /* type */
+  /* type (Gasoek One ya no se usa: los antiguos usos de --font-hero van con Clash Display) */
   --font-display: 'Clash Display', 'Arial Narrow', sans-serif;
-  --font-hero: 'Gasoek One', 'Arial Black', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
   --hud-size: 12px;
 

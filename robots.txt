@@ -1,0 +1,6 @@
+# disco. — cambia [DOMINIO] por el dominio real cuando exista (PENDIENTES.md)
+User-agent: *
+Allow: /
+Disallow: /legacy/
+
+# Sitemap: https://[DOMINIO]/sitemap.xml   (descomentar con el dominio real)

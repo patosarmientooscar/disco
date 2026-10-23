@@ -75,12 +75,13 @@
 /* ---------- frase: EL titular del hero, centrada (un poco por debajo del centro: 54 %) ----------
    Detrás del destello, que la tapa en parte. js/hero.js ajusta el tamaño para que la línea más larga ocupe
    ~86 % del ancho (escritorio) e iguala las otras con un poco de letter-spacing; aquí, el tamaño de partida.
-   La caja ocupa todo el hero (centrado con flex, sin transform: el parallax de GSAP usa y). */
+   Debajo, qué vendemos (mono) y las dos acciones. El bloque ocupa todo el hero (centrado con flex, sin
+   transform: el parallax de GSAP usa y). */
 .hero {
   --title-size: clamp(38px, 7vw, 128px);
   --title-bottom: clamp(28px, 5vh, 56px);
 }
-.hero__title {
+.hero__copy {
   position: absolute;
   z-index: 2;
   inset: 0;
@@ -88,7 +89,68 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8% 4vw 0; /* centro de la caja de contenido = 54 % del alto */
+  padding: 8% 4vw 0; /* centro del bloque ≈ 54 % del alto */
+  pointer-events: none; /* el fluido sigue respondiendo al ratón */
+}
+.hero__context {
+  max-width: min(92vw, 96ch);
+  text-wrap: balance;
+  margin: clamp(20px, 3.2vh, 32px) 0 0;
+  font: 400 11px / 1.6 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+  color: rgb(244 242 239 / 0.82);
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.5);
+}
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 28px;
+  margin-top: clamp(18px, 3vh, 28px);
+  pointer-events: auto;
+}
+/* principal: píldora blanca fina con el punto REC naranja; secundaria: texto */
+.hero__cta,
+.hero__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font: 500 15px / 1 var(--font-display);
+  color: #f4f2ef;
+  text-decoration: none;
+}
+.hero__cta {
+  padding: 0 22px;
+  border: 1px solid rgb(244 242 239 / 0.75);
+  border-radius: 999px;
+  background: rgb(11 9 9 / 0.18);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.hero__cta:hover { background: #f4f2ef; border-color: #f4f2ef; color: #0b0909; }
+.hero__cta-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F35411;
+  animation: blink var(--beat) steps(1, end) infinite;
+}
+.hero__cta:hover .hero__cta-dot { animation: none; }
+.hero__more { text-shadow: 0 1px 12px rgb(0 0 0 / 0.5); }
+.hero__more b { font-weight: 500; transition: translate 0.25s ease; }
+.hero__more:hover b { translate: 4px 0; }
+.hero :focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
+.js .hero [data-hero-after] { opacity: 0; }
+
+.hero__title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: 0;
   font: 500 var(--title-size) / 0.92 var(--font-display);
   letter-spacing: -0.02em;
