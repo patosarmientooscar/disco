@@ -3,10 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Nosotros — disco.es</title>
-  <meta name="description" content="Quiénes somos en disco.es.">
-  <meta name="theme-color" content="#07070A">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307070A'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FF2B2B'/%3E%3C/svg%3E">
+  <title>Nosotros — disco.</title>
+  <meta name="description" content="Luna López y Bruno Marín, productora de foto y vídeo en Madrid.">
+  <meta property="og:title" content="Nosotros — disco.">
+  <meta property="og:description" content="Luna López y Bruno Marín, productora de foto y vídeo en Madrid.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta name="theme-color" content="#0b0909">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
 
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +20,9 @@
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/page.css">
+  <link rel="stylesheet" href="css/placeholder.css">
+  <link rel="stylesheet" href="css/interior.css">
+  <link rel="stylesheet" href="css/about.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/footer.css">
   <link rel="stylesheet" href="css/transition.css">
@@ -26,7 +32,7 @@
     try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
   </script>
 </head>
-<body>
+<body data-page="nosotros">
   <a class="skip" href="#contenido">Saltar al contenido</a>
 
   <!-- Nav flotante de cristal (misma en todas las páginas; estilos en css/nav.css, lógica en js/nav.js) -->
@@ -53,9 +59,86 @@
     </div>
   </header>
 
-  <main id="contenido" class="page">
-    <h1 class="page__title">Nosotros</h1>
-    <p class="page__soon">Próximamente</p>
+  <main id="contenido" class="ip">
+    <!-- A) cabecera -->
+    <header class="ih ip-wrap">
+      <p class="ip-eyebrow">NOSOTROS — <b>04</b></p>
+      <h1 class="ih__title" data-words>Somos<br>disco<em>.</em></h1>
+      <p class="ih__lead" data-draft>Una productora pequeña, rápida y cercana. Grabamos el ritmo real de los negocios de Madrid.</p>
+    </header>
+
+    <!-- B) manifiesto: se ilumina palabra a palabra con el scroll (js/about.js). BORRADOR -->
+    <section class="ab-manifesto ip-wrap" aria-label="Manifiesto">
+      <p class="ab-manifesto__text" data-manifesto data-draft>Creemos que cada negocio tiene una energía propia. Nuestro trabajo es encontrarla, grabarla y convertirla en contenido que la gente quiera ver.</p>
+    </section>
+
+    <!-- C) Luna y Bruno (roles y bios: BORRADOR, Oscar confirma) -->
+    <section class="ip-section ip-wrap" aria-labelledby="team-title">
+      <h2 class="ip-h2" id="team-title">Quién está detrás</h2>
+      <div class="ab-team">
+        <article class="ab-person" data-person>
+          <div class="ab-person__photo">
+            <img src="assets/team/luna-lopez-1280.webp" srcset="assets/team/luna-lopez-720.webp 720w, assets/team/luna-lopez-1280.webp 1280w"
+                 sizes="(min-width: 768px) 45vw, 92vw" width="1280" height="1600" loading="lazy" decoding="async"
+                 alt="Retrato de Luna López, cofundadora de disco">
+          </div>
+          <h3 class="ab-person__name">Luna López</h3>
+          <p class="ab-person__role" data-draft>COFUNDADORA · DIRECCIÓN Y FOTO</p>
+          <p class="ab-person__bio" data-draft>[BORRADOR: dos líneas sobre Luna: de dónde viene, qué le gusta grabar y qué aporta a cada rodaje.]</p>
+          <p class="ab-person__kit" data-draft>KIT FAVORITO: [cámara / objetivo]</p>
+        </article>
+        <!-- TODO: foto real de Bruno (assets/team/bruno-marin-*.webp es provisional, ver PENDIENTES.md) -->
+        <article class="ab-person" data-person>
+          <div class="ab-person__photo">
+            <img src="assets/team/bruno-marin-1280.webp" srcset="assets/team/bruno-marin-720.webp 720w, assets/team/bruno-marin-1280.webp 1280w"
+                 sizes="(min-width: 768px) 45vw, 92vw" width="1280" height="1600" loading="lazy" decoding="async"
+                 alt="Retrato de Bruno Marín, cofundador de disco">
+          </div>
+          <h3 class="ab-person__name">Bruno Marín</h3>
+          <p class="ab-person__role" data-draft>COFUNDADOR · VÍDEO Y EDICIÓN</p>
+          <p class="ab-person__bio" data-draft>[BORRADOR: dos líneas sobre Bruno: de dónde viene, qué le gusta grabar y qué aporta a cada rodaje.]</p>
+          <p class="ab-person__kit" data-draft>KIT FAVORITO: [cámara / objetivo]</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- D) cómo trabajamos: línea de tiempo con cabezal (pin en escritorio; js/about.js). Frases BORRADOR -->
+    <section class="ab-how" aria-labelledby="how-title" data-how>
+      <div class="ab-how__pin ip-wrap" data-how-pin>
+        <h2 class="ip-h2" id="how-title">Cómo trabajamos</h2>
+        <div class="ab-how__track">
+          <div class="ab-how__ruler" aria-hidden="true">
+            <i class="ab-how__line"></i>
+            <i class="ab-how__fill" data-how-fill></i>
+            <i class="ab-how__head" data-how-head></i>
+          </div>
+          <ol class="ab-how__steps" data-draft>
+            <li data-how-step><span class="steps__n">01</span><h3>Llamada</h3><p>Hablamos 15 minutos para entender tu negocio y lo que necesitas.</p></li>
+            <li data-how-step><span class="steps__n">02</span><h3>Plan y guion</h3><p>Te proponemos ideas, planos y un calendario cerrado.</p></li>
+            <li data-how-step><span class="steps__n">03</span><h3>Rodaje</h3><p>Vamos a tu local y grabamos sin parar tu día a día.</p></li>
+            <li data-how-step><span class="steps__n">04</span><h3>Edición y entrega</h3><p>Montamos, damos color y te entregamos todo listo para publicar.</p></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- E) el estudio (si no hay estudio fijo, se borra esta franja: ver PENDIENTES.md) -->
+    <section class="ab-studio" aria-label="El estudio">
+      <div class="ab-studio__img">
+        <img src="assets/studio/studio-strip-2400.webp" srcset="assets/studio/studio-strip-1200.webp 1200w, assets/studio/studio-strip-2400.webp 2400w"
+             sizes="100vw" width="2400" height="576" loading="lazy" decoding="async" data-studio-img
+             alt="El estudio de disco: cámaras, focos, sofá y puesto de edición">
+      </div>
+      <p class="ab-studio__text ip-wrap">Nuestro estudio en Madrid · <span data-draft>[DIRECCIÓN O ZONA]</span></p>
+    </section>
+
+    <!-- F) cierre -->
+    <section class="ip-close" aria-labelledby="close-title">
+      <div class="ip-close__inner ip-wrap">
+        <h2 id="close-title">¿Rodamos<br>juntos?</h2>
+        <a class="btn btn--ink" href="contacto.html">Pide presupuesto <b aria-hidden="true">→</b></a>
+      </div>
+    </section>
   </main>
 
   <!-- Footer: la página "Edit" de un programa de edición (css/footer.css, js/footer.js lo monta).

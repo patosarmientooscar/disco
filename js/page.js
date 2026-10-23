@@ -3,8 +3,9 @@ import { initNav } from './nav.js';
 import { initServices } from './services.js';
 import { initFooter } from './footer.js';
 
-// Páginas interiores (servicios, portfolio, nosotros, contacto): sin loading, nav visible desde el principio.
-const { gsap, ScrollTrigger, lenis, loop, reduced } = initCore();
+// Páginas interiores: sin loading, nav visible desde el principio.
+// <body data-page="contacto|portfolio|nosotros"> carga su módulo (js/contact.js, js/portfolio.js, js/about.js).
+const { gsap, ScrollTrigger, lenis, loop, reduced, transitions } = initCore();
 
 const nav = initNav({ gsap, ScrollTrigger, reduced });
 
@@ -12,8 +13,21 @@ const nav = initNav({ gsap, ScrollTrigger, reduced });
 if (document.getElementById('servicios')) {
   initServices({ gsap, ScrollTrigger, reduced, loop });
 }
-initFooter({ gsap, ScrollTrigger, reduced, loop });
-nav.watchInk(); // después del pin de servicios
-ScrollTrigger.refresh();
+
+const modules = { contacto: './contact.js', portfolio: './portfolio.js', nosotros: './about.js' };
+const page = modules[document.body.dataset.page];
+const ready = page
+  ? Promise.all([import('./interior.js'), import('./placeholder.js'), import(page)]).then(([interior, ph, m]) => {
+    ph.initPlaceholders();
+    interior.enterHeader({ gsap, reduced, arrived: transitions.arrived });
+    return m.init({ gsap, ScrollTrigger, lenis, loop, reduced });
+  }).catch((e) => console.error(e))
+  : Promise.resolve();
+
+ready.then(() => {
+  initFooter({ gsap, ScrollTrigger, reduced, loop });
+  nav.watchInk(); // después de los pines (servicios, nosotros)
+  ScrollTrigger.refresh();
+});
 
 window.disco = { gsap, lenis, loop };

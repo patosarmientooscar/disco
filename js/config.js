@@ -8,10 +8,14 @@ export const config = {
     handle: '@disco.es',
     url: 'https://www.instagram.com/disco.es/',
   },
-  email: 'hola@disco.es',
+  email: 'equipo@discoproduccion.com',
+  siteUrl: '',          // [DOMINIO], p. ej. 'https://disco.es' (para og:url / canonical)
+  city: 'Madrid',
   // footer (js/footer.js): lo que esté vacío sale como [HUECO] para rellenar
   phone: '',            // [TU TELÉFONO] visible, p. ej. '+34 600 000 000'
   responseTime: '',     // [TIEMPO DE RESPUESTA], p. ej. 'menos de 24 h'
+  // qué datos son reales: con false, ese botón o dato NO se pinta (nada de enlaces a 34600000000)
+  ready: { whatsapp: false, phone: false },
   // redes del footer: solo salen las que tienen url
   socials: [
     { name: 'Instagram', handle: '@disco.es', url: 'https://www.instagram.com/disco.es/' },

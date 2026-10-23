@@ -1,0 +1,127 @@
+/* ---------- páginas interiores: contacto, portfolio y nosotros (lo común) ----------
+   Fondo #0b0909, papel #f4f2ef para bloques claros, acento #F35411. Clash Display (titulares 500/600,
+   textos 400) e IBM Plex Mono (rótulos, datos, timecodes). Cada página añade su CSS. */
+.ip {
+  --ink: #0b0909;
+  --paper: #f4f2ef;
+  --orange: #F35411;
+  --orange-ink: #b8410e;   /* naranja para texto pequeño sobre el papel (4.5:1) */
+  --muted: #8a807c;        /* gris mínimo sobre negro (4.5:1) */
+  --line: rgb(244 242 239 / 0.14);
+  --gutter: clamp(16px, 4vw, 56px);
+  background: var(--ink);
+  color: var(--paper);
+}
+.ip :focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+/* [hidden] gana siempre (los componentes con display propio no lo pisan) */
+.ip [hidden] { display: none !important; }
+
+.ip-wrap {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* rótulo mono: "CONTACTO — 05" */
+.ip-eyebrow {
+  margin: 0 0 18px;
+  font: 400 12px / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ip-eyebrow b { font-weight: 400; color: var(--orange); }
+
+/* ---------- cabecera ---------- */
+.ih {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: 140px;
+  padding-bottom: clamp(48px, 9vh, 112px);
+}
+.ih--short { min-height: 0; padding-top: clamp(140px, 22vh, 220px); padding-bottom: clamp(40px, 7vh, 80px); }
+.ih__title {
+  margin: 0;
+  font: 600 clamp(56px, 9vw, 168px) / 0.92 var(--font-display);
+  letter-spacing: -0.035em;
+}
+.ih__title em { font-style: normal; color: var(--orange); }
+.ih__lead {
+  max-width: 40ch;
+  margin: clamp(20px, 3vh, 32px) 0 0;
+  font: 400 20px / 1.45 var(--font-display);
+  color: #d9d2cd;
+}
+/* palabras en su máscara (js/interior.js las parte; sin JS se ven tal cual) */
+.w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.08em 0.02em 0.06em; margin: -0.08em -0.02em -0.06em; }
+.w__in { display: inline-block; }
+.js .ip [data-words] { visibility: hidden; }
+.js .ip [data-words].is-split { visibility: visible; }
+
+/* ---------- botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  font: 500 16px / 1 var(--font-display);
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.btn--orange { background: var(--orange); color: var(--ink); }
+.btn--orange:hover { background: #ff6a2b; }
+.btn--ink { background: var(--ink); color: var(--paper); }
+.btn--ink:hover { background: #2a2322; }
+.btn--line { border: 1px solid rgb(244 242 239 / 0.4); color: var(--paper); }
+.btn--line:hover { border-color: var(--paper); }
+.btn b { font-weight: 500; transition: translate 0.25s ease; }
+.btn:hover b { translate: 4px 0; }
+
+/* sección con título pequeño */
+.ip-section { padding-top: clamp(72px, 12vh, 140px); padding-bottom: clamp(72px, 12vh, 140px); }
+.ip-h2 {
+  margin: 0 0 clamp(28px, 5vh, 56px);
+  font: 600 clamp(32px, 4vw, 64px) / 1 var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+/* pasos numerados (contacto: qué pasa después) */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 48px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.steps li { padding-top: 20px; border-top: 1px solid var(--line); }
+.steps__n { display: block; margin-bottom: 18px; font: 500 13px / 1 var(--font-mono); letter-spacing: 0.08em; color: var(--orange); }
+.steps h3 { margin: 0 0 10px; font: 500 clamp(24px, 2.2vw, 32px) / 1.1 var(--font-display); }
+.steps p { margin: 0; max-width: 34ch; font: 400 17px / 1.5 var(--font-display); color: #d9d2cd; }
+
+/* cierre: banda naranja a todo el ancho */
+.ip-close {
+  padding: clamp(80px, 14vh, 160px) 0;
+  background: var(--orange);
+  color: var(--ink);
+}
+.ip-close__inner { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 32px; }
+.ip-close h2 {
+  margin: 0;
+  font: 600 clamp(56px, 9vw, 168px) / 0.92 var(--font-display);
+  letter-spacing: -0.035em;
+}
+.ip-close :focus-visible { outline-color: var(--ink); }
+
+@media (max-width: 767px) {
+  .ih { min-height: 0; padding-top: 128px; }
+  .ih__lead { font-size: 18px; }
+  .steps { grid-template-columns: 1fr; }
+}

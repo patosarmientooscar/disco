@@ -3,10 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Portfolio — disco.es</title>
-  <meta name="description" content="Trabajos de foto y vídeo de disco.es.">
-  <meta name="theme-color" content="#07070A">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307070A'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FF2B2B'/%3E%3C/svg%3E">
+  <title>Portfolio — disco.</title>
+  <meta name="description" content="Foto y vídeo para restaurantes, bares, discotecas y marcas en Madrid.">
+  <meta property="og:title" content="Portfolio — disco.">
+  <meta property="og:description" content="Foto y vídeo para restaurantes, bares, discotecas y marcas en Madrid.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta name="theme-color" content="#0b0909">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
 
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +20,9 @@
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/page.css">
+  <link rel="stylesheet" href="css/placeholder.css">
+  <link rel="stylesheet" href="css/interior.css">
+  <link rel="stylesheet" href="css/portfolio.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/footer.css">
   <link rel="stylesheet" href="css/transition.css">
@@ -26,7 +32,7 @@
     try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
   </script>
 </head>
-<body>
+<body data-page="portfolio">
   <a class="skip" href="#contenido">Saltar al contenido</a>
 
   <!-- Nav flotante de cristal (misma en todas las páginas; estilos en css/nav.css, lógica en js/nav.js) -->
@@ -53,9 +59,65 @@
     </div>
   </header>
 
-  <main id="contenido" class="page">
-    <h1 class="page__title">Portfolio</h1>
-    <p class="page__soon">Próximamente</p>
+  <main id="contenido" class="ip">
+    <!-- A) cabecera: el contador lee js/portfolio-data.js -->
+    <header class="ih ih--short ip-wrap pf-head">
+      <p class="ip-eyebrow">PORTFOLIO — <b>03</b></p>
+      <h1 class="ih__title" data-words>Lo que<br>rodamos</h1>
+      <p class="pf-count" data-count aria-live="polite">00 PROYECTOS</p>
+    </header>
+
+    <!-- B) showreel: visor 16:9 (vacío = hueco) -->
+    <section class="ip-wrap reel" aria-label="Showreel">
+      <div class="reel__viewer" data-reel>
+        <figure class="ph" data-kind="video" data-ratio="16/9" data-ph="assets/portfolio/showreel.mp4" data-label="FALTA SHOWREEL · 16:9 · 30–60 s"></figure>
+        <span class="reel__safe" aria-hidden="true"></span>
+        <p class="reel__hud reel__hud--tl" aria-hidden="true"><i class="reel__rec"></i>SHOWREEL 2026</p>
+        <p class="reel__hud reel__hud--tr" aria-hidden="true" data-reel-tc>00:00:00:00</p>
+        <button class="reel__play" type="button" data-reel-play aria-label="Reproducir el showreel" hidden>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        </button>
+        <button class="reel__mute" type="button" data-reel-mute aria-pressed="true" hidden>Sonido: no</button>
+      </div>
+    </section>
+
+    <!-- C) filtros + D) rejilla "hoja de contactos" (js/portfolio.js) -->
+    <section class="ip-wrap ip-section pf" aria-labelledby="pf-title">
+      <h2 class="sr-only" id="pf-title">Trabajos</h2>
+      <div class="pf__filters" role="group" aria-label="Filtrar trabajos" data-filters>
+        <button type="button" class="pf__filter" data-filter="all" aria-pressed="true">Todo</button>
+        <button type="button" class="pf__filter" data-filter="restaurantes" aria-pressed="false">Restaurantes</button>
+        <button type="button" class="pf__filter" data-filter="noche" aria-pressed="false">Noche</button>
+        <button type="button" class="pf__filter" data-filter="eventos" aria-pressed="false">Eventos</button>
+        <button type="button" class="pf__filter" data-filter="marcas" aria-pressed="false">Marcas</button>
+      </div>
+      <div class="pf__stage" data-stage>
+        <ul class="pf__grid" data-grid></ul>
+        <!-- sin trabajos: 6 huecos detrás y este aviso encima -->
+        <div class="pf__empty" data-empty hidden>
+          <p class="pf__empty-title">Estamos rodando nuestros primeros proyectos.</p>
+          <p class="pf__empty-text">¿Quieres que tu negocio sea uno de ellos?</p>
+          <a class="btn btn--orange" href="contacto.html">Hablemos <b aria-hidden="true">→</b></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ficha de cada trabajo (modal accesible; URL con #slug) -->
+    <dialog class="work-modal" data-modal data-lenis-prevent aria-labelledby="wm-title">
+      <div class="work-modal__inner">
+        <button class="work-modal__close" type="button" data-modal-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+        </button>
+        <p class="work-modal__meta" data-wm-meta></p>
+        <h2 class="work-modal__title" id="wm-title" data-wm-title></h2>
+        <p class="work-modal__client" data-wm-client></p>
+        <div class="work-modal__media" data-wm-media></div>
+        <div class="work-modal__foot">
+          <p class="work-modal__deliv" data-wm-deliv></p>
+          <a class="btn btn--orange" href="contacto.html" data-wm-cta>Quiero algo así <b aria-hidden="true">→</b></a>
+        </div>
+      </div>
+    </dialog>
   </main>
 
   <!-- Footer: la página "Edit" de un programa de edición (css/footer.css, js/footer.js lo monta).
@@ -67,6 +129,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
   <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
   <script type="module" src="js/page.js"></script>
 </body>
