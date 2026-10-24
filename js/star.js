@@ -25,12 +25,14 @@ const SPIN_MAX = 0.035;             // rad/frame: gira más si scrolleas rápido
 // entrada en el hero: aparece ya en su sitio y entra fluida, sin vueltas completas: opacidad 0 → 1,
 // escala 0.82 → 1, giro en Y de -35° → 0° (acaba exactamente de frente) y una ligera subida (y -0.06 → 0)
 const ENTER = { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180), rise: -0.06 };
-// en el hero, delante de la frase pero sin taparla: escala 0.75, a la derecha del centro, en el hueco entre la
-// 1.ª y la 2.ª línea (se mide con las líneas reales: heroPoint). En móvil, encima del titular, sin tocarlo.
-const HERO_POINT = { x: 0, y: 0.08, s: 1 };   // si no se puede medir
-const HERO_SCALE = 0.75;
-const HERO_X = 0.3;                           // a la derecha del centro (pantalla normalizada)
-const HERO_MOBILE_GAP = 16;                   // px libres por arriba (menú) y por abajo (titular) en móvil
+// en el hero, centrado en el hueco ENTRE el menú y el titular, sin tocar ninguno (se mide con el DOM en cada
+// resize: measureHero). Su alto es el del hueco menos lo que sube y baja al flotar (con tope: HERO_MAX).
+const HERO_POINT = { x: 0, y: 0.5, s: 0.5 };  // si no se puede medir
+const HERO_GAP = 20;                          // px libres por arriba (menú) y por abajo (1.ª línea del titular)
+const HERO_BOB = 0.04;                        // amplitud de la flotación en el hero (mundo)
+// tope de tamaño (× alto de pantalla): ~230 px a 1440×900, ~127 px a 390×844. Si el hueco es mayor, centrado en él
+const HERO_MAX = 0.255;
+const HERO_MAX_MOBILE = 0.15;
 const VELOCITY_MUTE = 600;                    // ms tras cargar en los que se ignora la velocidad de Lenis
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
@@ -146,35 +148,27 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let dirty = true;
   window.addEventListener('resize', resize);
 
-  // punto del hero medido con las líneas del titular (sus máscaras: no llevan la animación de entrada)
+  // punto del hero: el hueco entre el bajo de la barra del menú (.nav__float) y el alto de la 1.ª línea del
+  // titular, con HERO_GAP de margen a cada lado. Con offsetTop (sin transformaciones: parallax, telón, letras)
   let heroPt = { ...HERO_POINT };
   const measureHero = () => {
     const hero = document.getElementById('hero-main');
-    const lines = hero ? hero.querySelectorAll('.hero__line') : [];
-    if (lines.length < 2) return;
-    const top = hero.getBoundingClientRect().top;
-    const a = lines[0].getBoundingClientRect();
-    const b = lines[1].getBoundingClientRect();
+    const line = hero?.querySelector('.hero__line');
+    const nav = document.querySelector('[data-nav] .nav__float');
+    if (!line) return;
     const H = innerHeight;
-    if (matchMedia(MOBILE).matches) {
-      const nav = document.querySelector('[data-nav] .nav__bar')?.getBoundingClientRect();
-      const from = (nav ? nav.bottom - top : 70) + HERO_MOBILE_GAP;
-      const to = a.top - top - HERO_MOBILE_GAP;
-      const s = THREE.MathUtils.clamp((to - from) / (HERO_SIZE_MOBILE * H), 0.3, HERO_SCALE);
-      const cy = (from + to) / 2;
-      heroPt = { x: 0, y: 1 - (2 * cy) / H, s };
-    } else {
-      const cy = (a.bottom + b.top) / 2 - top;
-      const gap = spaceColumn(lines);
-      const x = gap === null ? HERO_X : (gap / innerWidth) * 2 - 1;
-      heroPt = { x, y: 1 - (2 * cy) / H, s: HERO_SCALE };
-    }
+    const pad = parseFloat(getComputedStyle(line).paddingTop) || 0; // la máscara deja sitio a las tildes
+    const from = (nav ? offsetTo(nav, null) + nav.offsetHeight : 70) + HERO_GAP;
+    const to = offsetTo(line, hero) + pad - HERO_GAP;
+    const bob = (HERO_BOB / (2 * view.halfH)) * H; // px que sube y baja al flotar
+    const size = Math.max(0, Math.min(to - from - 2 * bob, (view.mobile ? HERO_MAX_MOBILE : HERO_MAX) * H));
+    heroPt = { x: 0, y: 1 - (from + to) / H, s: size / ((view.mobile ? HERO_SIZE_MOBILE : HERO_SIZE) * H) };
     dirty = true;
   };
+  resize();
   measureHero();
   window.addEventListener('resize', () => requestAnimationFrame(() => requestAnimationFrame(measureHero)));
   if (document.fonts) document.fonts.ready.then(() => requestAnimationFrame(measureHero));
-  resize();
 
   // de pantalla normalizada (x, y de -1 a 1, z = 0) a mundo, y "escala 1" = alto del hero
   const place = (target, p) => {
@@ -269,7 +263,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   // pose del hero, colocada directamente (sin lerp); la entrada va encima
   const heroPose = (time) => {
     place(target, heroPt);
-    target.position.y += Math.sin(time * 0.9) * 0.04 + (1 - entry.p) * ENTER.rise * view.halfH;
+    target.position.y += Math.sin(time * 0.9) * HERO_BOB + (1 - entry.p) * ENTER.rise * view.halfH;
     current.position.copy(target.position);
     current.scale = target.scale;
     current.rx = 0;
@@ -478,34 +472,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   };
 }
 
-// Columna del titular (px de pantalla, a la derecha del centro) que mejor cae en los espacios entre palabras de
-// las líneas: por ahí baja el brazo vertical del destello y tapa lo mínimo. null si no hay espacios.
-function spaceColumn(lines) {
-  const spaces = [...lines].map((line) => {
-    const text = line.querySelector('[data-hero-line]')?.firstChild;
-    const xs = [];
-    if (!text || text.nodeType !== 3) return xs;
-    const range = document.createRange();
-    for (let i = 0; i < text.length; i++) {
-      if (text.data[i] !== ' ') continue;
-      range.setStart(text, i);
-      range.setEnd(text, i + 1);
-      const r = range.getBoundingClientRect();
-      xs.push(r.left + r.width / 2);
-    }
-    return xs;
-  }).filter((xs) => xs.length);
-  if (!spaces.length) return null;
-  const mid = innerWidth / 2;
-  let best = null;
-  let bestScore = Infinity;
-  spaces.flat().filter((x) => x > mid + innerWidth * 0.05).forEach((x) => {
-    const score = Math.max(...spaces.map((xs) => Math.min(...xs.map((s) => Math.abs(s - x)))));
-    if (score < bestScore) { bestScore = score; best = x; }
-  });
-  if (best === null) return null;
-  // el centro de la columna: la media de los espacios más cercanos de cada línea
-  return spaces.reduce((sum, xs) => sum + xs.reduce((n, s) => (Math.abs(s - best) < Math.abs(n - best) ? s : n)), 0) / spaces.length;
+// top de el respecto a stop (o a la página si stop es null), sin transformaciones
+function offsetTo(el, stop) {
+  let y = 0;
+  for (let n = el; n && n !== stop; n = n.offsetParent) y += n.offsetTop;
+  return y;
 }
 
 // Puntos de paso de la home: x, y de pantalla normalizados (-1..1), s = escala (1 = alto del hero),

@@ -72,13 +72,14 @@
   100% { transform: translate(0, 0); }
 }
 
-/* ---------- frase: EL titular del hero, centrada (un poco por debajo del centro: 54 %) ----------
-   Detrás del destello, que la tapa en parte. js/hero.js ajusta el tamaño para que la línea más larga ocupe
-   ~86 % del ancho (escritorio) e iguala las otras con un poco de letter-spacing; aquí, el tamaño de partida.
-   Debajo, qué vendemos (mono) y las dos acciones. El bloque ocupa todo el hero (centrado con flex, sin
-   transform: el parallax de GSAP usa y). */
+/* ---------- frase: EL titular del hero, en 2 líneas, centrada en el 61 % del alto ----------
+   Por encima, en el hueco entre el menú y el titular, el destello (js/star.js lo mide con el DOM).
+   js/hero.js ajusta el tamaño para que la línea más larga ocupe ~86 % del ancho (escritorio) e iguala la otra
+   con un poco de letter-spacing; aquí, el tamaño de partida. Debajo, el subtítulo y las dos acciones. El bloque
+   ocupa todo el hero (centrado con flex, sin transform: el parallax de GSAP usa y).
+   Al hacer scroll las letras "bailan" con larga exposición (js/hero-exposure.js). */
 .hero {
-  --title-size: clamp(38px, 7vw, 128px);
+  --title-size: clamp(44px, 8vw, 148px);
   --title-bottom: clamp(28px, 5vh, 56px);
 }
 .hero__copy {
@@ -89,36 +90,41 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8% 4vw 0; /* centro del bloque ≈ 54 % del alto */
+  padding: 22vh 4vw 0; /* centro del bloque = 50 % + 11 % = 61 % del alto */
+  padding-top: 22svh;
   pointer-events: none; /* el fluido sigue respondiendo al ratón */
 }
-.hero__context {
-  max-width: min(92vw, 96ch);
-  text-wrap: balance;
-  margin: clamp(20px, 3.2vh, 32px) 0 0;
-  font: 400 11px / 1.6 var(--font-mono);
-  letter-spacing: 0.14em;
+.hero__sub {
+  max-width: min(92vw, 60ch);
+  margin: 16px 0 0;
+  font: 400 clamp(16px, 1.35vw, 21px) / 1.35 var(--font-display);
+  letter-spacing: 0.01em;
   text-align: center;
-  text-transform: uppercase;
-  color: rgb(244 242 239 / 0.82);
-  text-shadow: 0 1px 12px rgb(0 0 0 / 0.5);
+  text-wrap: balance;
+  color: rgb(244 242 239 / 0.85);
+  text-shadow: 0 1px 14px rgb(0 0 0 / 0.5);
+}
+.hero__tail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .hero__actions {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 12px 28px;
-  margin-top: clamp(18px, 3vh, 28px);
+  gap: 14px;
+  margin-top: 28px;
   pointer-events: auto;
 }
-/* principal: píldora blanca fina con el punto REC naranja; secundaria: texto */
+/* principal: píldora blanca fina con el punto REC naranja; secundaria: texto con subrayado fino que crece */
 .hero__cta,
 .hero__more {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  min-height: 44px;
+  height: 44px;
   font: 500 15px / 1 var(--font-display);
   color: #f4f2ef;
   text-decoration: none;
@@ -141,11 +147,28 @@
   animation: blink var(--beat) steps(1, end) infinite;
 }
 .hero__cta:hover .hero__cta-dot { animation: none; }
-.hero__more { text-shadow: 0 1px 12px rgb(0 0 0 / 0.5); }
+.hero__more {
+  position: relative;
+  padding: 0 10px;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.5);
+}
+.hero__more::after {
+  content: "";
+  position: absolute;
+  left: 10px; right: 10px; bottom: 11px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.hero__more:hover::after,
+.hero__more:focus-visible::after { transform: scaleX(1); }
 .hero__more b { font-weight: 500; transition: translate 0.25s ease; }
 .hero__more:hover b { translate: 4px 0; }
 .hero :focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
-.js .hero [data-hero-after] { opacity: 0; }
+.js .hero__sub,
+.js .hero__actions { opacity: 0; }
 
 .hero__title {
   display: flex;
@@ -159,6 +182,7 @@
   text-transform: uppercase;
   text-shadow: 0 2px 40px rgb(0 0 0 / 0.35);
   pointer-events: none; /* el fluido sigue respondiendo al ratón */
+  --trail: 0;
 }
 /* cada línea en su máscara; el margen negativo deja sitio a las tildes sin mover el texto */
 .hero__line {
@@ -170,6 +194,22 @@
 }
 /* en escritorio cada línea cabe entera; en móvil se parte sola, equilibrada (sin palabras sueltas) */
 .hero__line-in { display: inline-block; white-space: nowrap; } /* inline-block: js/hero.js mide el ancho del texto */
+/* al terminar la entrada, las máscaras dejan salir a las letras (bailan fuera de su línea con el scroll) */
+.hero__title.is-in .hero__line { overflow: visible; }
+
+/* letras (js/hero-exposure.js): una palabra nunca se parte; cada letra se mueve sola.
+   Estela de larga exposición: 3 ecos en vertical en sentido contrario al scroll. Solo cambia --trail (en el h1)
+   y la sombra se recalcula sola. Sin estela (.is-trailing fuera) las letras llevan la sombra del h1, como siempre. */
+.hero__w { display: inline-block; white-space: nowrap; }
+.hero__ch { display: inline-block; }
+.hero__title.is-trailing .hero__ch {
+  text-shadow:
+    0 calc(var(--trail) * -0.10em) 0 rgb(243 84 17 / 0.55),
+    0 calc(var(--trail) * -0.22em) 0 rgb(243 84 17 / 0.30),
+    0 calc(var(--trail) * -0.36em) 0 rgb(244 242 239 / 0.12),
+    0 2px 40px rgb(0 0 0 / 0.35);
+}
+.hero__ch--eq { transform-origin: 50% 100%; } /* RITMO: ecualizador desde abajo */
 
 /* ---------- "SCROLL TO EXPLORE" + flecha fina debajo (la animación, en js/hero.js) ---------- */
 .hero__scroll {
@@ -204,8 +244,25 @@
 .js .hero__scroll { opacity: 0; }
 
 @media (max-width: 767px) {
-  .hero { --title-size: clamp(30px, 9.5vw, 48px); }
+  .hero { --title-size: clamp(34px, 10.9vw, 55px); }
+  .hero__copy { padding-top: 30vh; padding-top: 30svh; } /* centro ≈ 65 % */
   .hero__line-in { white-space: normal; text-wrap: balance; }
+  .hero__tail { width: 100%; }
+  .hero__actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 320px; gap: 10px; }
+  /* estela con 2 ecos */
+  .hero__title.is-trailing .hero__ch {
+    text-shadow:
+      0 calc(var(--trail) * -0.10em) 0 rgb(243 84 17 / 0.55),
+      0 calc(var(--trail) * -0.22em) 0 rgb(243 84 17 / 0.30),
+      0 2px 40px rgb(0 0 0 / 0.35);
+  }
+}
+/* menos de 55 fps: sin el tercer eco (js/hero-exposure.js pone la clase) */
+.hero__title.is-trailing.is-lite .hero__ch {
+  text-shadow:
+    0 calc(var(--trail) * -0.10em) 0 rgb(243 84 17 / 0.55),
+    0 calc(var(--trail) * -0.22em) 0 rgb(243 84 17 / 0.30),
+    0 2px 40px rgb(0 0 0 / 0.35);
 }
 
 

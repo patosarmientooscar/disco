@@ -1,3 +1,4 @@
+import { splitLetters, initExposure } from './hero-exposure.js';
 import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/src/index.js';
 
 // Hero v2: foto roja a pantalla completa. Con ratón, el cursor remueve un fluido (stable fluids,
@@ -214,17 +215,26 @@ void main() {
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
+// Subtítulo: 0.3 s después de que la última línea ha llegado (expo.out de 1.3 s: al 95 % a los ~0.55 s);
+// botones, 0.25 s después del subtítulo
+const LINE_LANDED = 0.55;
+const SUB_DELAY = 0.3;
+const ACTIONS_DELAY = 0.25;
+
+export function initHero({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const hero = document.getElementById('hero-main');
   const img = hero.querySelector('[data-hero-img]');
   const title = hero.querySelector('.hero__title');
   const copy = hero.querySelector('[data-hero-copy]');
-  const after = hero.querySelectorAll('[data-hero-after]');
+  const sub = hero.querySelector('[data-hero-sub]');
+  const actions = hero.querySelector('[data-hero-actions]');
   const lines = hero.querySelectorAll('[data-hero-line]');
   const scroll = hero.querySelector('[data-hero-scroll]');
 
   if (!reduced.matches && hasWebGL()) setupFluid({ hero, img, loop });
+  splitLetters(lines); // una <span> por letra (aria-hidden ya en la línea); el h1 conserva su aria-label
   fitTitle(title, lines);
+  if (!reduced.matches) initExposure({ gsap, lenis, loop, hero, title, tail: hero.querySelector('[data-hero-tail]') });
 
   // --- entrada de la frase y del "scroll to explore" (al terminar la intro) ---
   let shown = false;
@@ -236,15 +246,19 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
     });
     if (reduced.matches) {
       tl.to(lines, { y: 0, opacity: 1, duration: 0.5, ease: 'power1.out' })
-        .to(after, { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0.3)
+        .to([sub, actions], { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0.3)
         .to(scroll, { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0.4);
     } else {
+      const last = 0.1 * (lines.length - 1);
+      const subAt = last + LINE_LANDED + SUB_DELAY;
       // y: 0 anula el translateY(105%) del CSS que GSAP leería en px (se sumaría al yPercent)
       // cada línea desde abajo con su máscara, a la vez que el destello entra girando
       tl.fromTo(lines, { y: 0, yPercent: 105, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.3, ease: 'expo.out', stagger: 0.1 })
-        // qué vendemos y las dos acciones, después del titular (0.6 s) y sin competir con él
-        .fromTo(after, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', stagger: 0.08 }, 0.6)
-        .to(scroll, { opacity: 1, duration: 0.8, ease: 'power2.out' }, 0.1 * (lines.length - 1) + 0.4);
+        // las líneas ya han llegado: las máscaras dejan salir a las letras (larga exposición al hacer scroll)
+        .call(() => title.classList.add('is-in'), null, last + 1.3)
+        .fromTo(sub, { opacity: 0, y: 10, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out', clearProps: 'filter' }, subAt)
+        .fromTo(actions, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out' }, subAt + ACTIONS_DELAY)
+        .to(scroll, { opacity: 1, duration: 0.8, ease: 'power2.out' }, last + 0.4);
     }
   };
   window.addEventListener('disco:intro-done', show, { once: true });
@@ -274,7 +288,15 @@ export function initHero({ gsap, ScrollTrigger, reduced, loop }) {
     // parallax 0.85: mientras el hero está fijo (telón) y lo de abajo sube a velocidad 1, la frase sube a 0.85
     // (el destello va por su camino): se nota que están en capas distintas
     watchParallax() {
-      if (reduced.matches) return;
+      if (reduced.matches) {
+        // movimiento reducido: sin larga exposición ni parallax; el texto se va con un fundido simple
+        gsap.to(copy, {
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: { trigger: hero, start: 'top top', end: () => `+=${hero.offsetHeight * 0.6}`, scrub: true, invalidateOnRefresh: true },
+        });
+        return;
+      }
       gsap.to(copy, {
         y: () => -0.85 * hero.offsetHeight,
         ease: 'none',

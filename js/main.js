@@ -23,7 +23,7 @@ const nav = initNav({ gsap, ScrollTrigger, reduced });
 
 // Hero v2: foto con estela líquida (OGL); la frase entra con "disco:intro-done"
 // (LEGACY HERO: la fila curvada era initHeroContent, en legacy/js/hero-content.js)
-const hero = initHero({ gsap, ScrollTrigger, reduced, loop });
+const hero = initHero({ gsap, ScrollTrigger, lenis, reduced, loop });
 
 // Destello 3D (Three.js). import() dinámico: si el CDN de three falla, la web sigue igual sin él.
 // Su GLB cuenta en el progreso del loading.
