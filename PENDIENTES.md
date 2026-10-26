@@ -24,7 +24,7 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 
 - [ ] **Prueba social:** `config.proof` en `js/config.js`. Logos de clientes (`{ src, alt }`) y 2–3 citas reales (`{ text, name, business }`). Con los dos vacíos la sección no aparece. Nada inventado.
 - [ ] **Roles del equipo (BORRADOR):** los mismos que en Nosotros. Si cambian, cámbialos en los dos sitios.
-- [ ] **"Cómo trabajamos" (BORRADOR):** los mismos 3 pasos que "Qué pasa después" de Contacto.
+- [ ] **"Cómo trabajamos":** ya no son los 3 pasos de Contacto, sino la frase "Conocemos tu marca…" con sus 4 notas. Si cambia el proceso, revisar también "Qué pasa después" de Contacto.
 
 ## Contacto (contacto.html, js/contact.js)
 

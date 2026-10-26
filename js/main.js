@@ -58,7 +58,7 @@ intro.then(() => {
   // ningún texto por debajo del menú flotante
   fx.navFade('.team__phrase, .team__sub, .team__name-in, .team__more, [data-nav-fade]');
   fx.exitFade(document.getElementById('porque'), document.querySelector('#porque .why__pin'));
-  initHomeClose(); // cómo trabajamos + banda final (+ prueba social si hay datos)
+  initHomeClose({ gsap, reduced }); // cómo trabajamos + banda final (+ prueba social si hay datos)
   // footer "fin de la sesión": el destello se muere y cae sobre el logo (su hueco es el último punto de paso)
   initFin({ gsap, lenis, reduced, loop, star });
   nav.watchInk();

@@ -17,6 +17,7 @@ const PITCH = THREE.MathUtils.degToRad(3);
 const FOV = 55;
 const FOV_PORTRAIT = 70;
 const FADE = 0.08;                // fundido de la esfera: primer y último 8% del progreso
+const LIGHT_AT = '88%';           // se enciende cuando el top de la sección pasa por aquí (asoma por abajo)
 const ENV_INTENSITY = 1.4;        // brillo de los reflejos dentro del estudio
 // Puestos del estudio: yaw (giro de la esfera, grados) que deja cada objeto en el centro de la pantalla y
 // su latitud. Con esta esfera el yaw es directamente el ángulo de la imagen + 90° (el set, en el centro de
@@ -169,6 +170,7 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   let p = 0;
   let active = false;
   const shot = () => gsap.timeline()
+    .call(() => window.dispatchEvent(new CustomEvent('disco:studio-shot')), null, 0)
     .call(() => section.classList.add('is-lit'), null, 0.12)
     .fromTo(flash, { opacity: 0 }, { opacity: 0.85, duration: 0.12, ease: 'power2.out' }, 0)
     .to(flash, { opacity: 0, duration: 0.23, ease: 'power2.in' });
@@ -189,16 +191,15 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       onToggle: (self) => enter(self.isActive),
     },
   });
-  // el flash (de oscuro a claro, como un disparo al entrar) cuando la sección llega a la línea del menú:
-  // a la vez que el menú cambia a tinta oscura (data-nav-ink, js/nav.js)
-  const nav = document.querySelector('[data-nav]');
-  const line = () => (nav ? nav.getBoundingClientRect().top + nav.offsetHeight / 2 : 0);
+  // el flash (de oscuro a claro, como un disparo al entrar) en cuanto la sección asoma por abajo (con "Dale al
+  // REC." aún en pantalla): el negro entre la frase y el estudio no pasa de ~40vh. Desde ahí el set ya se ve,
+  // recortado a la sección (draw), y sube con ella hasta que empieza el pin
   ScrollTrigger.create({
     trigger: section,
-    start: () => `top ${line()}px`,
+    start: `top ${LIGHT_AT}`,
     end: 'bottom top',
     onEnter: shot,
-    onLeaveBack: () => section.classList.remove('is-lit'),
+    onLeaveBack: () => { section.classList.remove('is-lit'); window.dispatchEvent(new CustomEvent('disco:studio-dark')); },
     onRefresh: (self) => { if (self.progress > 0) section.classList.add('is-lit'); },
   });
 
@@ -207,6 +208,7 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   let slow = 0;
   let lowered = false;
 
+  let top = 0; // top de la sección en pantalla (px), para recortar el set antes del pin
   star.setBackdrop({
     update(ratio) {
       if (touch && active && !lowered) {
@@ -218,7 +220,10 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
       if (Math.abs(state.p - p) < 1e-5) p = state.p;
       star.setStage(p);
-      const fade = THREE.MathUtils.smoothstep(p, 0, FADE) * (1 - THREE.MathUtils.smoothstep(p, 1 - FADE, 1));
+      // antes del pin (encendido y asomando): el set entero, recortado a la sección
+      top = section.getBoundingClientRect().top;
+      const lit = section.classList.contains('is-lit') && top < innerHeight;
+      const fade = (lit && p < FADE ? 1 : THREE.MathUtils.smoothstep(p, 0, FADE)) * (1 - THREE.MathUtils.smoothstep(p, 1 - FADE, 1));
       const show = fade > 0.001 && resident && !!panoTex;
       // giro del estudio y dónde caen los puestos en pantalla (también sin textura: el AF va igual)
       const yaw = THREE.MathUtils.degToRad(yawAt(p, portrait ? ASIDE_MOBILE : ASIDE));
@@ -232,14 +237,20 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
         if (v.z > 1) return null; // detrás de la cámara
         return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight };
       }));
-      const changed = p !== prev || sphere.visible !== show;
+      const changed = p !== prev || sphere.visible !== show || (show && top > 0);
       sphere.visible = show;
       if (!show) return changed;
       mat.opacity = fade;
       return changed;
     },
     draw(r) {
-      if (sphere.visible) r.render(panoScene, panoCam);
+      if (!sphere.visible) return;
+      if (top > 0) { // aún subiendo: solo dentro de la sección (scissor: origen abajo a la izquierda)
+        r.setScissorTest(true);
+        r.setScissor(0, 0, innerWidth, Math.max(0, innerHeight - top));
+      }
+      r.render(panoScene, panoCam);
+      r.setScissorTest(false);
     },
   });
 }

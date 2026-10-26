@@ -12,31 +12,85 @@
 .hc-close :focus-visible,
 .hc-proof :focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
 
-/* --- cómo trabajamos: fila compacta sobre papel --- */
+/* --- cómo trabajamos: una frase que se construye con el scroll, sobre papel (js/home-close.js) ---
+   Cada línea, de .15 a 1 al llegar al centro de la pantalla; a su derecha su número y su nota; la palabra
+   clave se subraya con un trazo naranja que se dibuja (stroke-dashoffset, pathLength = 1). */
 .hc-steps {
   position: relative;
-  padding: clamp(80px, 14vh, 140px) 0;
+  padding: clamp(96px, 16vh, 168px) 0;
   background: #f4f2ef;
   color: #0b0909;
 }
-.hc-steps__title {
-  margin: 0 0 clamp(32px, 5vh, 56px);
-  font: 600 clamp(32px, 4vw, 64px) / 1 var(--font-display);
-  letter-spacing: -0.025em;
+.hc-how {
+  position: relative;
+  z-index: 2;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 96px) 0 clamp(24px, 8vw, 140px);
 }
-.hc-steps__list {
+.hc-how__list { display: grid; gap: clamp(10px, 1.6vh, 18px); margin: 0; padding: 0; list-style: none; }
+.hc-how__row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(24px, 3vw, 48px);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 32ch);
+  align-items: start;
+  gap: clamp(24px, 4vw, 72px);
 }
-.hc-steps__list li { padding-top: 20px; border-top: 1px solid rgb(11 9 9 / 0.18); }
+.hc-how__line {
+  margin: 0;
+  font: 500 clamp(32px, 4.4vw, 76px) / 1.05 var(--font-display);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.js .hc-how__line { opacity: 0.15; }
+.hc-how__kw { position: relative; display: inline-block; }
+.hc-how__ul {
+  position: absolute;
+  left: -2%;
+  bottom: -0.06em;
+  width: 104%;
+  height: 0.22em;
+  overflow: visible;
+  fill: none;
+  stroke: #F35411;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.hc-how__ul path { stroke-dasharray: 1; stroke-dashoffset: 1; vector-effect: non-scaling-stroke; }
+.hc-how__note {
+  max-width: 32ch;
+  margin: 0;
+  padding-top: 0.6em;
+  font: 400 17px / 1.5 var(--font-display);
+  color: #3a3434;
+}
+.js .hc-how__note { opacity: 0; }
 /* naranja oscuro: el de marca no llega a 4.5:1 en texto pequeño sobre el papel */
-.hc-steps__n { display: block; margin-bottom: 16px; font: 500 13px / 1 var(--font-mono); letter-spacing: 0.08em; color: #b8410e; }
-.hc-steps__list h3 { margin: 0 0 10px; font: 500 clamp(24px, 2.2vw, 32px) / 1.1 var(--font-display); }
-.hc-steps__list p { margin: 0; max-width: 34ch; font: 400 17px / 1.5 var(--font-display); color: #3a3434; }
+.hc-how__n { margin-right: 0.8em; font: 500 13px / 1 var(--font-mono); letter-spacing: 0.08em; color: #b8410e; }
+.hc-how__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: clamp(40px, 7vh, 72px);
+  font: 500 17px / 1 var(--font-display);
+  color: #0b0909;
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) 0 calc(100% - 10px) / 100% 1px no-repeat;
+}
+.hc-how__more b { font-weight: 500; transition: translate 0.25s ease; }
+.hc-how__more:hover b { translate: 4px 0; }
+@media (max-width: 767px) {
+  .hc-how__row { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .hc-how__line { font-size: clamp(28px, 8vw, 40px); }
+  .hc-how__note { padding-top: 0; }
+  .hc-how__list { gap: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .hc-how__line,
+  .js .hc-how__note { opacity: 1; }
+  .hc-how__ul path { stroke-dashoffset: 0; }
+}
 
 /* --- prueba social (solo con datos reales) --- */
 .hc-proof { position: relative; padding: clamp(72px, 12vh, 120px) 0; background: #0b0909; color: #f4f2ef; }

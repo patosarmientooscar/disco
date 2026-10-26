@@ -27,13 +27,23 @@ const SPIN_MAX = 0.035;             // rad/frame: gira más si scrolleas rápido
 // escala 0.82 → 1, giro en Y de -35° → 0° (acaba exactamente de frente) y una ligera subida (y -0.06 → 0)
 const ENTER = { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180), rise: -0.06 };
 // en el hero, centrado en el hueco ENTRE el menú y el titular, sin tocar ninguno (se mide con el DOM en cada
-// resize: measureHero). Su alto es el del hueco menos lo que sube y baja al flotar (con tope: HERO_MAX).
+// resize: measureHero). Su alto es el del hueco entero menos lo que sube y baja al flotar: el máximo que cabe.
 const HERO_POINT = { x: 0, y: 0.5, s: 0.5 };  // si no se puede medir
 const HERO_GAP = 20;                          // px libres por arriba (menú) y por abajo (1.ª línea del titular)
 const HERO_BOB = 0.04;                        // amplitud de la flotación en el hero (mundo)
-// tope de tamaño (× alto de pantalla): ~230 px a 1440×900, ~127 px a 390×844. Si el hueco es mayor, centrado en él
-const HERO_MAX = 0.255;
-const HERO_MAX_MOBILE = 0.15;
+// fuera del hero, un 15 % más grande en todos los puntos de paso (equipo, estudio, "por qué", frases y final)
+const GROW = 1.15;
+// recorrido "libre": deriva orgánica (3 senos lentos de ~7, 11 y 17 s; ±0.035 de pantalla y ±0.06 rad de
+// balanceo), inclinación al moverse en horizontal (banking) y algo más de retraso con el scroll rápido.
+// Nada de esto en el hero ni en el estudio (ahí va quieto / de frente)
+const DRIFT = { amp: 0.035, rot: 0.06, periods: [7, 11, 17] };
+const BANK = { gain: 0.35, max: 0.25, lerp: 0.08 };
+const LAG = 0.015;                 // POS_LERP / (1 + |velocidad de Lenis| × LAG)
+// vuelo del estudio al anillo de "¿Por qué nosotros?": bezier cúbica que sube (+0.12) y se abre en arco, y
+// entra en el anillo desde arriba a la izquierda; sine.inOut, lerp más lento y un "aterrizaje" de escala
+const FLIGHT = { rise: 0.12, open: 0.15, approach: 0.3, lerp: 0.028, land: 1.06 };
+// nunca encima de una foto ni de un texto grande ([data-star-avoid]): repulsión suave hacia fuera
+const AVOID = { gain: 0.25, decay: 0.97, radius: 0.9, max: 0.45 };
 const VELOCITY_MUTE = 600;                    // ms tras cargar en los que se ignora la velocidad de Lenis
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
@@ -165,7 +175,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const from = (nav ? offsetTo(nav, null) + nav.offsetHeight : 70) + HERO_GAP;
     const to = offsetTo(line, hero) + pad - HERO_GAP;
     const bob = (HERO_BOB / (2 * view.halfH)) * H; // px que sube y baja al flotar
-    const size = Math.max(0, Math.min(to - from - 2 * bob, (view.mobile ? HERO_MAX_MOBILE : HERO_MAX) * H));
+    const size = Math.max(0, to - from - 2 * bob);
     heroPt = { x: 0, y: 1 - (from + to) / H, s: size / ((view.mobile ? HERO_SIZE_MOBILE : HERO_SIZE) * H) };
     dirty = true;
   };
@@ -212,12 +222,15 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     if (!scrollY) measureHero();
     stops = waypoints(view.mobile, ScrollTrigger, heroPt);
     curve = new THREE.CatmullRomCurve3(stops.map((p) => new THREE.Vector3(p.x, p.y, p.s)), false, 'centripetal');
+    whyAt = stops.find((p) => p.hold === 'still')?.at || 0;
     const held = stops.filter((p) => p.hold === 'studio');
     hold = held.length === 2 ? { start: held[0].at, end: held[1].at } : null;
     const last = stops[stops.length - 1];
     finale = last.footer ? last.at : 0;
     dirty = true;
   };
+  let flying = false; // en el tramo del vuelo al anillo
+  const flightVec = new THREE.Vector3();
   // scroll (px) → parámetro de la curva: cada tramo entre dos puntos de paso ocupa lo mismo en la curva
   const curveAt = (px) => {
     const n = stops.length;
@@ -225,11 +238,13 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     while (i < n - 2 && px > stops[i + 1].at) i++;
     // entre los dos puntos de un pin no pasa por la curva (con dos puntos iguales haría un bucle): en el
     // estudio sigue su propio recorrido (según su progreso); en los demás, quieto
-    if (stops[i].hold && stops[i + 1].hold && px >= stops[i].at) {
+    if (stops[i].hold && stops[i].hold === stops[i + 1].hold && px >= stops[i].at) {
       return stops[i].hold === 'studio' ? studioPoint(stage.p, view.mobile, studioVec) : curve.points[i];
     }
     const span = stops[i + 1].at - stops[i].at || 1;
     const f = THREE.MathUtils.clamp((px - stops[i].at) / span, 0, 1);
+    flying = stops[i].hold === 'studio' && stops[i + 1].hold === 'still';
+    if (flying) return flight(stops[i], stops[i + 1], f, flightVec);
     return curve.getPoint((i + f) / (n - 1));
   };
 
@@ -251,6 +266,50 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const current = { position: new THREE.Vector3(), scale: 0, rx: 0, ry: 0, rz: 0, init: false };
   let angularVel = 0;
   let rotYExtra = 0;
+  let prevX = 0;
+  let bank = 0;
+  const land = { k: 1 };
+  let whyAt = 0; // px de scroll en el que llega al anillo (aterrizaje)
+  // --- repulsión: si su círculo en pantalla pisa un [data-star-avoid], se aparta (offset en px, suavizado) ---
+  const avoidOn = new Set();
+  const avoidIo = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? avoidOn.add(e.target) : avoidOn.delete(e.target))));
+  document.querySelectorAll('[data-star-avoid]').forEach((el) => avoidIo.observe(el));
+  const off = { x: 0, y: 0 };
+  const repel = (free) => {
+    const W = innerWidth;
+    const H = innerHeight;
+    const cx = ((star.position.x / view.halfW + 1) / 2) * W + off.x;
+    const cy = ((1 - star.position.y / view.halfH) / 2) * H + off.y;
+    const r = ((current.scale * MODEL_HEIGHT) / (2 * view.halfH)) * H * 0.5 * AVOID.radius;
+    let px = 0;
+    let py = 0;
+    if (free > 0.01) avoidOn.forEach((el) => {
+      const b = el.getBoundingClientRect();
+      const nx = Math.min(b.right, Math.max(b.left, cx));
+      const ny = Math.min(b.bottom, Math.max(b.top, cy));
+      const dx = cx - nx;
+      const dy = cy - ny;
+      const dist = Math.hypot(dx, dy);
+      if (dist === 0) {
+        // el centro dentro del rect: hacia el borde más cercano
+        const [depth, ex, ey] = [[cx - b.left, -1, 0], [b.right - cx, 1, 0], [cy - b.top, 0, -1], [b.bottom - cy, 0, 1]].sort((a, c) => a[0] - c[0])[0];
+        px += ex * (r + depth) * free;
+        py += ey * (r + depth) * free;
+        return;
+      }
+      if (dist >= r) return;
+      px += (dx / dist) * (r - dist) * free;
+      py += (dy / dist) * (r - dist) * free;
+    });
+    if (px || py) { off.x += px * AVOID.gain; off.y += py * AVOID.gain; } else { off.x *= AVOID.decay; off.y *= AVOID.decay; }
+    const lim = AVOID.max * Math.min(W, H);
+    off.x = THREE.MathUtils.clamp(off.x, -lim, lim);
+    off.y = THREE.MathUtils.clamp(off.y, -lim, lim);
+    if (Math.abs(off.x) < 0.05 && Math.abs(off.y) < 0.05) { off.x = 0; off.y = 0; return; }
+    star.position.x += (off.x / W) * 2 * view.halfW;
+    star.position.y -= (off.y / H) * 2 * view.halfH;
+    dirty = true;
+  };
   let hidden = document.hidden;
   document.addEventListener('visibilitychange', () => { hidden = document.hidden; });
   let frame = 0;
@@ -369,7 +428,13 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
     const p = curveAt(scroll.px);
     place(target, { x: p.x, y: p.y, s: p.z });
-    target.position.y += Math.sin(time * 0.9) * 0.04;
+    // libre (fuera del hero y del estudio): deriva orgánica; en el hero, solo la flotación vertical
+    const free = (1 - w) * (1 - ws) * (1 - we);
+    const d = drift(time);
+    target.position.x += d.x * view.halfW * free;
+    target.position.y += d.y * view.halfH * free + Math.sin(time * 0.9) * 0.04 * (1 - free);
+    // aterrizaje en el anillo de "¿Por qué nosotros?"
+    if (whyAt && lastPx < whyAt && scroll.px >= whyAt) gsap.fromTo(land, { k: FLIGHT.land }, { k: 1, duration: 0.7, ease: 'back.out(1.4)', overwrite: true });
 
     // rotación libre (scroll + velocidad + balanceo) y pose frontal: la vuelta completa más cercana,
     // sin balanceo en X/Z (en el hero solo flota en vertical, para que el grabado se lea quieto)
@@ -386,7 +451,12 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const toEnd = THREE.MathUtils.euclideanModulo(heroSpin - freeY + Math.PI, TAU) - Math.PI;
     const ry = freeY + toHero * w + toStudio * ws + toEnd * we;
     const rx = freeX * (1 - w) * (1 - 0.7 * ws) * (1 - we);
-    const rz = freeZ * (1 - w) * (1 - 0.7 * ws) * (1 - we);
+    // inclinación al moverse en horizontal (banking) + balanceo de la deriva
+    const vx = ((current.position.x - prevX) / view.halfW) / Math.max(1e-3, ratio / 60);
+    prevX = current.position.x;
+    const bankTo = THREE.MathUtils.clamp(-vx * BANK.gain, -BANK.max, BANK.max) * free;
+    bank += (bankTo - bank) * (1 - Math.pow(1 - BANK.lerp, ratio));
+    const rz = freeZ * (1 - w) * (1 - 0.7 * ws) * (1 - we) + bank + d.r * free;
 
     const lerp = fin.returning ? RETURN_LERP : LERP + (FRONT_LERP - LERP) * w;
     // al revivir: la vuelta equivalente más cercana (no deshace las vueltas que dio en el suelo)
@@ -398,7 +468,9 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     // si el objetivo salta una vuelta entera (se ve igual), la rotación actual salta con él: sin vueltas de más
     if (current.init && Math.abs(ry - lastTarget.ry) > Math.PI) current.ry += Math.round((ry - lastTarget.ry) / TAU) * TAU;
     const a = current.init ? 1 - Math.pow(1 - lerp, ratio) : 1;
-    const ap = current.init ? 1 - Math.pow(1 - (fin.returning ? RETURN_LERP : POS_LERP), ratio) : 1;
+    // con el scroll rápido se queda algo atrás y alcanza después (pesa); en el vuelo, más lento
+    const posLerp = fin.returning ? RETURN_LERP : (flying ? FLIGHT.lerp : POS_LERP) / (1 + Math.abs(velocity) * LAG);
+    const ap = current.init ? 1 - Math.pow(1 - posLerp, ratio) : 1;
     current.init = true;
     current.position.lerp(target.position, ap);
     current.scale += (target.scale - current.scale) * ap;
@@ -410,7 +482,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     lastTarget.scale = target.scale;
 
     star.position.copy(current.position);
-    star.scale.setScalar(Math.max(0.0001, current.scale));
+    repel(free);
+    star.scale.setScalar(Math.max(0.0001, current.scale * land.k));
     star.rotation.set(current.rx, current.ry, current.rz);
 
 
@@ -552,6 +625,26 @@ function offsetTo(el, stop) {
   return y;
 }
 
+// Deriva orgánica: 3 senos lentos en x e y (periodos ~7, 11 y 17 s) y balanceo; amplitud total ±DRIFT
+function drift(t) {
+  const [a, b, c] = DRIFT.periods.map((T) => (t * Math.PI * 2) / T);
+  return {
+    x: (Math.sin(a) * 0.5 + Math.sin(b + 1.3) * 0.3 + Math.sin(c + 2.1) * 0.2) * DRIFT.amp,
+    y: (Math.sin(b + 0.7) * 0.5 + Math.sin(a + 2.4) * 0.3 + Math.sin(c + 4.0) * 0.2) * DRIFT.amp,
+    r: (Math.sin(c + 0.5) * 0.6 + Math.sin(a * 0.9 + 1.1) * 0.4) * DRIFT.rot,
+  };
+}
+
+// Vuelo del estudio al anillo: bezier cúbica (sube y se abre en arco; entra desde arriba a la izquierda), sine.inOut
+function flight(a, b, f, out) {
+  const e = -(Math.cos(Math.PI * f) - 1) / 2;
+  const p1 = [a.x + (b.x - a.x) * FLIGHT.open, a.y + FLIGHT.rise];
+  const p2 = [b.x - FLIGHT.approach, b.y + FLIGHT.approach];
+  const u = 1 - e;
+  const bz = (p0, q1, q2, p3) => u * u * u * p0 + 3 * u * u * e * q1 + 3 * u * e * e * q2 + e * e * e * p3;
+  return out.set(bz(a.x, p1[0], p2[0], b.x), bz(a.y, p1[1], p2[1], b.y), a.s + (b.s - a.s) * e);
+}
+
 // Puntos de paso de la home: x, y de pantalla normalizados (-1..1), s = escala (1 = alto del hero),
 // at = posición de scroll (px) en la que el destello está ahí. Nunca encima de un bloque de texto.
 // hold: los dos extremos de un pin ('studio': el estudio 360°, con su propio recorrido; 'still': quieto).
@@ -583,7 +676,8 @@ function waypoints(mobile, ScrollTrigger, heroPt = HERO_POINT) {
   }).filter((p) => p.at > 1 && !pins.some(([a, b]) => p.at >= a - 1 && p.at <= b + 1));
   const last = Math.max(why.length ? why[why.length - 1].at : 0, ...stops.map((p) => p.at));
   const end = last < max - 1 ? [{ ...footerPoint(mobile, max, at), at: max }] : [];
-  return [hero, ...team, ...studio, ...why, ...stops, ...end].sort((p, q) => p.at - q.at);
+  const grown = [...team, ...studio, ...why, ...stops].map((p) => ({ ...p, s: p.s * GROW }));
+  return [hero, ...grown, ...end].sort((p, q) => p.at - q.at);
 }
 
 // Cofundadores: 1) mientras la frase cruza el centro de la pantalla, a su derecha (la frase ocupa las
@@ -607,11 +701,14 @@ function teamPoints(mobile) {
   const b = box(bruno);
   const at = Math.max(1, l.y + l.h / 2 - innerHeight / 2);
   const gap = mobile ? (l.x + l.w + document.documentElement.clientWidth) / 2 : (l.x + l.w + b.x) / 2;
+  // el hueco entre las dos fotos (en móvil, el margen a la derecha de Luna): cabe entero, nunca encima de una foto
+  const room = mobile ? document.documentElement.clientWidth - (l.x + l.w) : b.x - (l.x + l.w);
+  const fits = (room * 0.8) / (0.704 * (mobile ? HERO_SIZE_MOBILE : HERO_SIZE) * innerHeight) / GROW;
   const p = box(phrase);
   const right = Math.min(0.62, ((p.x + p.w) / innerWidth) * 2 - 1 + 0.45); // a la derecha del texto
   return [
     { at: Math.max(1, p.y + p.h / 2 - innerHeight / 2), x: mobile ? 0.55 : right, y: mobile ? 0.55 : 0.1, s: 0.35 },
-    { at, x: (gap / innerWidth) * 2 - 1, y: 0, s: 0.3 },
+    { at, x: (gap / innerWidth) * 2 - 1, y: 0, s: Math.min(0.3, fits) },
   ];
 }
 
@@ -698,13 +795,13 @@ function studioPoint(p, mobile, out) {
   const [p0, x0, y0, s0] = path[i - 1];
   const [p1, x1, y1, s1] = path[i];
   const t = THREE.MathUtils.smoothstep(p, p0, p1);
-  return out.set(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, s0 + (s1 - s0) * t);
+  return out.set(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, (s0 + (s1 - s0) * t) * GROW);
 }
 
 // Final en el footer (js/fin.js): centrado, 30 vh por encima del hueco de la estrella del logo, con un alto de
 // 1.6 × el hueco (siempre entero entre el email y el logo), medido con el scroll al final. Sin footer: por arriba.
 function footerPoint(mobile, max, fallback) {
-  const stop = finStop(max);
+  const stop = finStop(max, GROW);
   if (!stop) return { ...fallback, y: 1.6 };
   const size = mobile ? HERO_SIZE_MOBILE : HERO_SIZE;
   return { x: 0, y: 1 - (2 * stop.cy) / innerHeight, s: stop.h / (size * innerHeight), footer: true };

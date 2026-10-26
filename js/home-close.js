@@ -1,8 +1,10 @@
 import { config } from './config.js';
 
-// Cierre de la home: email real con "Copiar" y la prueba social, que SOLO se pinta si config.proof trae logos
-// o citas reales (nada inventado: con los dos arrays vacíos no existe en la página).
-export function initHomeClose() {
+// Cierre de la home: "cómo trabajamos" (una frase que se construye con el scroll), email real con "Copiar" y la
+// prueba social, que SOLO se pinta si config.proof trae logos o citas reales (nada inventado: con los dos
+// arrays vacíos no existe en la página).
+export function initHomeClose({ gsap, reduced }) {
+  initHow({ gsap, reduced });
   const email = config.email;
   document.querySelectorAll('.hc-close [data-email]').forEach((a) => { a.href = `mailto:${email}`; a.textContent = email; });
 
@@ -20,6 +22,19 @@ export function initHomeClose() {
   });
 
   renderProof();
+}
+
+// Cada línea de la frase se ilumina (.15 → 1) al llegar al centro de la pantalla (scrub); a la vez se dibuja el
+// subrayado naranja de su palabra clave y aparece su nota. Movimiento reducido: todo visible (CSS).
+function initHow({ gsap, reduced }) {
+  if (reduced.matches) return;
+  document.querySelectorAll('[data-how-row]').forEach((row) => {
+    const line = row.querySelector('.hc-how__line');
+    gsap.timeline({ scrollTrigger: { trigger: line, start: 'top 78%', end: 'center 50%', scrub: 0.6 } })
+      .fromTo(line, { opacity: 0.15 }, { opacity: 1, ease: 'none', duration: 1 }, 0)
+      .fromTo(row.querySelectorAll('.hc-how__ul path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.45 }, 0.55)
+      .fromTo(row.querySelector('.hc-how__note'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, ease: 'power1.out', duration: 0.4 }, 0.6);
+  });
 }
 
 // config.proof = { logos: [{ src, alt }], quotes: [{ text, name, business }] }

@@ -40,8 +40,9 @@ const STEP_MS = 1000 / 60;
 const STOP = { rise: 0.3, size: 1.6, gap: 16, min: 40 };
 const TAU = Math.PI * 2;
 
-// Dónde acaba el destello (px de pantalla con el scroll al final): { cy, h } o null si no hay footer
-export function finStop(max) {
+// Dónde acaba el destello (px de pantalla con el scroll al final): { cy, h } o null si no hay footer.
+// grow: el factor de tamaño del resto del recorrido (js/star.js)
+export function finStop(max, grow = 1) {
   const footer = document.querySelector('.fin');
   const svg = footer?.querySelector('.fin__logo');
   const hole = footer?.querySelector('.fin__hole');
@@ -52,7 +53,7 @@ export function finStop(max) {
   const logo = boxOf(svg, logoBBox(svg));
   const above = mail.getBoundingClientRect().bottom + shift + STOP.gap;
   const below = logo.top + shift - STOP.gap;
-  const h = Math.max(STOP.min, Math.min(STOP.size * s.h, below - above));
+  const h = Math.max(STOP.min, Math.min(STOP.size * grow * s.h, below - above));
   const cy = Math.min(below - h / 2, Math.max(above + h / 2, s.cy + shift - STOP.rise * innerHeight));
   return { cy, h };
 }
