@@ -28,13 +28,13 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 
 ## Servicios (servicios.html, js/servicios-data.js)
 
-Todo lo editable está en .
+Todo lo editable está en `js/servicios-data.js`.
 
-- [ ] **Fotos reales para la cubeta de revelado ():** 4–6 fotos de al menos 1600 px de ancho, con . Ahora hay 4 provisionales sacadas de la propia web (la terraza, la bola de discoteca, el retrato y el chico con la pala).
-- [ ] **Fotos por sector ():** "Marcas, moda y producto" no tiene foto (no sale ninguna al pasar el ratón). Las demás son provisionales.
-- [ ] **Proceso (BORRADOR):** los 8 pasos del cordel (), sus etiquetas de fase y en qué tramo de la barra cae cada uno.
-- [ ] **Para quién (BORRADOR):** los 5 sectores y sus frases ().
-- [ ] **Vídeos de la hoja de montaje (opcional, ):** cuando haya clips cortos y mudos, cada formato puede llevar uno. Falta programar que se enseñe al pasar el ratón; ahora solo está el campo.
+- [ ] **Fotos reales para la cubeta de revelado (`photos`):** 4–6 fotos de al menos 1600 px de ancho, con `{ src, w, h, categoria, año, alt }`. Ahora hay 4 provisionales sacadas de la propia web (la terraza, la bola de discoteca, el retrato y el chico con la pala).
+- [ ] **Fotos por sector (`sectors[].photo`):** "Marcas, moda y producto" no tiene foto (no sale ninguna al pasar el ratón). Las demás son provisionales.
+- [ ] **Proceso (BORRADOR):** los 8 pasos del cordel (`steps`), sus etiquetas de fase y en qué tramo de la barra cae cada uno.
+- [ ] **Para quién (BORRADOR):** los 5 sectores y sus frases (`sectors`).
+- [ ] **Vídeos de la hoja de montaje (opcional, `formats[].video`):** cuando haya clips cortos y mudos, cada formato puede llevar uno. Falta programar que se enseñe al pasar el ratón; ahora solo está el campo.
 
 ## Contacto (contacto.html, js/contact.js)
 
