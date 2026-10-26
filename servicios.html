@@ -5,8 +5,8 @@
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
   <script src="js/file-guard.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Servicios: foto, vídeo y edición — disco.</title>
-  <meta name="description" content="Fotografía, vídeo, reels y edición para negocios en Madrid: sesiones en tu local, formatos para redes y entregas rápidas.">
+  <title>Servicios · Foto, vídeo y edición — disco.</title>
+  <meta name="description" content="De la idea a la pantalla: concepto, planificación, rodaje, foto, vídeo y edición para marcas, eventos y negocios en Madrid.">
   <!-- canonical y og:url: cuando haya dominio (config.siteUrl, PENDIENTES.md), descomentar y cambiar [DOMINIO]
   <link rel="canonical" href="https://[DOMINIO]/servicios.html">
   <meta property="og:url" content="https://[DOMINIO]/servicios.html">
@@ -14,15 +14,15 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="es_ES">
   <meta property="og:site_name" content="disco.">
-  <meta property="og:title" content="Servicios: foto, vídeo y edición — disco.">
-  <meta property="og:description" content="Fotografía, vídeo, reels y edición para negocios en Madrid: sesiones en tu local, formatos para redes y entregas rápidas.">
+  <meta property="og:title" content="Servicios · Foto, vídeo y edición — disco.">
+  <meta property="og:description" content="De la idea a la pantalla: concepto, planificación, rodaje, foto, vídeo y edición para marcas, eventos y negocios en Madrid.">
   <meta property="og:image" content="assets/brand/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="disco. — foto, vídeo y edición en Madrid">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Servicios: foto, vídeo y edición — disco.">
-  <meta name="twitter:description" content="Fotografía, vídeo, reels y edición para negocios en Madrid: sesiones en tu local, formatos para redes y entregas rápidas.">
+  <meta name="twitter:title" content="Servicios · Foto, vídeo y edición — disco.">
+  <meta name="twitter:description" content="De la idea a la pantalla: concepto, planificación, rodaje, foto, vídeo y edición para marcas, eventos y negocios en Madrid.">
   <meta name="twitter:image" content="assets/brand/og.jpg">
   <meta name="theme-color" content="#0b0909">
   <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
@@ -38,8 +38,8 @@
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/services.css">
-  <link rel="stylesheet" href="css/page.css">
+  <link rel="stylesheet" href="css/interior.css">
+  <link rel="stylesheet" href="css/servicios.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/fin.css">
   <link rel="stylesheet" href="css/transition.css">
@@ -48,8 +48,43 @@
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
     try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
   </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "name": "Fotografía",
+      "serviceType": "Fotografía de producto, espacios, eventos y retratos",
+      "description": "Fotografía de producto, espacios, ambiente y personas, con dirección de arte, iluminación y retoque.",
+      "provider": {
+        "@type": "ProfessionalService",
+        "name": "disco."
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Madrid"
+      }
+    },
+    {
+      "@type": "Service",
+      "name": "Vídeo y edición",
+      "serviceType": "Reels, vídeo de marca, aftermovies y edición",
+      "description": "Reels, vídeos de marca y cobertura de eventos, con montaje, color y sonido.",
+      "provider": {
+        "@type": "ProfessionalService",
+        "name": "disco."
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Madrid"
+      }
+    }
+  ]
+}
+  </script>
 </head>
-<body class="page-services">
+<body data-page="servicios">
   <a class="skip" href="#contenido">Saltar al contenido</a>
 
   <!-- Nav flotante de cristal (misma en todas las páginas; estilos en css/nav.css, lógica en js/nav.js) -->
@@ -76,108 +111,114 @@
     </div>
   </header>
 
-  <!-- La misma sección que en la home (mismo services.css y services.js); el título aquí es el h1 -->
-  <main id="contenido">
-    <section class="services" id="servicios" aria-labelledby="services-title" data-nav-ink="dark">
-      <div class="services__pin" data-services-pin>
-        <header class="services__head">
-          <p class="services__eyebrow">SERVICIOS — 03</p>
-          <h1 class="services__title" id="services-title">Lo que hacemos</h1>
-        </header>
+  <!-- Servicios: "cuarto oscuro". La página es un laboratorio de revelado: se entra con la luz roja de seguridad,
+       las fotos se revelan con el scroll (WebGL), se pasa a la sala de montaje (vídeo), las copias se cuelgan a
+       secar (proceso) y al final se enciende la luz. css/servicios.css, js/servicios.js, js/darkroom.js; los datos
+       (fotos, formatos, pasos, sectores) en js/servicios-data.js. (LEGACY: legacy/servicios-v1/) -->
+  <main id="contenido" class="ip sv">
+    <i class="sv-light sv-light--red" data-light-red aria-hidden="true"></i>
+    <i class="sv-light sv-light--proj" data-light-proj aria-hidden="true"></i>
+    <canvas class="sv-grain" data-grain aria-hidden="true"></canvas>
 
-        <div class="services__body">
-          <ol class="services__list">
-            <li class="service is-active" data-service>
-              <figure class="service__viewer">
-                <p class="viewer__hud">ISO 400  f/2.8  1/200</p>
-                <div class="viewer__frame">
-                  <img class="viewer__img is-active" src="assets/servicios/foto.webp" width="1366" height="1708" loading="lazy" decoding="async"
-                       alt="Terraza con sombrilla blanca, palmera y gente sentada en las mesas junto al agua">
-                  <i class="viewer__flash" aria-hidden="true"></i>
-                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
-                </div>
-              </figure>
-              <h3 class="service__name"><span class="service__num">01</span>Foto</h3>
-              <div class="service__detail">
-                <div class="service__detail-inner">
-                  <p class="service__desc">Fotografía de producto, espacio y ambiente. Platos que dan hambre, barras que llaman, salas llenas.</p>
-                  <ul class="service__deliverables">
-                    <li>Sesión en tu local</li>
-                    <li>Retoque y color</li>
-                    <li>Formatos para web y redes</li>
-                  </ul>
-                </div>
-              </div>
-            </li>
-            <li class="service" data-service>
-              <figure class="service__viewer">
-                <p class="viewer__hud"><i class="rec-dot" aria-hidden="true"></i>REC  4K 25p</p>
-                <div class="viewer__frame">
-                  <img class="viewer__img is-active" src="assets/servicios/video.webp" width="1600" height="2000" loading="lazy" decoding="async"
-                       alt="Persona en movimiento, iluminada en rojo sobre fondo negro">
-                  <i class="viewer__flash" aria-hidden="true"></i>
-                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
-                </div>
-              </figure>
-              <h3 class="service__name"><span class="service__num">02</span>Vídeo</h3>
-              <div class="service__detail">
-                <div class="service__detail-inner">
-                  <p class="service__desc">Reels, vídeos de marca y cobertura de eventos. Grabamos el ritmo real de tu negocio.</p>
-                  <ul class="service__deliverables">
-                    <li>Reels y TikTok</li>
-                    <li>Vídeo de marca</li>
-                    <li>Aftermovie de eventos</li>
-                  </ul>
-                </div>
-              </div>
-            </li>
-            <li class="service" data-service>
-              <figure class="service__viewer">
-                <p class="viewer__hud">TIMELINE  <span data-edit-tc>00:00:12:04</span></p>
-                <div class="viewer__frame">
-                  <img class="viewer__img is-active" src="assets/servicios/edicion.webp" width="1600" height="2000" loading="lazy" decoding="async"
-                       alt="Silueta movida de una persona con gorra, en blanco y negro">
-                  <i class="viewer__flash" aria-hidden="true"></i>
-                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
-                </div>
-              </figure>
-              <h3 class="service__name"><span class="service__num">03</span>Edición</h3>
-              <div class="service__detail">
-                <div class="service__detail-inner">
-                  <p class="service__desc">Montaje, color y sonido con ritmo. Convertimos horas de material en segundos que se recuerdan.</p>
-                  <ul class="service__deliverables">
-                    <li>Montaje al beat</li>
-                    <li>Etalonaje</li>
-                    <li>Subtítulos y versiones</li>
-                  </ul>
-                </div>
-              </div>
-            </li>
-          </ol>
-
-          <!-- encuadre único de desktop: muestra la foto del servicio activo -->
-          <figure class="viewer" data-viewer>
-            <p class="viewer__hud">
-              <span data-viewer-hud>ISO 400  f/2.8  1/200</span>
-              <span data-viewer-hud hidden><i class="rec-dot" aria-hidden="true"></i>REC  4K 25p</span>
-              <span data-viewer-hud hidden>TIMELINE  <span data-edit-tc>00:00:12:04</span></span>
-            </p>
-            <div class="viewer__frame" data-viewer-frame>
-              <img class="viewer__img is-active" data-viewer-img src="assets/servicios/foto.webp" width="1366" height="1708" loading="lazy" decoding="async"
-                   alt="Terraza con sombrilla blanca, palmera y gente sentada en las mesas junto al agua">
-              <img class="viewer__img" data-viewer-img src="assets/servicios/video.webp" width="1600" height="2000" loading="lazy" decoding="async"
-                   alt="Persona en movimiento, iluminada en rojo sobre fondo negro">
-              <img class="viewer__img" data-viewer-img src="assets/servicios/edicion.webp" width="1600" height="2000" loading="lazy" decoding="async"
-                   alt="Silueta movida de una persona con gorra, en blanco y negro">
-              <i class="viewer__flash" aria-hidden="true"></i>
-              <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
-            </div>
-          </figure>
-        </div>
+    <!-- A) cabecera -->
+    <header class="sv-head">
+      <div class="sv-wrap">
+        <p class="ip-eyebrow">SERVICIOS — <b>02</b></p>
+        <h1 class="sv-head__title" aria-label="De la idea a la pantalla.">
+          <span class="sv-mask" aria-hidden="true"><span data-head-line>De la idea</span></span>
+          <span class="sv-mask" aria-hidden="true"><span data-head-line>a la pantalla<b class="sv-dot">.</b></span></span>
+        </h1>
+        <p class="sv-head__sub" data-head-after>Pensamos, producimos y entregamos. Foto, vídeo y edición con la energía de tu negocio, de principio a fin.</p>
       </div>
+      <div class="sv-index sv-wrap" data-head-after>
+        <nav aria-label="En esta página">
+          <ol class="sv-index__list">
+            <li><a href="#foto"><b>01</b> Foto</a></li>
+            <li><a href="#video"><b>02</b> Vídeo</a></li>
+            <li><a href="#proceso"><b>03</b> Proceso</a></li>
+            <li><a href="#para-quien"><b>04</b> Para quién</a></li>
+          </ol>
+        </nav>
+        <a class="sv-btn" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
+      </div>
+    </header>
 
-      <div class="services__outro">
-        <p class="services__outro-title">¿Hablamos de tu local?</p>
+    <!-- B) manifiesto: se ilumina palabra a palabra con el scroll -->
+    <section class="sv-manifest" aria-label="Manifiesto">
+      <p class="sv-manifest__text sv-wrap" data-manifest>No solo grabamos. Entendemos tu marca, buscamos la <em>idea</em> y la convertimos en <em>imágenes</em> que transmiten lo que se siente al estar ahí.</p>
+    </section>
+
+    <!-- C) 01 · Foto: la cubeta de revelado (pin en escritorio) -->
+    <section class="sv-foto" id="foto" aria-labelledby="foto-title" data-foto>
+      <div class="sv-foto__pin" data-foto-pin>
+        <div class="sv-foto__text">
+          <p class="sv-label">01 · FOTOGRAFÍA</p>
+          <h2 class="sv-big" id="foto-title">Foto<b class="sv-dot">.</b></h2>
+          <p class="sv-desc">Fotografía de producto, espacios, ambiente y personas. Dirigimos el arte, iluminamos y retocamos cada imagen para que tu marca se vea como se siente.</p>
+          <ul class="sv-dash">
+            <li>Producto y gastronomía</li>
+            <li>Espacios e interiorismo</li>
+            <li>Eventos y ambiente</li>
+            <li>Retratos y equipo</li>
+            <li>Retoque, color y formatos para web, redes e impresión</li>
+          </ul>
+        </div>
+        <div class="sv-tray" data-tray></div>
+      </div>
+    </section>
+
+    <!-- D) 02 · Vídeo: la sala de montaje (se apaga el rojo, entra la luz del proyector) -->
+    <section class="sv-video" id="video" aria-labelledby="video-title" data-video>
+      <div class="sv-wrap">
+        <p class="sv-label">02 · VÍDEO Y EDICIÓN</p>
+        <h2 class="sv-big" id="video-title">Vídeo<b class="sv-dot">.</b></h2>
+        <p class="sv-desc">Reels, vídeos de marca y cobertura de eventos. Planificamos cada plano, grabamos el ritmo real de tu negocio y lo editamos con color y sonido para que se quede en la cabeza.</p>
+        <h3 class="sv-mono-title">Hoja de montaje</h3>
+        <ul class="sv-edl" data-formats></ul>
+      </div>
+    </section>
+
+    <!-- E) 03 · Proceso: copias colgadas a secar en un cordel (scroll horizontal en escritorio) -->
+    <section class="sv-proc" id="proceso" aria-labelledby="proc-title" data-proc>
+      <div class="sv-proc__pin" data-proc-pin>
+        <div class="sv-proc__head sv-wrap">
+          <p class="sv-label">03 · PROCESO</p>
+          <h2 class="sv-proc__title" id="proc-title">En cada producción.</h2>
+          <p class="sv-desc">Nos encargamos de todo, de principio a fin. Así es como lo hacemos.</p>
+        </div>
+        <div class="sv-proc__view">
+          <div class="sv-proc__track" data-proc-track>
+            <svg class="sv-cord" data-cord aria-hidden="true" focusable="false"><path data-cord-path/></svg>
+            <ol class="sv-proc__list" data-steps data-draft></ol>
+          </div>
+        </div>
+        <div class="sv-proc__bar sv-wrap" data-proc-bar aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- F) 04 · Para quién: lista tipográfica; al pasar, la frase y una foto pequeña que sigue al cursor -->
+    <section class="sv-for" id="para-quien" aria-labelledby="for-title" data-for>
+      <div class="sv-wrap">
+        <h2 class="sv-label" id="for-title">04 · PARA QUIÉN</h2>
+        <ul class="sv-for__list" data-sectors data-draft></ul>
+        <p class="sv-for__more"><a href="contacto.html">¿Tu sector no está? Cuéntanos tu idea <b aria-hidden="true">→</b></a></p>
+      </div>
+      <div class="sv-follow" data-follow aria-hidden="true"><img alt="" data-follow-img></div>
+    </section>
+
+    <!-- G) cierre: se enciende la luz del laboratorio -->
+    <section class="sv-close" aria-labelledby="close-title" data-close data-nav-ink="dark">
+      <i class="sv-close__light" data-close-light aria-hidden="true"></i>
+      <div class="sv-wrap sv-close__in">
+        <h2 class="sv-close__title" id="close-title">¿Empezamos por la idea?</h2>
+        <div class="sv-close__actions">
+          <a class="sv-btn sv-btn--ink" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
+          <span class="sv-mail">
+            <a href="mailto:equipo@discoproduccion.com" data-email>equipo@discoproduccion.com</a>
+            <button class="sv-mail__copy" type="button" data-copy-email>Copiar</button>
+            <span class="sv-mail__ok" data-copied role="status" aria-live="polite"></span>
+          </span>
+        </div>
       </div>
     </section>
   </main>

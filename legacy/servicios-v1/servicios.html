@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
+  <script src="js/file-guard.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Servicios: foto, vídeo y edición — disco.</title>
+  <meta name="description" content="Fotografía, vídeo, reels y edición para negocios en Madrid: sesiones en tu local, formatos para redes y entregas rápidas.">
+  <!-- canonical y og:url: cuando haya dominio (config.siteUrl, PENDIENTES.md), descomentar y cambiar [DOMINIO]
+  <link rel="canonical" href="https://[DOMINIO]/servicios.html">
+  <meta property="og:url" content="https://[DOMINIO]/servicios.html">
+  -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="disco.">
+  <meta property="og:title" content="Servicios: foto, vídeo y edición — disco.">
+  <meta property="og:description" content="Fotografía, vídeo, reels y edición para negocios en Madrid: sesiones en tu local, formatos para redes y entregas rápidas.">
+  <meta property="og:image" content="assets/brand/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="disco. — foto, vídeo y edición en Madrid">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Servicios: foto, vídeo y edición — disco.">
+  <meta name="twitter:description" content="Fotografía, vídeo, reels y edición para negocios en Madrid: sesiones en tu local, formatos para redes y entregas rápidas.">
+  <meta name="twitter:image" content="assets/brand/og.jpg">
+  <meta name="theme-color" content="#0b0909">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/services.css">
+  <link rel="stylesheet" href="css/page.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="css/fin.css">
+  <link rel="stylesheet" href="css/transition.css">
+  <script>
+    document.documentElement.classList.add('js');
+    // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
+    try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
+  </script>
+</head>
+<body class="page-services">
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+
+  <!-- Nav flotante de cristal (misma en todas las páginas; estilos en css/nav.css, lógica en js/nav.js) -->
+  <header class="nav" data-nav>
+    <div class="nav__float">
+      <nav class="nav__bar" aria-label="Principal">
+        <button class="nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-panel">
+          <span class="nav__burger" aria-hidden="true"><i></i><i></i></span>Menú
+        </button>
+        <a class="nav__logo" href="index.html" aria-label="disco.es, inicio">
+          <svg class="nav__logo-svg" viewBox="330 575 960 290" fill="currentColor" aria-hidden="true" focusable="false"><path d="M391.5,854.4C372.0,850.1 356.8,835.0 349.2,812.5C344.5,798.7 343.5,787.0 343.5,748.5C343.5,710.2 344.3,701.0 349.2,685.0C354.5,667.9 365.9,653.6 380.1,646.4C390.4,641.2 399.2,639.6 416.6,639.5L432.6,639.5L440.2,643.2C444.7,645.5 449.3,648.7 451.4,651.1C458.0,658.3 458.0,658.4 458.0,619.2C458.0,593.5 458.3,584.1 459.2,583.2C460.9,581.5 546.1,581.5 547.8,583.2C548.7,584.1 549.0,611.8 549.0,701.4C549.0,767.5 549.5,824.8 550.0,832.9C550.8,844.0 550.7,847.6 549.8,848.8C548.7,850.1 543.2,850.2 507.5,849.6C474.3,849.0 466.2,848.6 465.0,847.4C463.9,846.3 463.5,841.7 463.0,826.3C462.6,809.8 462.3,806.5 461.0,806.5C460.0,806.5 459.2,808.5 458.4,813.5C455.4,831.3 445.4,845.2 430.5,852.2C423.9,855.3 422.8,855.5 411.0,855.7C402.6,855.9 396.2,855.4 391.5,854.4ZM449.1,775.1L452.0,772.2L452.0,746.0L452.0,719.8L449.1,716.9C447.1,714.9 445.2,714.0 443.0,714.0C440.8,714.0 438.9,714.9 436.9,716.9L434.0,719.8L434.0,746.6C434.0,772.7 434.1,773.4 436.2,775.7C439.4,779.2 445.3,778.9 449.1,775.1Z"/><path d="M581.8,842.4C580.7,841.3 580.8,661.8 581.9,660.1C582.9,658.6 591.3,657.3 618.8,654.5C627.7,653.6 635.7,653.1 636.5,653.4C637.8,653.9 638.0,665.3 637.8,745.1C637.5,825.0 637.3,836.4 636.0,837.1C635.2,837.5 629.3,838.4 623.0,839.0C616.7,839.7 608.8,840.6 605.5,841.0C595.4,842.5 582.5,843.3 581.8,842.4ZM582.2,642.8C580.5,641.1 580.5,623.6 582.3,622.2C583.0,621.6 587.8,620.7 593.0,620.1C598.2,619.6 607.2,618.5 613.0,617.8C618.8,617.1 626.6,616.5 630.5,616.5L637.5,616.5L637.8,626.1C638.0,633.0 637.7,636.0 636.8,636.7C636.1,637.3 624.9,638.9 612.0,640.4C599.1,641.9 587.4,643.3 586.0,643.6C584.6,643.8 582.9,643.5 582.2,642.8Z"/><path d="M668.8,843.5C668.3,843.0 668.0,829.0 668.0,812.3C668.0,788.9 668.3,781.8 669.2,781.5C669.9,781.3 682.9,780.4 698.0,779.5C735.2,777.4 769.0,775.0 771.8,774.4C774.5,773.9 778.0,768.5 778.0,765.0C778.0,761.5 774.6,756.4 771.1,754.5C768.3,753.1 765.5,753.1 740.3,754.6C705.9,756.6 697.5,756.3 690.0,752.9C682.2,749.3 674.5,741.5 670.9,733.4L667.9,726.9L668.2,695.7L668.5,664.5L671.7,657.7C677.1,646.3 687.6,637.3 701.4,632.3C706.3,630.5 726.2,630.5 795.1,632.3C830.6,633.3 841.1,633.8 842.4,634.9C843.8,636.1 844.0,639.6 844.0,665.0C844.0,689.4 843.8,693.9 842.5,695.0C841.3,696.0 838.0,696.0 826.7,695.1C818.9,694.5 804.6,693.6 795.0,693.0C785.4,692.4 769.6,691.5 759.9,690.9C744.2,689.9 741.9,690.0 739.2,691.4C735.5,693.3 733.0,697.6 733.0,702.0C733.0,705.6 737.3,710.6 741.1,711.4C742.4,711.7 757.1,712.6 773.7,713.5C806.0,715.1 810.9,715.9 820.6,721.6C826.7,725.2 836.7,736.1 839.6,742.4C843.2,750.3 844.0,757.0 844.0,780.3C844.0,813.0 842.2,820.0 830.8,830.5C822.3,838.4 816.7,840.2 800.0,840.7C792.6,840.8 766.7,841.4 742.5,842.0C718.3,842.6 692.0,843.3 684.0,843.6C676.0,844.0 669.2,843.9 668.8,843.5Z"/><path d="M912.0,842.0C885.0,836.4 867.8,821.9 861.3,799.3C860.0,794.5 859.6,787.1 859.2,757.6C859.0,735.0 859.2,718.1 859.9,712.3C864.5,673.7 896.2,645.2 947.0,633.8C956.3,631.8 960.1,631.5 979.5,631.5C1004.0,631.5 1010.4,632.6 1023.3,639.1C1035.8,645.4 1046.6,659.3 1049.0,672.1C1050.5,679.8 1050.3,702.5 1048.8,703.8C1046.9,705.3 970.1,726.2 967.6,725.8C965.7,725.5 965.4,724.7 965.0,718.7C964.6,713.0 964.1,711.5 962.1,709.9C960.8,708.9 959.1,708.0 958.4,708.0C955.6,708.0 950.1,710.9 949.1,712.8C948.4,714.1 948.0,723.0 948.0,736.8C948.0,758.3 948.0,758.7 950.3,760.8C953.0,763.4 955.0,763.5 959.0,761.5C963.8,759.0 965.0,756.3 965.0,748.4C965.0,743.8 965.5,740.9 966.3,740.2C967.6,739.1 974.1,738.3 1004.5,735.4C1013.3,734.6 1026.6,733.3 1034.0,732.5C1043.5,731.5 1047.8,731.4 1048.7,732.2C1051.0,734.0 1050.4,764.9 1048.0,774.4C1044.6,787.7 1039.0,797.1 1027.5,808.5C1009.8,826.3 988.6,836.1 956.0,841.6C938.7,844.5 924.3,844.6 912.0,842.0Z"/><path d="M1142.5,850.9C1123.4,848.5 1106.8,839.8 1092.4,824.8C1081.6,813.5 1074.9,803.0 1070.6,790.3C1066.2,777.5 1065.8,771.9 1066.2,733.5L1066.5,697.5L1069.2,689.5C1074.1,675.1 1082.9,662.6 1095.8,651.9C1109.4,640.6 1124.0,633.2 1140.0,629.4C1150.9,626.9 1175.8,623.8 1189.4,623.3C1200.4,622.9 1203.7,623.1 1211.4,625.0C1220.4,627.2 1220.7,627.3 1239.2,641.0C1260.0,656.4 1262.4,659.0 1270.0,674.5C1278.5,691.8 1278.5,691.9 1278.5,737.0L1278.5,776.5L1275.7,784.5C1268.8,804.0 1256.5,818.8 1236.6,831.5C1221.4,841.2 1208.1,845.1 1177.0,849.0C1164.1,850.7 1152.6,851.9 1151.5,851.9C1150.4,851.8 1146.3,851.4 1142.5,850.9ZM1178.1,782.0C1192.5,779.8 1197.5,777.7 1202.5,771.8C1208.4,764.9 1208.5,764.0 1208.5,733.5L1208.5,705.5L1206.0,701.0C1200.0,690.4 1192.2,688.5 1168.8,691.9C1153.3,694.1 1147.0,696.7 1141.9,703.1C1136.4,710.0 1136.0,712.8 1136.0,740.5C1136.0,768.1 1136.6,771.8 1141.8,777.3C1148.6,784.5 1155.5,785.4 1178.1,782.0Z"/><path d="M1235.0,585.0 Q1242.7,632.6 1278.0,643.0 Q1242.7,654.0 1235.0,704.0 Q1227.6,654.0 1194.0,643.0 Q1227.6,632.6 1235.0,585.0 Z"/></svg>
+        </a>
+        <a class="nav__link" href="contacto.html">Contacto</a>
+      </nav>
+      <div class="nav__panel" id="nav-panel" hidden>
+        <ul class="nav__list">
+          <li><a class="nav__item" href="index.html">Home</a></li>
+          <li><a class="nav__item" href="servicios.html" aria-current="page">Servicios</a></li>
+          <li><a class="nav__item" href="portfolio.html">Portfolio</a></li>
+          <li><a class="nav__item" href="nosotros.html">Nosotros</a></li>
+          <li><a class="nav__item" href="contacto.html">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- La misma sección que en la home (mismo services.css y services.js); el título aquí es el h1 -->
+  <main id="contenido">
+    <section class="services" id="servicios" aria-labelledby="services-title" data-nav-ink="dark">
+      <div class="services__pin" data-services-pin>
+        <header class="services__head">
+          <p class="services__eyebrow">SERVICIOS — 03</p>
+          <h1 class="services__title" id="services-title">Lo que hacemos</h1>
+        </header>
+
+        <div class="services__body">
+          <ol class="services__list">
+            <li class="service is-active" data-service>
+              <figure class="service__viewer">
+                <p class="viewer__hud">ISO 400  f/2.8  1/200</p>
+                <div class="viewer__frame">
+                  <img class="viewer__img is-active" src="assets/servicios/foto.webp" width="1366" height="1708" loading="lazy" decoding="async"
+                       alt="Terraza con sombrilla blanca, palmera y gente sentada en las mesas junto al agua">
+                  <i class="viewer__flash" aria-hidden="true"></i>
+                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+                </div>
+              </figure>
+              <h3 class="service__name"><span class="service__num">01</span>Foto</h3>
+              <div class="service__detail">
+                <div class="service__detail-inner">
+                  <p class="service__desc">Fotografía de producto, espacio y ambiente. Platos que dan hambre, barras que llaman, salas llenas.</p>
+                  <ul class="service__deliverables">
+                    <li>Sesión en tu local</li>
+                    <li>Retoque y color</li>
+                    <li>Formatos para web y redes</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+            <li class="service" data-service>
+              <figure class="service__viewer">
+                <p class="viewer__hud"><i class="rec-dot" aria-hidden="true"></i>REC  4K 25p</p>
+                <div class="viewer__frame">
+                  <img class="viewer__img is-active" src="assets/servicios/video.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                       alt="Persona en movimiento, iluminada en rojo sobre fondo negro">
+                  <i class="viewer__flash" aria-hidden="true"></i>
+                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+                </div>
+              </figure>
+              <h3 class="service__name"><span class="service__num">02</span>Vídeo</h3>
+              <div class="service__detail">
+                <div class="service__detail-inner">
+                  <p class="service__desc">Reels, vídeos de marca y cobertura de eventos. Grabamos el ritmo real de tu negocio.</p>
+                  <ul class="service__deliverables">
+                    <li>Reels y TikTok</li>
+                    <li>Vídeo de marca</li>
+                    <li>Aftermovie de eventos</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+            <li class="service" data-service>
+              <figure class="service__viewer">
+                <p class="viewer__hud">TIMELINE  <span data-edit-tc>00:00:12:04</span></p>
+                <div class="viewer__frame">
+                  <img class="viewer__img is-active" src="assets/servicios/edicion.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                       alt="Silueta movida de una persona con gorra, en blanco y negro">
+                  <i class="viewer__flash" aria-hidden="true"></i>
+                  <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+                </div>
+              </figure>
+              <h3 class="service__name"><span class="service__num">03</span>Edición</h3>
+              <div class="service__detail">
+                <div class="service__detail-inner">
+                  <p class="service__desc">Montaje, color y sonido con ritmo. Convertimos horas de material en segundos que se recuerdan.</p>
+                  <ul class="service__deliverables">
+                    <li>Montaje al beat</li>
+                    <li>Etalonaje</li>
+                    <li>Subtítulos y versiones</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+          </ol>
+
+          <!-- encuadre único de desktop: muestra la foto del servicio activo -->
+          <figure class="viewer" data-viewer>
+            <p class="viewer__hud">
+              <span data-viewer-hud>ISO 400  f/2.8  1/200</span>
+              <span data-viewer-hud hidden><i class="rec-dot" aria-hidden="true"></i>REC  4K 25p</span>
+              <span data-viewer-hud hidden>TIMELINE  <span data-edit-tc>00:00:12:04</span></span>
+            </p>
+            <div class="viewer__frame" data-viewer-frame>
+              <img class="viewer__img is-active" data-viewer-img src="assets/servicios/foto.webp" width="1366" height="1708" loading="lazy" decoding="async"
+                   alt="Terraza con sombrilla blanca, palmera y gente sentada en las mesas junto al agua">
+              <img class="viewer__img" data-viewer-img src="assets/servicios/video.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                   alt="Persona en movimiento, iluminada en rojo sobre fondo negro">
+              <img class="viewer__img" data-viewer-img src="assets/servicios/edicion.webp" width="1600" height="2000" loading="lazy" decoding="async"
+                   alt="Silueta movida de una persona con gorra, en blanco y negro">
+              <i class="viewer__flash" aria-hidden="true"></i>
+              <span class="viewer__brackets" aria-hidden="true"><i class="br br--tl"></i><i class="br br--tr"></i><i class="br br--bl"></i><i class="br br--br"></i></span>
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      <div class="services__outro">
+        <p class="services__outro-title">¿Hablamos de tu local?</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer "fin de la sesión" (css/fin.css; js/fin.js lo monta, js/fin-physics.js la física).
+       Sin JS queda este menú sencillo. -->
+  <footer class="fin fin--fallback" data-footer>
+    <nav aria-label="Páginas"><a href="index.html">Inicio</a> · <a href="servicios.html">Servicios</a> · <a href="portfolio.html">Portfolio</a> · <a href="nosotros.html">Nosotros</a> · <a href="contacto.html">Contacto</a></nav>
+    <p>© 2026 disco. · <a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a></p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script type="module" src="js/page.js"></script>
+</body>
+</html>
