@@ -19,8 +19,11 @@
 }
 .sv-dot { font-weight: inherit; color: var(--orange); }
 
-/* ---------- luces y grano ---------- */
+/* ---------- luces y grano ----------
+   Apagadas: el fondo es el mismo negro liso de la home (#0b0909). Para volver a encenderlas, quita el
+   display: none (las luces) y vuelve a poner el <canvas data-grain> en servicios.html (el grano). */
 .sv-light {
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 0;
