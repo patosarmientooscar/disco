@@ -111,34 +111,26 @@
     </div>
   </header>
 
-  <!-- Servicios: "cuarto oscuro". La página es un laboratorio de revelado: se entra con la luz roja de seguridad,
-       las fotos se revelan con el scroll (WebGL), se pasa a la sala de montaje (vídeo), las copias se cuelgan a
-       secar (proceso) y al final se enciende la luz. css/servicios.css, js/servicios.js, js/darkroom.js; los datos
-       (fotos, formatos, pasos, sectores) en js/servicios-data.js. (LEGACY: legacy/servicios-v1/) -->
+  <!-- Servicios v2: "flash + bento" (css/servicios.css; js/servicios.js, js/shoot.js y js/bento.js; los datos en
+       js/servicios-data.js). Fondo negro; la luz roja de seguridad del cuarto oscuro como ambiente (sigue al cursor
+       en la cabecera y se apaga al entrar en la sala de fotos). La foto nace del flash ("Dispara"); la hoja de
+       montaje de vídeo; el proceso en una rejilla bento; para quién; y el cierre naranja.
+       (LEGACY: legacy/servicios-v2-cuarto-oscuro/ y legacy/servicios-v1/) -->
   <main id="contenido" class="ip sv">
     <i class="sv-light sv-light--red" data-light-red aria-hidden="true"></i>
-    <i class="sv-light sv-light--proj" data-light-proj aria-hidden="true"></i>
 
     <!-- A) cabecera -->
-    <header class="sv-head">
+    <header class="sv-head" data-head>
       <div class="sv-wrap">
-        <p class="ip-eyebrow">SERVICIOS — <b>02</b></p>
         <h1 class="sv-head__title" aria-label="De la idea a la pantalla.">
-          <span class="sv-mask" aria-hidden="true"><span data-head-line>De la idea</span></span>
-          <span class="sv-mask" aria-hidden="true"><span data-head-line>a la pantalla<b class="sv-dot">.</b></span></span>
+          <span class="sv-mask" aria-hidden="true" data-head-mask><span data-head-line>De la idea</span></span>
+          <span class="sv-mask" aria-hidden="true" data-head-mask><span data-head-line>a la pantalla<b class="sv-dot">.</b></span></span>
         </h1>
         <p class="sv-head__sub" data-head-after>Pensamos, producimos y entregamos. Foto, vídeo y edición con la energía de tu negocio, de principio a fin.</p>
-      </div>
-      <div class="sv-index sv-wrap" data-head-after>
-        <nav aria-label="En esta página">
-          <ol class="sv-index__list">
-            <li><a href="#foto"><b>01</b> Foto</a></li>
-            <li><a href="#video"><b>02</b> Vídeo</a></li>
-            <li><a href="#proceso"><b>03</b> Proceso</a></li>
-            <li><a href="#para-quien"><b>04</b> Para quién</a></li>
-          </ol>
-        </nav>
-        <a class="sv-btn" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
+        <div class="sv-head__cta" data-head-after>
+          <a class="sv-btn sv-btn--shine" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
+          <a class="sv-more" href="#proceso" data-to-proc>Ver cómo trabajamos</a>
+        </div>
       </div>
     </header>
 
@@ -147,68 +139,203 @@
       <p class="sv-manifest__text sv-wrap" data-manifest>No solo grabamos. Entendemos tu marca, buscamos la <em>idea</em> y la convertimos en <em>imágenes</em> que transmiten lo que se siente al estar ahí.</p>
     </section>
 
-    <!-- C) 01 · Foto: la cubeta de revelado (pin en escritorio) -->
-    <section class="sv-foto" id="foto" aria-labelledby="foto-title" data-foto>
-      <div class="sv-foto__pin" data-foto-pin>
-        <div class="sv-foto__text">
-          <p class="sv-label">01 · FOTOGRAFÍA</p>
+    <!-- C) Foto: "Dispara". Una sala a oscuras (pin de 400vh en escritorio): el cursor es una linterna que deja ver la
+         foto escondida; cada tramo de scroll (o un clic / toque) dispara el flash, la foto aparece "congelada" y se va
+         al muro; al final, el muro entero con un último flash. js/shoot.js; las fotos, en js/servicios-data.js -->
+    <section class="sv-shoot" id="foto" aria-labelledby="foto-title" data-shoot>
+      <div class="sv-shoot__pin">
+        <div class="sv-shoot__room" data-room>
+          <i class="sv-shoot__glow" data-glow aria-hidden="true"></i>
+          <ul class="sv-wall" data-wall aria-label="Fotos"></ul>
+          <div class="sv-shoot__frame" data-frame aria-hidden="true">
+            <img class="sv-shoot__dim" data-dim alt="">
+            <canvas class="sv-shoot__torch" data-torch></canvas>
+            <div class="sv-shoot__shot" data-shot><img class="sv-shoot__img" alt=""><img class="sv-shoot__after" alt=""></div>
+          </div>
+          <p class="sv-shoot__hint" data-hint aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M12 2l3.5 8.5M22 12l-8.5 3.5M12 22l-3.5-8.5M2 12l8.5-3.5M19 5l-5.5 8M5 19l5.5-8"/></svg><span data-hint-text>Haz scroll o pulsa para disparar</span></p>
+        </div>
+        <div class="sv-shoot__text">
           <h2 class="sv-big" id="foto-title">Foto<b class="sv-dot">.</b></h2>
           <p class="sv-desc">Fotografía de producto, espacios, ambiente y personas. Dirigimos el arte, iluminamos y retocamos cada imagen para que tu marca se vea como se siente.</p>
-          <ul class="sv-dash">
-            <li>Producto y gastronomía</li>
-            <li>Espacios e interiorismo</li>
-            <li>Eventos y ambiente</li>
-            <li>Retratos y equipo</li>
-            <li>Retoque, color y formatos para web, redes e impresión</li>
-          </ul>
+          <p class="sv-shoot__kinds">Producto y gastronomía · Espacios · Eventos y ambiente · Retratos · Retoque y color</p>
         </div>
-        <div class="sv-tray" data-tray></div>
+        <i class="sv-shoot__flash" data-flash aria-hidden="true"></i>
       </div>
     </section>
+    <!-- foto ampliada (clic en una foto del muro): Esc cierra, flechas para pasar -->
+    <dialog class="sv-lb" data-lb aria-label="Foto ampliada">
+      <figure class="sv-lb__fig">
+        <img data-lb-img alt="">
+        <figcaption data-lb-cap></figcaption>
+      </figure>
+      <button class="sv-lb__btn sv-lb__btn--prev" type="button" data-lb-prev aria-label="Foto anterior">←</button>
+      <button class="sv-lb__btn sv-lb__btn--next" type="button" data-lb-next aria-label="Foto siguiente">→</button>
+      <button class="sv-lb__close" type="button" data-lb-close>Cerrar</button>
+    </dialog>
 
-    <!-- D) 02 · Vídeo: la sala de montaje (se apaga el rojo, entra la luz del proyector) -->
+    <!-- D) Vídeo: la hoja de montaje (cada fila, un formato; al pasar, el cabezal y el timecode) -->
     <section class="sv-video" id="video" aria-labelledby="video-title" data-video>
       <div class="sv-wrap">
-        <p class="sv-label">02 · VÍDEO Y EDICIÓN</p>
         <h2 class="sv-big" id="video-title">Vídeo<b class="sv-dot">.</b></h2>
         <p class="sv-desc">Reels, vídeos de marca y cobertura de eventos. Planificamos cada plano, grabamos el ritmo real de tu negocio y lo editamos con color y sonido para que se quede en la cabeza.</p>
-        <h3 class="sv-mono-title">Hoja de montaje</h3>
+        <h3 class="sr-only">Formatos</h3>
         <ul class="sv-edl" data-formats></ul>
       </div>
     </section>
 
-    <!-- E) 03 · Proceso: copias colgadas a secar en un cordel (scroll horizontal en escritorio) -->
+    <!-- E) Proceso: rejilla bento; cada tarjeta con su ilustración animada (js/bento.js). Textos: BORRADOR -->
     <section class="sv-proc" id="proceso" aria-labelledby="proc-title" data-proc>
-      <div class="sv-proc__pin" data-proc-pin>
-        <div class="sv-proc__head sv-wrap">
-          <p class="sv-label">03 · PROCESO</p>
-          <h2 class="sv-proc__title" id="proc-title">En cada producción.</h2>
-          <p class="sv-desc">Nos encargamos de todo, de principio a fin. Así es como lo hacemos.</p>
-        </div>
-        <div class="sv-proc__view">
-          <div class="sv-proc__track" data-proc-track>
-            <svg class="sv-cord" data-cord aria-hidden="true" focusable="false"><path data-cord-path/></svg>
-            <ol class="sv-proc__list" data-steps data-draft></ol>
-          </div>
-        </div>
-        <div class="sv-proc__bar sv-wrap" data-proc-bar aria-hidden="true"></div>
+      <div class="sv-wrap">
+        <h2 class="sv-proc__title" id="proc-title">En cada producción.</h2>
+        <p class="sv-desc">Nos encargamos de todo, de principio a fin.</p>
+        <ul class="bento" data-bento data-draft>
+          <li class="bento__cell bento__cell--marca" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="marca">
+                <div class="bento__art b-words" data-words aria-hidden="true"></div>
+                <div class="bento__body">
+                  <h3 class="bento__title">Conocemos tu marca</h3>
+                  <p class="bento__text">Escuchamos tu negocio, tu público y tus objetivos. Analizamos qué te hace diferente.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+          <li class="bento__cell bento__cell--idea" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="idea">
+                <div class="bento__art b-idea" aria-hidden="true">
+                  <svg viewBox="0 0 200 200" focusable="false">
+                    <filter id="b-pencil"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+                    <path class="b-idea__path" data-idea pathLength="1"/>
+                  </svg>
+                </div>
+                <div class="bento__body">
+                  <h3 class="bento__title">Idea y concepto creativo</h3>
+                  <p class="bento__text">Proponemos la idea, el tono y las referencias visuales que mejor cuentan tu historia.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+          <li class="bento__cell bento__cell--prod" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="prod">
+                <div class="bento__art b-soft" aria-hidden="true">
+                  <svg viewBox="0 0 120 90" focusable="false">
+                    <path class="b-soft__beam" d="M30 30L4 90h112L90 30z"/>
+                    <path class="b-soft__box" d="M34 6h52l10 22H24z"/>
+                    <rect class="b-soft__face" x="24" y="28" width="72" height="6" rx="1"/>
+                    <path class="b-soft__stand" d="M60 6V0"/>
+                  </svg>
+                </div>
+                <div class="bento__body">
+                  <h3 class="bento__title">Producción</h3>
+                  <p class="bento__text">Equipo técnico, iluminación, dirección de arte y talento.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+          <li class="bento__cell bento__cell--rodaje" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="rodaje">
+                <p class="b-rec" aria-hidden="true"><i></i>REC</p>
+                <div class="b-af" data-af aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                <div class="bento__art" aria-hidden="true"></div>
+                <div class="bento__body">
+                  <h3 class="bento__title" data-focus>Rodaje</h3>
+                  <p class="bento__text">Foto y vídeo con energía, captando el ritmo real de tu negocio.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+          <li class="bento__cell bento__cell--plan" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="plan">
+                <div class="bento__art b-board" aria-hidden="true">
+                  <ul class="b-board__strip" data-board>
+                <li class="b-board__panel"><svg viewBox="0 0 120 80" aria-hidden="true" focusable="false"><g class="b-board__f b-board__f--0"><path d="M8 62h104"/><circle cx="60" cy="58" r="9"/></g><g class="b-board__f b-board__f--1"><path d="M8 62h104"/><circle cx="60" cy="48" r="9"/><path d="M60 30v-6M44 36l-4-4M76 36l4-4"/></g><g class="b-board__f b-board__f--2"><path d="M8 62h104"/><circle cx="60" cy="38" r="9"/><path d="M60 20v-6M42 26l-4-4M78 26l4-4M38 40h-6M82 40h6"/></g></svg></li>
+                <li class="b-board__panel"><svg viewBox="0 0 120 80" aria-hidden="true" focusable="false"><g class="b-board__f b-board__f--0"><path d="M8 66h104M86 30v36M86 30h18v36"/><g transform="translate(14 0)"><circle cx="0" cy="34" r="5"/><path d="M0 39v14M0 53l-5 12M0 53l5 12M0 44l-7 5M0 44l7 4"/></g></g><g class="b-board__f b-board__f--1"><path d="M8 66h104M86 30v36M86 30h18v36"/><g transform="translate(38 0)"><circle cx="0" cy="34" r="5"/><path d="M0 39v14M0 53l-7 11M0 53l6 12M0 44l-6 6M0 44l7 3"/></g></g><g class="b-board__f b-board__f--2"><path d="M8 66h104M86 30v36M86 30h18v36"/><g transform="translate(62 0)"><circle cx="0" cy="34" r="5"/><path d="M0 39v14M0 53l-4 12M0 53l7 11M0 44l-7 4M0 44l6 6"/></g></g></svg></li>
+                <li class="b-board__panel"><svg viewBox="0 0 120 80" aria-hidden="true" focusable="false"><g class="b-board__f b-board__f--0"><circle cx="60" cy="40" r="22"/><path d="M52 36h2M66 36h2M52 50h16"/></g><g class="b-board__f b-board__f--1"><circle cx="60" cy="40" r="22"/><path d="M52 36h2M66 36h2M52 49q8 4 16 0"/></g><g class="b-board__f b-board__f--2"><circle cx="60" cy="40" r="22"/><path d="M51 35q2-2 4 0M65 35q2-2 4 0M50 47q10 9 20 0"/></g></svg></li>
+                <li class="b-board__panel"><svg viewBox="0 0 120 80" aria-hidden="true" focusable="false"><g class="b-board__f b-board__f--0"><path d="M8 66h104M14 66V34h20v32M40 66V22h18v44M66 66V40h22v26M94 66V28h16v38"/></g><g class="b-board__f b-board__f--1"><path d="M8 66h104M4 66V34h20v32M30 66V22h18v44M56 66V40h22v26M84 66V28h16v38M106 66V44h10"/></g><g class="b-board__f b-board__f--2"><path d="M8 66h104M20 66V22h18v44M46 66V40h22v26M74 66V28h16v38M96 66V44h14v22"/></g></svg></li>
+                <li class="b-board__panel"><svg viewBox="0 0 120 80" aria-hidden="true" focusable="false"><g class="b-board__f b-board__f--0"><path d="M40 24l6 22h-12zM40 46v14M34 60h12M80 24l6 22h-12zM80 46v14M74 60h12"/></g><g class="b-board__f b-board__f--1"><path d="M46 24l6 22h-12zM46 46v14M40 60h12M74 24l6 22h-12zM74 46v14M68 60h12"/></g><g class="b-board__f b-board__f--2"><path d="M52 26l8 20h-12zM54 46v14M48 60h12M68 26l4 20h-12zM66 46v14M60 60h12M60 16v-6M50 18l-3-4M70 18l3-4"/></g></svg></li>
+                <li class="b-board__panel"><svg viewBox="0 0 120 80" aria-hidden="true" focusable="false"><g class="b-board__f b-board__f--0"><circle cx="60" cy="40" r="4"/></g><g class="b-board__f b-board__f--1"><circle cx="60" cy="40" r="6"/><path d="M60 26v-8M60 54v8M46 40h-8M74 40h8"/></g><g class="b-board__f b-board__f--2"><circle cx="60" cy="40" r="8"/><path d="M60 22v-14M60 58v14M42 40h-14M78 40h14M47 27l-8-8M73 53l8 8M73 27l8-8M47 53l-8 8"/></g></svg></li>
+                  </ul>
+                </div>
+                <div class="bento__body">
+                  <h3 class="bento__title">Planificación de la obra audiovisual</h3>
+                  <p class="bento__text">Guion, storyboard, plan de rodaje, localizaciones, permisos y calendario. Nada se deja al azar.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+          <li class="bento__cell bento__cell--post" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="post">
+                <div class="bento__art b-grade" aria-hidden="true">
+                  <div class="b-grade__img" data-grade>
+                    <img src="assets/hero/05.webp" alt="" loading="lazy" decoding="async">
+                    <img class="b-grade__log" src="assets/hero/05.webp" alt="" loading="lazy" decoding="async">
+                    <i class="b-grade__line"></i>
+                  </div>
+                  <div class="b-tl" data-tl><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__head"></i></div>
+                </div>
+                <div class="bento__body">
+                  <h3 class="bento__title">Postproducción</h3>
+                  <p class="bento__text">Edición, color, sonido, retoque y subtítulos.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+          <li class="bento__cell bento__cell--entrega" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="entrega">
+                <div class="bento__art b-fmt" aria-hidden="true">
+                  <div class="b-fmt__box" data-fmt>
+                    <img src="assets/hero/03.webp" alt="" loading="lazy" decoding="async">
+                    <i class="b-fmt__c"></i><i class="b-fmt__c"></i><i class="b-fmt__c"></i><i class="b-fmt__c"></i>
+                  </div>
+                  <span class="b-fmt__ratio" data-ratio>9:16</span>
+                </div>
+                <div class="bento__body">
+                  <h3 class="bento__title">Entrega a medida</h3>
+                  <p class="bento__text">Formatos para cada red, web, pantalla o impresión, listos para publicar.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+          <li class="bento__cell bento__cell--sost" data-cell>
+            <div class="bento__enter" data-enter>
+              <article class="bento__card" data-card="sost">
+                <div class="bento__art b-loop" aria-hidden="true">
+                  <svg viewBox="0 0 100 100" focusable="false">
+                    <circle class="b-loop__line" cx="50" cy="50" r="36" pathLength="1"/>
+                    <g class="b-loop__spin"><circle class="b-loop__glint" cx="50" cy="14" r="2.2"/></g>
+                  </svg>
+                </div>
+                <div class="bento__body">
+                  <h3 class="bento__title">Sostenibilidad audiovisual</h3>
+                  <p class="bento__text">Rodajes de bajo impacto: equipos eficientes, desplazamientos optimizados, cero plásticos de un solo uso y archivo digital responsable.</p>
+                </div>
+              </article>
+            </div>
+          </li>
+        </ul>
       </div>
     </section>
 
-    <!-- F) 04 · Para quién: lista tipográfica; al pasar, la frase y una foto pequeña que sigue al cursor -->
+    <!-- F) Para quién: lista tipográfica; al pasar, la frase y una foto pequeña que sigue al cursor -->
     <section class="sv-for" id="para-quien" aria-labelledby="for-title" data-for>
       <div class="sv-wrap">
-        <h2 class="sv-label" id="for-title">04 · PARA QUIÉN</h2>
+        <h2 class="sv-big" id="for-title">Para quién<b class="sv-dot">.</b></h2>
         <ul class="sv-for__list" data-sectors data-draft></ul>
         <p class="sv-for__more"><a href="contacto.html">¿Tu sector no está? Cuéntanos tu idea <b aria-hidden="true">→</b></a></p>
       </div>
       <div class="sv-follow" data-follow aria-hidden="true"><img alt="" data-follow-img></div>
     </section>
 
-    <!-- G) cierre: se enciende la luz del laboratorio -->
-    <section class="sv-close" aria-labelledby="close-title" data-close data-nav-ink="dark">
+    <!-- G) cierre: la luz naranja entra con un degradado de ~40vh y se queda -->
+    <section class="sv-close" aria-labelledby="close-title" data-close>
       <i class="sv-close__light" data-close-light aria-hidden="true"></i>
-      <div class="sv-wrap sv-close__in">
+      <div class="sv-wrap sv-close__in" data-nav-ink="dark">
         <h2 class="sv-close__title" id="close-title">¿Empezamos por la idea?</h2>
         <div class="sv-close__actions">
           <a class="sv-btn sv-btn--ink" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>

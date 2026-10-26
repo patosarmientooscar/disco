@@ -28,11 +28,12 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 
 ## Servicios (servicios.html, js/servicios-data.js)
 
-Todo lo editable está en `js/servicios-data.js`.
+Las fotos, los formatos y los sectores están en `js/servicios-data.js`. Los textos del proceso (bento) están en `servicios.html`.
 
-- [ ] **Fotos reales para la cubeta de revelado (`photos`):** 4–6 fotos de al menos 1600 px de ancho, con `{ src, w, h, categoria, año, alt }`. Ahora hay 4 provisionales sacadas de la propia web (la terraza, la bola de discoteca, el retrato y el chico con la pala).
+- [ ] **Fotos reales para "Dispara" (`shots`):** de 6 a 10 fotos, de al menos 1600 px de ancho, con `{ src, alt }`. Se disparan en ese orden y la última se queda en el centro del muro. Ahora hay 7 provisionales sacadas de la propia web.
 - [ ] **Fotos por sector (`sectors[].photo`):** "Marcas, moda y producto" no tiene foto (no sale ninguna al pasar el ratón). Las demás son provisionales.
-- [ ] **Proceso (BORRADOR):** los 8 pasos del cordel (`steps`), sus etiquetas de fase y en qué tramo de la barra cae cada uno.
+- [ ] **Proceso (BORRADOR):** los 8 textos de las tarjetas del bento, en `servicios.html` (`data-draft`).
+- [ ] **Fotos de las tarjetas del proceso:** "Postproducción" (antes/después) usa `assets/hero/05.webp` y "Entrega a medida" usa `assets/hero/03.webp`, las dos provisionales. Mejor una foto real de un rodaje.
 - [ ] **Para quién (BORRADOR):** los 5 sectores y sus frases (`sectors`).
 - [ ] **Vídeos de la hoja de montaje (opcional, `formats[].video`):** cuando haya clips cortos y mudos, cada formato puede llevar uno. Falta programar que se enseñe al pasar el ratón; ahora solo está el campo.
 
