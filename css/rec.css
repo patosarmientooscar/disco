@@ -1,0 +1,81 @@
+/* ---------- "Dale al REC." → estudio (js/rec.js) ----------
+   Tramo de 130vh (100vh en móvil): .rec mide eso + una pantalla y su interior (.rec__pin) se queda fijo
+   (sticky). El degradado vivo es un canvas OGL fijo a pantalla completa (z-index 0, solo existe en el tramo):
+   por encima del fondo de las secciones y por debajo del destello (1) y de la frase (2). */
+.rec {
+  position: relative;
+  height: 230vh;
+  margin: 0 calc(-1 * var(--team-margin, 0px)); /* a sangre: la sección del equipo tiene margen lateral */
+}
+.rec__pin {
+  position: sticky; /* sticky crea contexto propio: z-index 2 para quedar encima del degradado y del destello */
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100lvh;
+}
+.rec__txt {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: #f4f2ef; /* pasa a #0b0909 cuando el fondo se vuelve naranja (js/rec.js) */
+  font: 500 clamp(56px, 11vw, 200px) / 0.95 var(--font-display);
+  letter-spacing: -0.035em;
+  text-align: center;
+  white-space: nowrap;
+  will-change: transform, filter, opacity;
+}
+.rec__txt .bw { display: inline-block; white-space: nowrap; }
+.rec__txt .bl { opacity: 0.18; }
+/* el piloto: punto naranja que parpadea (1 s); de él nace el degradado */
+.rec__dot {
+  display: inline-block;
+  width: 0.16em;
+  height: 0.16em;
+  margin-left: 0.06em;
+  border-radius: 50%;
+  background: #F35411;
+  box-shadow: 0 0 0.25em rgb(243 84 17 / 0.6);
+  animation: rec-blink 1s steps(1, end) infinite;
+}
+@keyframes rec-blink { 50% { opacity: 0.15; box-shadow: none; } }
+.rec__dot.is-steady { animation: none; }
+/* desde aquí (72 % del tramo) el fondo ya es claro: el menú pasa a tinta oscura (js/nav.js, data-nav-ink) */
+.rec__ink {
+  position: absolute;
+  top: calc(93.6vh + 60px);
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+}
+.rec-gl {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .rec { height: 200vh; }
+  .rec__ink { top: calc(72vh + 60px); }
+}
+
+/* movimiento reducido: sin pin ni efectos; un degradado fijo de negro a naranja y la frase visible */
+@media (prefers-reduced-motion: reduce) {
+  .rec { height: auto; }
+  .rec__pin {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    background: linear-gradient(#0b0909 0%, #3a0f06 35%, #a3300c 70%, #F35411 100%);
+  }
+  .rec__txt .bl { opacity: 1; }
+  .rec__dot { animation: none; }
+  .rec__ink { display: none; }
+}

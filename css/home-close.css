@@ -13,8 +13,9 @@
 .hc-proof :focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
 
 /* --- cómo trabajamos: una frase que se construye con el scroll, sobre papel (js/home-close.js) ---
-   Cada línea, de .15 a 1 al llegar al centro de la pantalla; a su derecha su número y su nota; la palabra
-   clave se subraya con un trazo naranja que se dibuja (stroke-dashoffset, pathLength = 1). */
+   Rejilla de 2 columnas (62 % / 38 %): cada línea de la frase y, en su misma fila, su nota (con un punto naranja
+   delante). Las líneas, de .25 a 1 al acercarse al centro; la palabra clave se subraya con un trazo naranja que
+   se dibuja (stroke-dashoffset, pathLength = 1). Las notas aparecen todas a la vez y se quedan. */
 .hc-steps {
   position: relative;
   padding: clamp(96px, 16vh, 168px) 0;
@@ -31,8 +32,8 @@
 .hc-how__list { display: grid; gap: clamp(10px, 1.6vh, 18px); margin: 0; padding: 0; list-style: none; }
 .hc-how__row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 32ch);
-  align-items: start;
+  grid-template-columns: minmax(0, 62fr) minmax(0, 38fr);
+  align-items: center;
   gap: clamp(24px, 4vw, 72px);
 }
 .hc-how__line {
@@ -41,7 +42,7 @@
   letter-spacing: -0.025em;
   text-wrap: balance;
 }
-.js .hc-how__line { opacity: 0.15; }
+.js .hc-how__line { opacity: 0.25; }
 .hc-how__kw { position: relative; display: inline-block; }
 .hc-how__ul {
   position: absolute;
@@ -57,16 +58,26 @@
   vector-effect: non-scaling-stroke;
 }
 .hc-how__ul path { stroke-dasharray: 1; stroke-dashoffset: 1; vector-effect: non-scaling-stroke; }
+/* nota: #2a2424 sobre el papel (≈ 13:1); el punto naranja es decorativo (no es texto) */
 .hc-how__note {
-  max-width: 32ch;
+  position: relative;
+  max-width: 34ch;
   margin: 0;
-  padding-top: 0.6em;
-  font: 400 17px / 1.5 var(--font-display);
-  color: #3a3434;
+  padding-left: 22px;
+  font: 400 clamp(17px, 1.3vw, 21px) / 1.45 var(--font-display);
+  color: #2a2424;
+}
+.hc-how__note::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(0.725em - 4px); /* centrado en la primera línea */
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F35411;
 }
 .js .hc-how__note { opacity: 0; }
-/* naranja oscuro: el de marca no llega a 4.5:1 en texto pequeño sobre el papel */
-.hc-how__n { margin-right: 0.8em; font: 500 13px / 1 var(--font-mono); letter-spacing: 0.08em; color: #b8410e; }
 .hc-how__more {
   display: inline-flex;
   align-items: center;

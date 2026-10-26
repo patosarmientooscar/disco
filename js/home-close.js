@@ -24,16 +24,26 @@ export function initHomeClose({ gsap, reduced }) {
   renderProof();
 }
 
-// Cada línea de la frase se ilumina (.15 → 1) al llegar al centro de la pantalla (scrub); a la vez se dibuja el
-// subrayado naranja de su palabra clave y aparece su nota. Movimiento reducido: todo visible (CSS).
+// Cada línea de la frase se ilumina (.25 → 1) al acercarse al centro de la pantalla (scrub corto) y a la vez se
+// dibuja el subrayado naranja de su palabra clave. Las notas no dependen de eso: aparecen todas a la vez cuando
+// la sección entra y se quedan. Movimiento reducido: todo visible (CSS).
 function initHow({ gsap, reduced }) {
   if (reduced.matches) return;
   document.querySelectorAll('[data-how-row]').forEach((row) => {
     const line = row.querySelector('.hc-how__line');
-    gsap.timeline({ scrollTrigger: { trigger: line, start: 'top 78%', end: 'center 50%', scrub: 0.6 } })
-      .fromTo(line, { opacity: 0.15 }, { opacity: 1, ease: 'none', duration: 1 }, 0)
-      .fromTo(row.querySelectorAll('.hc-how__ul path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.45 }, 0.55)
-      .fromTo(row.querySelector('.hc-how__note'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, ease: 'power1.out', duration: 0.4 }, 0.6);
+    gsap.timeline({ scrollTrigger: { trigger: line, start: 'top 85%', end: 'center 62%', scrub: 0.4 } })
+      .fromTo(line, { opacity: 0.25 }, { opacity: 1, ease: 'none', duration: 1 }, 0)
+      .fromTo(row.querySelectorAll('.hc-how__ul path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.5 }, 0.45);
+  });
+  const list = document.querySelector('[data-how]');
+  if (!list) return;
+  gsap.fromTo(list.querySelectorAll('.hc-how__note'), { opacity: 0, y: 12 }, {
+    opacity: 1,
+    y: 0,
+    duration: 0.8,
+    ease: 'expo.out',
+    stagger: 0.06,
+    scrollTrigger: { trigger: list, start: 'top 80%', once: true },
   });
 }
 

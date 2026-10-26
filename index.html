@@ -40,6 +40,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/hero.css">
   <link rel="stylesheet" href="css/team.css">
+  <link rel="stylesheet" href="css/rec.css">
   <link rel="stylesheet" href="css/studio.css">
   <link rel="stylesheet" href="css/why.css">
   <link rel="stylesheet" href="css/home-close.css">
@@ -230,12 +231,12 @@
     <section class="team" id="equipo" aria-label="Cofundadores de disco">
       <div class="team__inner">
         <div class="team__intro">
-          <p class="team__phrase" data-team-phrase data-star-avoid>La energía, el ambiente, las historias. Eso es lo que se queda.</p>
+          <p class="team__phrase" data-team-phrase>La energía, el ambiente, las historias. Eso es lo que se queda.</p>
           <p class="team__sub" data-rise>Capturamos momentos de tu negocio para que la gente no los olvide.</p>
         </div>
 
         <figure class="team__person team__person--luna" data-speed="1.0">
-          <div class="team__frame" data-team-frame data-star-avoid>
+          <div class="team__frame" data-team-frame>
             <div class="team__zoom" data-team-zoom>
               <picture>
                 <source type="image/webp" srcset="assets/team/luna-lopez-720.webp 720w, assets/team/luna-lopez-1280.webp 1280w" sizes="(min-width: 768px) 30vw, 78vw">
@@ -251,7 +252,7 @@
 
         <!-- TODO: foto real de Bruno (sustituir assets/team/bruno-marin.jpg y sus .webp de 1280 y 720, mismo nombre) -->
         <figure class="team__person team__person--bruno" data-speed="1.0">
-          <div class="team__frame" data-team-frame data-star-avoid>
+          <div class="team__frame" data-team-frame>
             <div class="team__zoom" data-team-zoom>
               <picture>
                 <source type="image/webp" srcset="assets/team/bruno-marin-720.webp 720w, assets/team/bruno-marin-1280.webp 1280w" sizes="(min-width: 768px) 30vw, 78vw">
@@ -267,11 +268,15 @@
 
         <p class="team__more"><a href="nosotros.html">Conócenos <b aria-hidden="true">→</b></a></p>
       </div>
-      <!-- frase puente al estudio, en un bloque de 65vh: "Dale al REC." se ilumina letra a letra con el scroll; el
-           punto es el piloto de grabación (parpadea; fijo y con un micro-destello cuando se enciende el estudio).
-           js/team.js -->
-      <div class="team__bridge" data-star-stop="0,0.46,0.3" data-star-stop-m="0,0.5,0.24">
-        <p class="team__bridge-txt" data-bridge data-nav-fade data-star-avoid>Dale al REC.</p>
+      <!-- "Dale al REC." → estudio (js/rec.js, css/rec.css): tramo de 130vh (100vh en móvil) con la frase fija en el
+           centro. Detrás, un degradado vivo (OGL) nace del piloto REC, respira, se abre como una fuga de luz de
+           película y acaba en el naranja del set; el estudio aparece a través de un iris (js/iris.js, js/studio.js).
+           .rec__ink: desde ahí el fondo es claro (menú en tinta oscura). -->
+      <div class="rec" data-rec data-star-stop="0,0.46,0.3" data-star-stop-m="0,0.5,0.24">
+        <div class="rec__pin">
+          <p class="rec__txt" data-bridge>Dale al REC.</p>
+        </div>
+        <i class="rec__ink" data-nav-ink="dark" aria-hidden="true"></i>
       </div>
     </section>
 
@@ -333,26 +338,27 @@
     </section>
 
     <!-- Cierre de la home (css/home-close.css, js/home-close.js). Cómo trabajamos: una frase que se construye con
-         el scroll; cada línea se ilumina al llegar al centro, se subraya su palabra clave y aparece su nota. Sin pin. -->
+         el scroll; cada línea se ilumina al llegar al centro y se subraya su palabra clave. Las notas (a la derecha, en
+         la fila de su línea) aparecen todas a la vez al entrar la sección y se quedan. Sin pin. -->
     <section class="hc-steps" aria-labelledby="hc-steps-title" data-nav-ink="dark" data-star-stop="0.8,-0.5,0.26" data-star-stop-m="0.6,-0.72,0.18">
       <div class="hc-how">
         <h2 class="sr-only" id="hc-steps-title">Cómo trabajamos</h2>
         <ol class="hc-how__list" data-how>
           <li class="hc-how__row" data-how-row data-nav-fade>
-            <p class="hc-how__line" data-star-avoid>Conocemos tu <span class="hc-how__kw">marca<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span>,</p>
-            <p class="hc-how__note" data-star-avoid><span class="hc-how__n">01</span>Escuchamos tu negocio, tu público y lo que te hace distinto.</p>
+            <p class="hc-how__line">Conocemos tu <span class="hc-how__kw">marca<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span>,</p>
+            <p class="hc-how__note">Escuchamos tu negocio, tu público y lo que te hace distinto.</p>
           </li>
           <li class="hc-how__row" data-how-row data-nav-fade>
-            <p class="hc-how__line" data-star-avoid>planificamos cada <span class="hc-how__kw">detalle<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span>,</p>
-            <p class="hc-how__note" data-star-avoid><span class="hc-how__n">02</span>Idea, guion y plan de rodaje: nada se deja al azar.</p>
+            <p class="hc-how__line">planificamos cada <span class="hc-how__kw">detalle<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span>,</p>
+            <p class="hc-how__note">Idea, guion y plan de rodaje: nada se deja al azar.</p>
           </li>
           <li class="hc-how__row" data-how-row data-nav-fade>
-            <p class="hc-how__line" data-star-avoid>lo grabamos con <span class="hc-how__kw">energía<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span></p>
-            <p class="hc-how__note" data-star-avoid><span class="hc-how__n">03</span>Foto y vídeo con el ritmo real de tu marca.</p>
+            <p class="hc-how__line">lo grabamos con <span class="hc-how__kw">energía<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span></p>
+            <p class="hc-how__note">Foto y vídeo con el ritmo real de tu marca.</p>
           </li>
           <li class="hc-how__row" data-how-row data-nav-fade>
-            <p class="hc-how__line" data-star-avoid>y lo entregamos listo para <span class="hc-how__kw">brillar<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span>.</p>
-            <p class="hc-how__note" data-star-avoid><span class="hc-how__n">04</span>Editado y en el formato de cada red, web o pantalla.</p>
+            <p class="hc-how__line">y lo entregamos listo para <span class="hc-how__kw">brillar<svg class="hc-how__ul" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M1 6.5C22 3.5 48 8.5 72 5.2 84 3.8 93 4.6 99 5.5" pathLength="1"/></svg></span>.</p>
+            <p class="hc-how__note">Editado y en el formato de cada red, web o pantalla.</p>
           </li>
         </ol>
         <a class="hc-how__more" href="servicios.html#proceso" data-nav-fade>Así trabajamos en cada producción <b aria-hidden="true">→</b></a>
@@ -364,7 +370,7 @@
     <!-- Banda final -->
     <section class="hc-close" aria-labelledby="hc-close-title" data-star-stop="0.62,-0.32,0.32" data-star-stop-m="0.62,0.74,0.2">
       <div class="hc-wrap">
-        <h2 class="hc-close__title" id="hc-close-title" data-nav-fade data-star-avoid>¿Rodamos juntos<em>?</em></h2>
+        <h2 class="hc-close__title" id="hc-close-title" data-nav-fade>¿Rodamos juntos<em>?</em></h2>
         <div class="hc-close__actions" data-nav-fade>
           <a class="hc-btn" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
           <span class="hc-mail">

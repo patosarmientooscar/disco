@@ -13,31 +13,8 @@ export function initTeam({ gsap, ScrollTrigger, reduced }) {
     img.loading = 'eager';
     if (img.decode) img.decode().catch(() => {});
   });
-  // frase puente al estudio ("Dale al REC."): letra a letra, de .18 a 1 con el scroll. El punto final es el
-  // piloto de grabación: parpadea y, cuando se enciende el estudio (js/studio.js, "disco:studio-shot"), se queda
-  // fijo con un micro-destello
-  const bridge = section.querySelector('[data-bridge]');
-  if (bridge) {
-    // el texto entero para lectores de pantalla; las letras animadas, ocultas para ellos
-    const text = bridge.textContent.trim();
-    const words = text.replace(/\.$/, '').split(/\s+/);
-    bridge.innerHTML = `<span class="sr-only">${text}</span>${words.map((w) => `<span class="bw" aria-hidden="true">${[...w].map((ch) => `<span class="bl">${ch}</span>`).join('')}</span>`).join(' ')}<i class="team__rec" aria-hidden="true"></i>`;
-  }
+  // (la frase puente al estudio, "Dale al REC.", está en js/rec.js)
   if (reduced.matches) return;
-  if (bridge) {
-    gsap.to(bridge.querySelectorAll('.bl'), {
-      opacity: 1,
-      ease: 'none',
-      stagger: 0.08,
-      scrollTrigger: { trigger: bridge, start: 'top 85%', end: 'center 52%', scrub: 0.6 },
-    });
-    const rec = bridge.querySelector('.team__rec');
-    window.addEventListener('disco:studio-shot', () => {
-      rec.classList.add('is-steady');
-      gsap.fromTo(bridge, { filter: 'brightness(1.4)' }, { filter: 'brightness(1)', duration: 0.15, ease: 'power1.out', clearProps: 'filter' });
-    });
-    window.addEventListener('disco:studio-dark', () => rec.classList.remove('is-steady'));
-  }
 
   // --- frase: líneas reales (dependen del ancho) → se rehacen al cambiar el ancho ---
   const phrase = section.querySelector('[data-team-phrase]');

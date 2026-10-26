@@ -18,7 +18,10 @@ const HERO_SIZE_MOBILE = 0.34;
 const MOBILE = '(max-width: 639px)';
 const TURNS = 2.5;                  // vueltas en Y a lo largo de todo el scroll (gira despacio)
 const SCRUB = 2.6;                  // inercia del recorrido: muy smooth, flota con peso
-const POS_LERP = 0.035;             // la posición (y el tamaño) persigue al punto de la curva
+// un solo filtro para posición y tamaño: lerp según el tiempo (a = 1 − e^(−k·dt)), igual a cualquier fps.
+// k (por segundo) nunca cambia de golpe: persigue su objetivo con K_EASE (vuelo más lento, scroll rápido…)
+const POS_K = 2.14;                 // = lerp 0.035 por frame a 60 fps
+const K_EASE = 3;                   // 1/s: lo que tarda k en pasar de un valor a otro (~0.3 s)
 const LERP = 0.04;                  // la rotación persigue su objetivo
 const SPIN_GAIN = 0.0004;           // velocidad de Lenis → velocidad angular extra
 const SPIN_FRICTION = 0.97;         // al parar frena muy suave (~1.5 s)
@@ -35,15 +38,20 @@ const HERO_BOB = 0.04;                        // amplitud de la flotación en el
 const GROW = 1.15;
 // recorrido "libre": deriva orgánica (3 senos lentos de ~7, 11 y 17 s; ±0.035 de pantalla y ±0.06 rad de
 // balanceo), inclinación al moverse en horizontal (banking) y algo más de retraso con el scroll rápido.
+// La deriva se suma DESPUÉS del filtro (no es parte del objetivo: no se pelea con el lerp).
 // Nada de esto en el hero ni en el estudio (ahí va quieto / de frente)
 const DRIFT = { amp: 0.035, rot: 0.06, periods: [7, 11, 17] };
 const BANK = { gain: 0.35, max: 0.25, lerp: 0.08 };
-const LAG = 0.015;                 // POS_LERP / (1 + |velocidad de Lenis| × LAG)
+const LAG = 0.015;                 // k / (1 + |velocidad de Lenis| × LAG)
 // vuelo del estudio al anillo de "¿Por qué nosotros?": bezier cúbica que sube (+0.12) y se abre en arco, y
-// entra en el anillo desde arriba a la izquierda; sine.inOut, lerp más lento y un "aterrizaje" de escala
-const FLIGHT = { rise: 0.12, open: 0.15, approach: 0.3, lerp: 0.028, land: 1.06 };
-// nunca encima de una foto ni de un texto grande ([data-star-avoid]): repulsión suave hacia fuera
-const AVOID = { gain: 0.25, decay: 0.97, radius: 0.9, max: 0.45 };
+// entra en el anillo desde arriba a la izquierda; sine.inOut, k más lento (= lerp 0.028) y un "aterrizaje" de escala
+const FLIGHT = { rise: 0.12, open: 0.15, approach: 0.3, k: 1.70, land: 1.06 };
+// llegada al estudio: en las últimas STUDIO_BLEND pantallas antes del pin el punto de la curva se mezcla
+// (smoothstep) con el del recorrido del estudio: un solo movimiento, sin cambio de sistema de golpe
+const STUDIO_BLEND = 0.5;
+// reflejos: del estudio de softboxes a los del estudio 360° con un fundido de los dos mapas (sin bajar el brillo)
+const ENV_MIX_K = 4;               // 1/s: lo que tarda el fundido en seguir a su objetivo
+// (sin repulsión: el destello puede pasar por detrás de fotos y textos; nunca se frena ni rebota contra ellos)
 const VELOCITY_MUTE = 600;                    // ms tras cargar en los que se ignora la velocidad de Lenis
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
@@ -68,7 +76,8 @@ const WHY_MOBILE = { x: 0.6, y: 0.72, s: 0.25 };
 const FOOTER_FRONT = 0.5;          // × alto de pantalla antes del final: pasa al giro lento de frente, como en el hero
 // se funde como un foco: [intensidad (× la normal), s], irregular (~0.7 s); queda al 25 %
 const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26]];
-const RETURN_LERP = 0.08;          // al revivir vuelve a su recorrido con este lerp (posición, tamaño y giro)
+const RETURN_LERP = 0.08;          // al revivir vuelve a su recorrido con este lerp (giro)…
+const RETURN_K = 5;                // …y este k (posición y tamaño; = lerp 0.08 por frame)
 const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
 const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
 
@@ -94,7 +103,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
   const softbox = studio(renderer);
-  scene.environment = softbox;
+  scene.environment = softbox; // siempre: el del estudio 360° entra encima con su fundido (envU, mixEnv)
+  const envU = { envMap2: { value: softbox }, envMix: { value: 0 }, envRot2: { value: new THREE.Matrix3() } };
   const key = new THREE.DirectionalLight(0xffffff, 0.6);
   key.position.set(3, 4, 5);
   const back = new THREE.DirectionalLight(0xffe2dc, 0.6);
@@ -133,7 +143,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       old.dispose();
     });
     if (SIDE_TEXTURE) texturizeSide(gltf.scene);
-    gltf.scene.traverse((o) => { if (o.isMesh) materials.push(o.material); });
+    gltf.scene.traverse((o) => { if (o.isMesh) { materials.push(o.material); mixEnv(o.material, envU); } });
     star.add(gltf.scene);
     renderer.compile(scene, camera); // shaders listos antes de la entrada (sin tirón)
   }).catch(() => {
@@ -231,6 +241,10 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   };
   let flying = false; // en el tramo del vuelo al anillo
   const flightVec = new THREE.Vector3();
+  const blendVec = new THREE.Vector3();
+  // progreso del estudio para el destello: del MISMO scroll suavizado que el resto del recorrido (antes usaba
+  // el progreso del panorama, otro reloj con otra inercia: al cruzar el inicio del pin podía saltar)
+  const studioAt = (px) => (hold ? THREE.MathUtils.clamp((px - hold.start) / Math.max(1, hold.end - hold.start), 0, 1) : 0);
   // scroll (px) → parámetro de la curva: cada tramo entre dos puntos de paso ocupa lo mismo en la curva
   const curveAt = (px) => {
     const n = stops.length;
@@ -239,13 +253,20 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     // entre los dos puntos de un pin no pasa por la curva (con dos puntos iguales haría un bucle): en el
     // estudio sigue su propio recorrido (según su progreso); en los demás, quieto
     if (stops[i].hold && stops[i].hold === stops[i + 1].hold && px >= stops[i].at) {
-      return stops[i].hold === 'studio' ? studioPoint(stage.p, view.mobile, studioVec) : curve.points[i];
+      flying = false;
+      return stops[i].hold === 'studio' ? studioPoint(studioAt(px), view.mobile, studioVec) : curve.points[i];
     }
     const span = stops[i + 1].at - stops[i].at || 1;
     const f = THREE.MathUtils.clamp((px - stops[i].at) / span, 0, 1);
     flying = stops[i].hold === 'studio' && stops[i + 1].hold === 'still';
     if (flying) return flight(stops[i], stops[i + 1], f, flightVec);
-    return curve.getPoint((i + f) / (n - 1));
+    const pt = curve.getPoint((i + f) / (n - 1));
+    // llegada al estudio: en las últimas STUDIO_BLEND pantallas se mezcla con el primer punto de su recorrido
+    if (hold && px < hold.start) {
+      const b = THREE.MathUtils.smoothstep(px, hold.start - STUDIO_BLEND * innerHeight, hold.start);
+      if (b > 0) pt.lerp(studioPoint(0, view.mobile, blendVec), b);
+    }
+    return pt;
   };
 
   // progreso con inercia (scrub 1.2) en px de scroll
@@ -270,46 +291,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let bank = 0;
   const land = { k: 1 };
   let whyAt = 0; // px de scroll en el que llega al anillo (aterrizaje)
-  // --- repulsión: si su círculo en pantalla pisa un [data-star-avoid], se aparta (offset en px, suavizado) ---
-  const avoidOn = new Set();
-  const avoidIo = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? avoidOn.add(e.target) : avoidOn.delete(e.target))));
-  document.querySelectorAll('[data-star-avoid]').forEach((el) => avoidIo.observe(el));
-  const off = { x: 0, y: 0 };
-  const repel = (free) => {
-    const W = innerWidth;
-    const H = innerHeight;
-    const cx = ((star.position.x / view.halfW + 1) / 2) * W + off.x;
-    const cy = ((1 - star.position.y / view.halfH) / 2) * H + off.y;
-    const r = ((current.scale * MODEL_HEIGHT) / (2 * view.halfH)) * H * 0.5 * AVOID.radius;
-    let px = 0;
-    let py = 0;
-    if (free > 0.01) avoidOn.forEach((el) => {
-      const b = el.getBoundingClientRect();
-      const nx = Math.min(b.right, Math.max(b.left, cx));
-      const ny = Math.min(b.bottom, Math.max(b.top, cy));
-      const dx = cx - nx;
-      const dy = cy - ny;
-      const dist = Math.hypot(dx, dy);
-      if (dist === 0) {
-        // el centro dentro del rect: hacia el borde más cercano
-        const [depth, ex, ey] = [[cx - b.left, -1, 0], [b.right - cx, 1, 0], [cy - b.top, 0, -1], [b.bottom - cy, 0, 1]].sort((a, c) => a[0] - c[0])[0];
-        px += ex * (r + depth) * free;
-        py += ey * (r + depth) * free;
-        return;
-      }
-      if (dist >= r) return;
-      px += (dx / dist) * (r - dist) * free;
-      py += (dy / dist) * (r - dist) * free;
-    });
-    if (px || py) { off.x += px * AVOID.gain; off.y += py * AVOID.gain; } else { off.x *= AVOID.decay; off.y *= AVOID.decay; }
-    const lim = AVOID.max * Math.min(W, H);
-    off.x = THREE.MathUtils.clamp(off.x, -lim, lim);
-    off.y = THREE.MathUtils.clamp(off.y, -lim, lim);
-    if (Math.abs(off.x) < 0.05 && Math.abs(off.y) < 0.05) { off.x = 0; off.y = 0; return; }
-    star.position.x += (off.x / W) * 2 * view.halfW;
-    star.position.y -= (off.y / H) * 2 * view.halfH;
-    dirty = true;
-  };
+  let posK = POS_K; // k actual del filtro de posición y tamaño (persigue su objetivo, ver K_EASE)
+  let offW = 1;     // peso de la deriva y la flotación (se suman después del filtro); tras la física del footer vuelve suave
   let hidden = document.hidden;
   document.addEventListener('visibilitychange', () => { hidden = document.hidden; });
   let frame = 0;
@@ -317,11 +300,18 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const heroEl = document.getElementById('hero-main');
   const lastTarget = { ry: 0, position: new THREE.Vector3(), scale: 0 };
   let heroSpin = 0;
-  // estudio 360° (js/studio.js): dibuja su panorama antes que el destello y le pasa su progreso p (0–1)
+  // estudio 360° (js/studio.js): dibuja su panorama antes que el destello
   let backdrop = null;
-  const stage = { p: 0 };
-  const env = { k: ENV_INTENSITY, tl: null };
-  const applyEnv = () => { materials.forEach((m) => { m.envMapIntensity = env.k; }); dirty = true; };
+  // k: brillo (el footer lo apaga y lo enciende); mix: fundido hacia los reflejos del estudio (to = objetivo),
+  // con su propio brillo (studioK) a mix 1
+  const env = { k: ENV_INTENSITY, tl: null, mix: 0, to: 0, studioK: ENV_INTENSITY };
+  const applyEnv = () => {
+    const k = env.k * (1 + (env.studioK / ENV_INTENSITY - 1) * env.mix);
+    materials.forEach((m) => { m.envMapIntensity = k; });
+    envU.envMix.value = env.mix;
+    dirty = true;
+  };
+  const rot4 = new THREE.Matrix4();
   // footer (js/fin.js): held = lo mueve la física (pose en px de pantalla); returning = volviendo al recorrido
   const fin = { held: false, pose: null, key: '', returning: false, rewrap: false };
   const KEY = key.intensity;
@@ -331,7 +321,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   // pose del hero, colocada directamente (sin lerp); la entrada va encima
   const heroPose = (time) => {
     place(target, heroPt);
-    target.position.y += Math.sin(time * 0.9) * HERO_BOB + (1 - entry.p) * ENTER.rise * view.halfH;
+    target.position.y += (1 - entry.p) * ENTER.rise * view.halfH;
     current.position.copy(target.position);
     current.scale = target.scale;
     current.rx = 0;
@@ -342,6 +332,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     lastTarget.position.copy(target.position);
     lastTarget.scale = target.scale;
     star.position.copy(target.position);
+    star.position.y += Math.sin(time * 0.9) * HERO_BOB;
     star.scale.setScalar(target.scale * (ENTER.scale + (1 - ENTER.scale) * entry.p));
     star.rotation.set(0, (1 - entry.p) * ENTER.turn, 0);
     canvas.style.opacity = entry.p < 1 ? entry.p.toFixed(3) : '';
@@ -386,12 +377,20 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       current.rx = 0;
       current.ry = p.spinY;
       current.rz = -p.angle;
+      offW = 0;
       renderer.clear();
       renderer.render(scene, camera);
       return;
     }
     const velocity = performance.now() < VELOCITY_MUTE ? 0 : lenis.velocity || 0;
     const backdropMoved = backdrop ? backdrop.update(ratio) : false;
+    const dt = ratio / 60;
+    // fundido de reflejos (softboxes ↔ estudio 360°): sigue a su objetivo sin saltos ni bajada de brillo
+    if (env.mix !== env.to) {
+      env.mix += (env.to - env.mix) * (1 - Math.exp(-ENV_MIX_K * dt));
+      if (Math.abs(env.to - env.mix) < 0.002) env.mix = env.to;
+      applyEnv();
+    }
 
     // peso del estudio: 0 fuera, 1 durante el pin (rampa de STUDIO_RAMP pantallas antes y después)
     // al llegar al visor del footer: giro lento de frente (0 → 1 en la última media pantalla)
@@ -428,11 +427,10 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
     const p = curveAt(scroll.px);
     place(target, { x: p.x, y: p.y, s: p.z });
-    // libre (fuera del hero y del estudio): deriva orgánica; en el hero, solo la flotación vertical
+    // libre (fuera del hero y del estudio): deriva orgánica; en el hero, solo la flotación vertical.
+    // Las dos se suman después del filtro (abajo), no al objetivo
     const free = (1 - w) * (1 - ws) * (1 - we);
     const d = drift(time);
-    target.position.x += d.x * view.halfW * free;
-    target.position.y += d.y * view.halfH * free + Math.sin(time * 0.9) * 0.04 * (1 - free);
     // aterrizaje en el anillo de "¿Por qué nosotros?"
     if (whyAt && lastPx < whyAt && scroll.px >= whyAt) gsap.fromTo(land, { k: FLIGHT.land }, { k: 1, duration: 0.7, ease: 'back.out(1.4)', overwrite: true });
 
@@ -446,7 +444,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const toHero = THREE.MathUtils.euclideanModulo(heroSpin - freeY + Math.PI, TAU) - Math.PI;
     // en el estudio: STUDIO_TURNS vueltas con el progreso del pin, de frente al principio y al final
     // (el ángulo equivalente más cercano a la rotación libre, como en el hero); casi sin balanceo
-    const studioY = STUDIO_TURNS * TAU * THREE.MathUtils.smoothstep(stage.p, 0.05, 0.95);
+    const studioY = STUDIO_TURNS * TAU * THREE.MathUtils.smoothstep(studioAt(scroll.px), 0.05, 0.95);
     const toStudio = THREE.MathUtils.euclideanModulo(studioY - freeY + Math.PI, TAU) - Math.PI;
     const toEnd = THREE.MathUtils.euclideanModulo(heroSpin - freeY + Math.PI, TAU) - Math.PI;
     const ry = freeY + toHero * w + toStudio * ws + toEnd * we;
@@ -468,9 +466,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     // si el objetivo salta una vuelta entera (se ve igual), la rotación actual salta con él: sin vueltas de más
     if (current.init && Math.abs(ry - lastTarget.ry) > Math.PI) current.ry += Math.round((ry - lastTarget.ry) / TAU) * TAU;
     const a = current.init ? 1 - Math.pow(1 - lerp, ratio) : 1;
-    // con el scroll rápido se queda algo atrás y alcanza después (pesa); en el vuelo, más lento
-    const posLerp = fin.returning ? RETURN_LERP : (flying ? FLIGHT.lerp : POS_LERP) / (1 + Math.abs(velocity) * LAG);
-    const ap = current.init ? 1 - Math.pow(1 - posLerp, ratio) : 1;
+    // posición y tamaño: un solo filtro, a = 1 − e^(−k·dt). Con el scroll rápido se queda algo atrás y alcanza
+    // después (pesa); en el vuelo, más lento. k nunca salta: persigue su objetivo
+    const kTo = fin.returning ? RETURN_K : (flying ? FLIGHT.k : POS_K) / (1 + Math.abs(velocity) * LAG);
+    posK += (kTo - posK) * (1 - Math.exp(-K_EASE * dt));
+    const ap = current.init ? 1 - Math.exp(-posK * dt) : 1;
     current.init = true;
     current.position.lerp(target.position, ap);
     current.scale += (target.scale - current.scale) * ap;
@@ -481,11 +481,13 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     lastTarget.position.copy(target.position);
     lastTarget.scale = target.scale;
 
+    // deriva (libre) y flotación (hero, estudio y final), encima de la posición filtrada
+    offW += (1 - offW) * (1 - Math.exp(-3 * dt));
     star.position.copy(current.position);
-    repel(free);
+    star.position.x += d.x * view.halfW * free * offW;
+    star.position.y += (d.y * view.halfH * free + Math.sin(time * 0.9) * HERO_BOB * (1 - free)) * offW;
     star.scale.setScalar(Math.max(0.0001, current.scale * land.k));
     star.rotation.set(current.rx, current.ry, current.rz);
-
 
     renderer.clear();
     if (backdrop) backdrop.draw(renderer);
@@ -542,39 +544,24 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     get ok() { return !failed; },
     // { update(ratio) → true si ha cambiado algo, draw(renderer) }: se dibuja antes que el destello
     setBackdrop(b) { backdrop = b; dirty = true; },
-    setStage(p) { stage.p = p; },
-    // compila el shader del destello con ese entorno ya, para que el cambio no dé un tirón
-    prepareEnvironment(texture) {
-      loaded.then(() => {
-        if (failed) return;
-        const prev = scene.environment;
-        scene.environment = texture;
-        renderer.compile(scene, camera);
-        scene.environment = prev;
-      });
-    },
-    // cambia los reflejos sin salto: baja el brillo a 0.3, cambia el mapa y lo sube (0.4 s cada tramo).
-    // texture = null → vuelve al estudio de softboxes con su brillo de siempre
-    setEnvironment(texture, intensity) {
-      const map = texture || softbox;
-      const k = texture ? intensity : ENV_INTENSITY;
-      env.tl?.kill();
-      if (scene.environment === map) {
-        env.tl = gsap.to(env, { k, duration: 0.4, ease: 'sine.inOut', onUpdate: applyEnv });
+    // reflejos del estudio 360°: texture (PMREM del mismo tamaño que el de softboxes, 256), mix 0–1 (el destello
+    // lo sigue con un fundido de los dos mapas: el brillo nunca baja) e intensity (su brillo con mix 1).
+    // texture = null → fuera ya, sin fundido (antes de liberar la textura)
+    setEnvMix(texture, mix, intensity) {
+      if (!texture) {
+        env.to = 0;
+        env.mix = 0;
+        envU.envMap2.value = softbox;
+        applyEnv();
         return;
       }
-      env.tl = gsap.timeline()
-        .to(env, { k: 0.3, duration: 0.4, ease: 'sine.in', onUpdate: applyEnv })
-        .call(() => {
-          scene.environment = map;
-          if (!texture) scene.environmentRotation.set(0, 0, 0);
-          dirty = true;
-        })
-        .to(env, { k, duration: 0.4, ease: 'sine.out', onUpdate: applyEnv });
+      envU.envMap2.value = texture;
+      env.studioK = intensity;
+      env.to = THREE.MathUtils.clamp(mix, 0, 1);
     },
-    // el entorno de reflejos gira igual que el panorama (solo con el entorno del estudio puesto)
-    setEnvRotation(y, texture) {
-      if (scene.environment === texture) scene.environmentRotation.y = y;
+    // el entorno de reflejos del estudio gira igual que el panorama
+    setEnvRotation(y) {
+      envU.envRot2.value.setFromMatrix4(rot4.makeRotationY(-y));
     },
     // dispositivo justo: baja la resolución del canvas
     setDpr(dpr) { renderer.setPixelRatio(dpr); resize(); },
@@ -616,6 +603,27 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       },
     },
   };
+}
+
+// Fundido de dos mapas de reflejos (PMREM, mismo tamaño): el de la escena (envMap) y el del estudio (envMap2,
+// con su giro envRot2), mezclados con envMix en la irradiancia y en la radiancia (también la del clearcoat)
+function mixEnv(material, uniforms) {
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    const chunk = THREE.ShaderChunk.envmap_physical_pars_fragment
+      .replace('#ifdef USE_ENVMAP', `#ifdef USE_ENVMAP
+	uniform sampler2D envMap2;
+	uniform float envMix;
+	uniform mat3 envRot2;
+	vec4 mixEnv( const in vec3 dir, const in float roughness ) {
+		vec4 a = textureCubeUV( envMap, envMapRotation * dir, roughness );
+		return envMix > 0.0 ? mix( a, textureCubeUV( envMap2, envRot2 * dir, roughness ), envMix ) : a;
+	}`)
+      .replace('textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 )', 'mixEnv( worldNormal, 1.0 )')
+      .replace('textureCubeUV( envMap, envMapRotation * reflectVec, roughness )', 'mixEnv( reflectVec, roughness )');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <envmap_physical_pars_fragment>', chunk);
+  };
+  material.customProgramCacheKey = () => 'disco-star-envmix';
 }
 
 // top de el respecto a stop (o a la página si stop es null), sin transformaciones

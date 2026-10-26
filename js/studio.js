@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createStudioUI } from './studio-ui.js';
+import { irisAt, IRIS_GLSL } from './iris.js';
 
 // Estudio de fotografía 360°: un panorama equirectangular en una esfera alrededor de la cámara, dibujado
 // como fondo en el MISMO canvas y renderer que el destello 3D (star.setBackdrop), dentro del loop único.
@@ -17,8 +18,10 @@ const PITCH = THREE.MathUtils.degToRad(3);
 const FOV = 55;
 const FOV_PORTRAIT = 70;
 const FADE = 0.08;                // fundido de la esfera: primer y último 8% del progreso
-const LIGHT_AT = '88%';           // se enciende cuando el top de la sección pasa por aquí (asoma por abajo)
+// entrada: el estudio aparece a través de un iris (js/iris.js) que se abre mientras la sección sube desde abajo,
+// encima del degradado naranja de "Dale al REC." (js/rec.js). Sin flash: la luz naranja "era" el estudio
 const ENV_INTENSITY = 1.4;        // brillo de los reflejos dentro del estudio
+const ENV_SIZE = 1024;            // ancho del equirectangular de reflejos → PMREM de 256, como el de softboxes (fundido)
 // Puestos del estudio: yaw (giro de la esfera, grados) que deja cada objeto en el centro de la pantalla y
 // su latitud. Con esta esfera el yaw es directamente el ángulo de la imagen + 90° (el set, en el centro de
 // la imagen, queda delante con 90°). Medidos en capturas de esta esfera (los del visor de Claude —188/6,
@@ -41,7 +44,6 @@ const SEAM = 0.012;               // ancho (fracción de la imagen) de la mezcla
 export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   const section = document.getElementById('estudio');
   if (!section) return;
-  const flash = section.querySelector('.studio__flash');
   const team = document.getElementById('equipo');
   // empieza a cargar cuando los cofundadores están a 1,5 pantallas (nunca en el loading inicial)
   const whenNear = (fn) => {
@@ -75,6 +77,8 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   geo.scale(-1, 1, 1);
   geo.rotateY(Math.PI);
   const mat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+  // iris de la entrada: centro (x, y), apotema y giro en px del canvas; z < 0 = sin iris (abierto del todo)
+  const iris = { value: new THREE.Vector4(0, 0, -1, 0) };
   // costura: los bordes izquierdo y derecho de la imagen no casan del todo (~10 niveles en el naranja,
   // más en el suelo). En una franja estrecha a cada lado se mezcla con el borde opuesto: en la costura
   // los dos lados dan el mismo color y no se ve la línea
@@ -86,8 +90,14 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
         float edge = min( vMapUv.x, 1.0 - vMapUv.x );
         diffuseColor *= mix( 0.5 * ( texel + mirror ), texel, smoothstep( 0.0, ${SEAM.toFixed(4)}, edge ) );
       #endif
+      diffuseColor.a *= uIris.z < 0.0 ? 1.0 : irisMask( gl_FragCoord.xy, uIris.xy, uIris.z, uIris.w );
     `);
+    shader.uniforms.uIris = iris;
+    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform vec4 uIris;
+${IRIS_GLSL}
+void main() {`);
   };
+  mat.customProgramCacheKey = () => 'disco-studio-iris';
   const sphere = new THREE.Mesh(geo, mat);
   sphere.renderOrder = -1;
   sphere.visible = false;
@@ -125,9 +135,7 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   const buildEnv = () => {
     pmrem = pmrem || new THREE.PMREMGenerator(renderer);
     envTex = pmrem.fromEquirectangular(envSrc).texture;
-    envSrc.dispose(); // la imagen sigue en memoria para regenerarlo al volver
-    star.prepareEnvironment(envTex);
-    if (active) star.setEnvironment(envTex, ENV_INTENSITY);
+    envSrc.dispose(); // el lienzo sigue en memoria para regenerarlo al volver
   };
   const load = () => {
     if (panoTex) return;
@@ -142,9 +150,15 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       resident = true;
     });
     loader.load(PANO_ENV, (t) => {
-      t.mapping = THREE.EquirectangularReflectionMapping;
-      t.colorSpace = THREE.SRGBColorSpace;
-      envSrc = t;
+      // a ENV_SIZE × ENV_SIZE/2: su PMREM sale del mismo tamaño que el de softboxes y el destello puede fundirlos
+      const c = document.createElement('canvas');
+      c.width = ENV_SIZE;
+      c.height = ENV_SIZE / 2;
+      c.getContext('2d').drawImage(t.image, 0, 0, c.width, c.height);
+      t.dispose();
+      envSrc = new THREE.CanvasTexture(c);
+      envSrc.mapping = THREE.EquirectangularReflectionMapping;
+      envSrc.colorSpace = THREE.SRGBColorSpace;
       buildEnv();
     });
   };
@@ -155,7 +169,7 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       resident = false;
       sphere.visible = false;
       panoTex.dispose();          // three la vuelve a subir sola desde la imagen la próxima vez que se dibuje
-      if (active) star.setEnvironment(null);
+      star.setEnvMix(null);       // el destello deja de usarla antes de liberarla
       envTex?.dispose();
       envTex = null;
     } else if (e.isIntersecting && !resident) {
@@ -169,15 +183,12 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   const state = { p: 0 };
   let p = 0;
   let active = false;
-  const shot = () => gsap.timeline()
-    .call(() => window.dispatchEvent(new CustomEvent('disco:studio-shot')), null, 0)
-    .call(() => section.classList.add('is-lit'), null, 0.12)
-    .fromTo(flash, { opacity: 0 }, { opacity: 0.85, duration: 0.12, ease: 'power2.out' }, 0)
-    .to(flash, { opacity: 0, duration: 0.23, ease: 'power2.in' });
-  const enter = (on) => {
-    active = on;
-    star.setEnvironment(on && envTex ? envTex : null, ENV_INTENSITY);
+  // se enciende el estudio (sin flash: el iris lo descubre) y el piloto de "Dale al REC." se queda fijo
+  const light = () => {
+    section.classList.add('is-lit');
+    window.dispatchEvent(new CustomEvent('disco:studio-shot'));
   };
+  const enter = (on) => { active = on; };
   gsap.to(state, {
     p: 1,
     ease: 'none',
@@ -191,14 +202,13 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       onToggle: (self) => enter(self.isActive),
     },
   });
-  // el flash (de oscuro a claro, como un disparo al entrar) en cuanto la sección asoma por abajo (con "Dale al
-  // REC." aún en pantalla): el negro entre la frase y el estudio no pasa de ~40vh. Desde ahí el set ya se ve,
-  // recortado a la sección (draw), y sube con ella hasta que empieza el pin
+  // en cuanto la sección asoma por abajo (el degradado de "Dale al REC." ya es naranja) empieza a abrirse el
+  // iris; el set se ve a través de él y lo llena todo justo cuando empieza el pin
   ScrollTrigger.create({
     trigger: section,
-    start: `top ${LIGHT_AT}`,
+    start: 'top bottom',
     end: 'bottom top',
-    onEnter: shot,
+    onEnter: light,
     onLeaveBack: () => { section.classList.remove('is-lit'); window.dispatchEvent(new CustomEvent('disco:studio-dark')); },
     onRefresh: (self) => { if (self.progress > 0) section.classList.add('is-lit'); },
   });
@@ -219,9 +229,14 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       const prev = p;
       p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
       if (Math.abs(state.p - p) < 1e-5) p = state.p;
-      star.setStage(p);
-      // antes del pin (encendido y asomando): el set entero, recortado a la sección
+      // antes del pin (encendido y asomando): el set a través del iris, que se abre mientras la sección sube
       top = section.getBoundingClientRect().top;
+      const ir = irisAt(top);
+      const dpr = renderer.getPixelRatio();
+      const prevR = iris.value.z;
+      iris.value.set(ir.cx * dpr, innerHeight * dpr - ir.cy * dpr, top > 0 ? ir.r * dpr : -1, ir.rot);
+      // reflejos del destello: los del estudio a medida que se abre el iris; dentro del pin, del todo
+      if (envTex) star.setEnvMix(envTex, active ? 1 : (top > 0 ? ir.t : 0), ENV_INTENSITY);
       const lit = section.classList.contains('is-lit') && top < innerHeight;
       const fade = (lit && p < FADE ? 1 : THREE.MathUtils.smoothstep(p, 0, FADE)) * (1 - THREE.MathUtils.smoothstep(p, 1 - FADE, 1));
       const show = fade > 0.001 && resident && !!panoTex;
@@ -229,7 +244,7 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
       const yaw = THREE.MathUtils.degToRad(yawAt(p, portrait ? ASIDE_MOBILE : ASIDE));
       sphere.rotation.y = yaw;
       panoCam.rotation.x = Math.sin(p * Math.PI * 2) * PITCH + (portrait ? LOOK_UP_MOBILE : 0);
-      star.setEnvRotation(yaw, envTex);
+      star.setEnvRotation(yaw);
       sphere.updateMatrixWorld(true);
       panoCam.updateMatrixWorld();
       ui.update(state.p, anchors.map((an) => {
@@ -237,20 +252,15 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
         if (v.z > 1) return null; // detrás de la cámara
         return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight };
       }));
-      const changed = p !== prev || sphere.visible !== show || (show && top > 0);
+      const changed = p !== prev || sphere.visible !== show || iris.value.z !== prevR;
       sphere.visible = show;
       if (!show) return changed;
       mat.opacity = fade;
       return changed;
     },
     draw(r) {
-      if (!sphere.visible) return;
-      if (top > 0) { // aún subiendo: solo dentro de la sección (scissor: origen abajo a la izquierda)
-        r.setScissorTest(true);
-        r.setScissor(0, 0, innerWidth, Math.max(0, innerHeight - top));
-      }
+      if (!sphere.visible || iris.value.z === 0) return;
       r.render(panoScene, panoCam);
-      r.setScissorTest(false);
     },
   });
 }

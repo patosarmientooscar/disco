@@ -5,6 +5,7 @@ import { initHero } from './hero.js';
 import { initNav } from './nav.js';
 import { initScrollFx } from './scroll-fx.js';
 import { initTeam } from './team.js';
+import { initRec } from './rec.js';
 import { initWhy } from './why.js';
 import { initFin } from './fin.js';
 import { initHomeClose } from './home-close.js';
@@ -52,6 +53,7 @@ intro.then(() => {
   const fx = initScrollFx({ gsap, ScrollTrigger, reduced });
   fx.curtain(document.getElementById('hero-main'), document.getElementById('equipo'));
   initTeam({ gsap, ScrollTrigger, reduced });
+  initRec({ gsap, ScrollTrigger, lenis, loop, reduced }); // "Dale al REC." → estudio: degradado vivo + iris
   hero.watchParallax();
   // Servicios ya no está en la home (vive en servicios.html, con js/services.js)
   initWhy({ gsap, ScrollTrigger, reduced, loop }); // "¿Por qué nosotros?": enfoque + bokeh + diafragma

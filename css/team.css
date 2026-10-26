@@ -2,7 +2,7 @@
    Clean: mucho aire, sin adornos. Fondo casi negro, mismo mundo nocturno que el hero.
    La sección no crea contexto propio: su fondo y las FOTOS quedan por debajo del destello 3D (z-index 1),
    así nunca pasa por detrás de una foto; los textos (z-index 2), por encima. Sube por encima del hero
-   fijado (telón). El destello además esquiva fotos y textos ([data-star-avoid], js/star.js). */
+   fijado (telón). */
 .team {
   --team-gray: #a8a3a1;
   --team-margin: clamp(24px, 5vw, 96px);
@@ -109,40 +109,6 @@
 .team__more b { font-weight: 500; }
 .team :focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
 
-/* frase puente al estudio: "Dale al REC." centrada en un bloque de 65vh (el negro hasta el estudio, como mucho
-   ~33vh). Letras de .18 a 1 con el scroll; el punto es el piloto de grabación (js/team.js) */
-.team__bridge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 65vh;
-  min-height: 65svh;
-}
-.team__bridge-txt {
-  position: relative;
-  z-index: 2;
-  margin: 0;
-  font: 500 clamp(56px, 11vw, 200px) / 0.95 var(--font-display);
-  letter-spacing: -0.035em;
-  text-align: center;
-  white-space: nowrap;
-}
-.team__bridge-txt .bw { display: inline-block; white-space: nowrap; }
-.team__bridge-txt .bl { opacity: 0.18; }
-/* el piloto: círculo naranja que parpadea (1 s); fijo cuando se enciende el estudio */
-.team__rec {
-  display: inline-block;
-  width: 0.2em;
-  height: 0.2em;
-  margin-left: 0.06em;
-  border-radius: 50%;
-  background: #F35411;
-  box-shadow: 0 0 0.25em rgb(243 84 17 / 0.6);
-  animation: team-rec 1s steps(1, end) infinite;
-}
-@keyframes team-rec { 50% { opacity: 0.15; box-shadow: none; } }
-.team__rec.is-steady { animation: none; }
-
 /* hover (escritorio): la foto se acerca un poco y el nombre sube 4px. Nada más. */
 @media (hover: hover) and (pointer: fine) {
   .team__person:hover .team__zoom img { transform: scale(1.03); }
@@ -176,8 +142,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .team { border-radius: 0; }
-  .team__bridge-txt .bl { opacity: 1; }
-  .team__rec { animation: none; }
   .team__zoom img,
   .team__name-in { transition: none; }
 }
