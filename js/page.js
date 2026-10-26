@@ -1,7 +1,7 @@
 import { initCore } from './core.js';
 import { initNav } from './nav.js';
 import { initServices } from './services.js';
-import { initFooter } from './footer.js';
+import { initFin } from './fin.js';
 
 // Páginas interiores: sin loading, nav visible desde el principio.
 // <body data-page="contacto|portfolio|nosotros"> carga su módulo (js/contact.js, js/portfolio.js, js/about.js).
@@ -25,7 +25,7 @@ const ready = page
   : Promise.resolve();
 
 ready.then(() => {
-  initFooter({ gsap, ScrollTrigger, reduced, loop });
+  initFin({ gsap, lenis, reduced, loop }); // sin 3D: la que cae es la estrella del logo
   nav.watchInk(); // después de los pines (servicios, nosotros)
   ScrollTrigger.refresh();
 });

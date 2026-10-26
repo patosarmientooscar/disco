@@ -1,3 +1,4 @@
+// LEGACY: footer "editor de vídeo" (sustituido por el footer "fin de la sesión": js/fin.js). Las miniaturas están en legacy/footer-editor/assets/footer/.
 import { config } from './config.js';
 
 // Footer de todas las páginas: la página "Edit" de un programa de edición de vídeo. Cada herramienta hace

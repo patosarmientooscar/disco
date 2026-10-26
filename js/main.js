@@ -6,7 +6,7 @@ import { initNav } from './nav.js';
 import { initScrollFx } from './scroll-fx.js';
 import { initTeam } from './team.js';
 import { initWhy } from './why.js';
-import { initFooter } from './footer.js';
+import { initFin } from './fin.js';
 import { initHomeClose } from './home-close.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
@@ -59,7 +59,8 @@ intro.then(() => {
   fx.navFade('.team__phrase, .team__sub, .team__name-in, .team__more, [data-nav-fade]');
   fx.exitFade(document.getElementById('porque'), document.querySelector('#porque .why__pin'));
   initHomeClose(); // cómo trabajamos + banda final (+ prueba social si hay datos)
-  initFooter({ gsap, ScrollTrigger, reduced, loop }); // el editor de vídeo (su visor es el último punto de paso del destello)
+  // footer "fin de la sesión": el destello se muere y cae sobre el logo (su hueco es el último punto de paso)
+  initFin({ gsap, lenis, reduced, loop, star });
   nav.watchInk();
   ScrollTrigger.refresh();
   // Destello: entra en el hero cuando se va el flash (primera visita; el blanco total dura 120 ms) o cuando

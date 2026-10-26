@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { finStop } from './fin.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
@@ -52,9 +53,12 @@ const STUDIO_PATH_MOBILE = [[0, 0, 0.04, 0.55], [0.18, 0, 0.04, 0.55], [0.32, 0,
 const WHY = { x: 0.84, y: 0, s: 0.32 };
 const WHY_RING_INSET = 120; // px desde el borde derecho: el centro del hueco visible del anillo
 const WHY_MOBILE = { x: 0.6, y: 0.72, s: 0.25 };
-// footer (js/footer.js): el último punto de paso es el monitor del visor, como el clip que se está editando
-const FOOTER_SIZE = 0.22;
+// footer (js/fin.js): el último punto de paso es encima del hueco de la estrella del logo, de frente y girando
+// despacio. Al entrar el footer del todo "se muere": se apaga parpadeando y lo mueve la física (fin.held)
 const FOOTER_FRONT = 0.5;          // × alto de pantalla antes del final: pasa al giro lento de frente, como en el hero
+// se funde como un foco: [intensidad (× la normal), s], irregular (~0.7 s); queda al 25 %
+const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26]];
+const RETURN_LERP = 0.08;          // al revivir vuelve a su recorrido con este lerp (posición, tamaño y giro)
 const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
 const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
 
@@ -259,6 +263,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const stage = { p: 0 };
   const env = { k: ENV_INTENSITY, tl: null };
   const applyEnv = () => { materials.forEach((m) => { m.envMapIntensity = env.k; }); dirty = true; };
+  // footer (js/fin.js): held = lo mueve la física (pose en px de pantalla); returning = volviendo al recorrido
+  const fin = { held: false, pose: null, key: '', returning: false, rewrap: false };
+  const KEY = key.intensity;
+  const BACK = back.intensity;
+  const dim = () => { const f = env.k / ENV_INTENSITY; key.intensity = KEY * f; back.intensity = BACK * f; applyEnv(); };
 
   // pose del hero, colocada directamente (sin lerp); la entrada va encima
   const heroPose = (time) => {
@@ -302,6 +311,26 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
         return;
       }
     }
+    // en el footer, "muerto": lo mueve la física (js/fin.js); aquí solo se pinta (pose en px de pantalla)
+    if (fin.held) {
+      const p = fin.pose;
+      const key = `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.angle.toFixed(3)}|${p.spinY.toFixed(3)}|${p.h.toFixed(1)}`;
+      if (key === fin.key && !dirty) return;
+      fin.key = key;
+      dirty = false;
+      star.position.set(((p.x / innerWidth) * 2 - 1) * view.halfW, (1 - (p.y / innerHeight) * 2) * view.halfH, 0);
+      const sc = Math.max(0.0001, ((p.h / innerHeight) * 2 * view.halfH) / MODEL_HEIGHT);
+      star.scale.setScalar(sc);
+      star.rotation.set(0, p.spinY, -p.angle);
+      current.position.copy(star.position);
+      current.scale = sc;
+      current.rx = 0;
+      current.ry = p.spinY;
+      current.rz = -p.angle;
+      renderer.clear();
+      renderer.render(scene, camera);
+      return;
+    }
     const velocity = performance.now() < VELOCITY_MUTE ? 0 : lenis.velocity || 0;
     const backdropMoved = backdrop ? backdrop.update(ratio) : false;
 
@@ -333,6 +362,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const moving = Math.abs(velocity) > 0.01 || Math.abs(angularVel) > 0.0005
       || Math.abs(scroll.px - lastPx) > 0.1 || dirty || settling || backdropMoved;
     lastPx = scroll.px;
+    if (fin.returning && !settling && !dirty) fin.returning = false; // ya de vuelta en su recorrido
     // en reposo solo queda la flotación, que es lenta: a 30 fps basta
     if (!moving && frame % 2) return;
     dirty = false;
@@ -358,11 +388,17 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const rx = freeX * (1 - w) * (1 - 0.7 * ws) * (1 - we);
     const rz = freeZ * (1 - w) * (1 - 0.7 * ws) * (1 - we);
 
-    const lerp = LERP + (FRONT_LERP - LERP) * w;
+    const lerp = fin.returning ? RETURN_LERP : LERP + (FRONT_LERP - LERP) * w;
+    // al revivir: la vuelta equivalente más cercana (no deshace las vueltas que dio en el suelo)
+    if (fin.rewrap) {
+      current.ry += Math.round((ry - current.ry) / TAU) * TAU;
+      current.rz = THREE.MathUtils.euclideanModulo(current.rz + Math.PI, TAU) - Math.PI;
+      fin.rewrap = false;
+    }
     // si el objetivo salta una vuelta entera (se ve igual), la rotación actual salta con él: sin vueltas de más
     if (current.init && Math.abs(ry - lastTarget.ry) > Math.PI) current.ry += Math.round((ry - lastTarget.ry) / TAU) * TAU;
     const a = current.init ? 1 - Math.pow(1 - lerp, ratio) : 1;
-    const ap = current.init ? 1 - Math.pow(1 - POS_LERP, ratio) : 1;
+    const ap = current.init ? 1 - Math.pow(1 - (fin.returning ? RETURN_LERP : POS_LERP), ratio) : 1;
     current.init = true;
     current.position.lerp(target.position, ap);
     current.scale += (target.scale - current.scale) * ap;
@@ -469,6 +505,43 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     },
     // dispositivo justo: baja la resolución del canvas
     setDpr(dpr) { renderer.setPixelRatio(dpr); resize(); },
+
+    // --- para el footer (js/fin.js): se muere, lo mueve la física, se encaja o revive ---
+    footer: {
+      get ready() { return live && !!curve && !failed; },
+      get failed() { return failed; },
+      // dónde está ahora (px de pantalla), su alto en px y su giro en Y
+      screen() {
+        return {
+          x: ((star.position.x / view.halfW + 1) / 2) * innerWidth,
+          y: ((1 - star.position.y / view.halfH) / 2) * innerHeight,
+          h: ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * innerHeight,
+          ry: current.ry,
+        };
+      },
+      // pose = { x, y, angle, spinY, h } en px de pantalla: fin.js la actualiza cada frame
+      hold(pose) { fin.held = true; fin.pose = pose; fin.key = ''; dirty = true; },
+      release() { fin.held = false; fin.returning = true; fin.rewrap = true; dirty = true; },
+      // se funde como un foco (irregular) y se queda casi apagado
+      flicker() {
+        env.tl?.kill();
+        env.tl = gsap.timeline();
+        FLICKER.forEach(([k, d]) => env.tl.to(env, { k: k * ENV_INTENSITY, duration: d, ease: 'none', onUpdate: dim }));
+      },
+      relight() {
+        env.tl?.kill();
+        env.tl = gsap.to(env, { k: ENV_INTENSITY, duration: 0.4, ease: 'sine.out', onUpdate: dim });
+      },
+      fade(opacity, duration) {
+        gsap.to(canvas, {
+          opacity,
+          duration,
+          ease: 'power1.out',
+          overwrite: true,
+          onComplete: () => { if (opacity === 1) canvas.style.opacity = ''; },
+        });
+      },
+    },
   };
 }
 
@@ -628,14 +701,11 @@ function studioPoint(p, mobile, out) {
   return out.set(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, s0 + (s1 - s0) * t);
 }
 
-// Final en el footer: dentro del monitor del visor, en su mitad de arriba (abajo va el titular), medido
-// en la posición que tendrá al final del scroll. En móvil el destello no entra en el footer: se va por arriba.
+// Final en el footer (js/fin.js): centrado, 30 vh por encima del hueco de la estrella del logo, con un alto de
+// 1.6 × el hueco (siempre entero entre el email y el logo), medido con el scroll al final. Sin footer: por arriba.
 function footerPoint(mobile, max, fallback) {
-  const monitor = document.querySelector('[data-ed-monitor]');
-  if (mobile || innerWidth < 768 || !monitor || !monitor.offsetWidth) return { ...fallback, y: 1.6 };
-  const r = monitor.getBoundingClientRect();
-  const top = r.top + scrollY - max;
-  const cx = r.left + r.width / 2;
-  const cy = top + r.height * 0.34;
-  return { x: (cx / innerWidth) * 2 - 1, y: 1 - (cy / innerHeight) * 2, s: FOOTER_SIZE, footer: true };
+  const stop = finStop(max);
+  if (!stop) return { ...fallback, y: 1.6 };
+  const size = mobile ? HERO_SIZE_MOBILE : HERO_SIZE;
+  return { x: 0, y: 1 - (2 * stop.cy) / innerHeight, s: stop.h / (size * innerHeight), footer: true };
 }
