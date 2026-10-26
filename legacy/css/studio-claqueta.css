@@ -1,0 +1,90 @@
+/* LEGACY: claqueta del estudio "¿Qué hacemos?" (sustituida por la ficha de cámara en cristal, css/studio.css). JS: legacy/js/studio-ui-claqueta.js */
+/* ---------- claqueta: una sola, cambia de contenido en cada parada ----------
+   Abajo a la derecha */
+.clap {
+  position: absolute;
+  right: clamp(24px, 5vw, 96px);
+  bottom: 120px;
+  width: clamp(300px, 26vw, 420px);
+  visibility: hidden;
+}
+/* barra de arriba (la que claquea): bisagra a la izquierda */
+.clap__bar {
+  position: relative;
+  height: 40px;
+  border-radius: 4px 4px 0 0;
+  background: repeating-linear-gradient(-45deg, var(--studio-orange) 0 22px, #f4f2ef 22px 44px);
+  transform-origin: 0% 100%;
+  overflow: hidden;
+}
+.clap__bar::before { /* bisagra */
+  content: '';
+  position: absolute;
+  left: 8px;
+  bottom: 7px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #0b0909;
+  box-shadow: 0 0 0 2px #9c9490;
+}
+.clap__flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+}
+.clap__body {
+  padding: 22px;
+  border-radius: 0 0 6px 6px;
+  background: #0b0909;
+  overflow: hidden;
+}
+.clap__meta {
+  display: flex;
+  gap: 1.6em;
+  margin: 0;
+  font: 400 11px / 1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.14em;
+  color: #9c9490;
+}
+.clap__service {
+  margin: 14px 0 0;
+  font: 500 clamp(40px, 3.6vw, 60px) / 1 var(--font-display);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #f4f2ef;
+}
+.clap__text {
+  max-width: 30ch;
+  margin: 12px 0 0;
+  font: 400 clamp(15px, 1.1vw, 18px) / 1.45 var(--font-display);
+  color: #cfc9c6;
+}
+
+/* móvil: título arriba, claqueta abajo a lo ancho (por encima del botón fijo) */
+@media (max-width: 767px) {
+  .clap {
+    left: 12px;
+    right: 12px;
+    bottom: 76px;
+    width: auto;
+  }
+  .clap__body { padding: 18px; }
+  .clap__text { margin-top: 10px; }
+}
+/* modo quieto (.studio.is-still): las tres claquetas a la vez */
+.studio.is-still .studio__claps {
+  display: grid;
+  gap: 24px;
+  margin-top: auto;
+}
+.studio.is-still .clap {
+  position: relative;
+  inset: auto;
+  width: auto;
+  visibility: visible;
+}
+@media (min-width: 1024px) {
+  .studio.is-still .studio__claps { grid-template-columns: repeat(3, 1fr); }
+}

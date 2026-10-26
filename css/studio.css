@@ -2,8 +2,8 @@
    La sección mide 600vh y su interior (.studio__pin) se queda fijo mientras se recorre. El panorama no
    está aquí: es el fondo del canvas del destello (z-index 1), así que la sección solo pone el color de
    debajo (oscuro como los cofundadores hasta el flash; claro después, por si la imagen no ha cargado) y
-   su interior va por encima del canvas (z-index 2). Sin velos: lo que se lee va sobre objetos negros
-   (la cinta americana del título y la claqueta). */
+   su interior va por encima del canvas (z-index 2). Sin velos: lo que se lee va sobre la cinta americana
+   negra del título y sobre la ficha de cámara (cristal ahumado, como la barra del menú). */
 .studio {
   --studio-orange: #F35411;
   position: relative;
@@ -64,7 +64,7 @@
 }
 .tape__q { color: var(--studio-orange); }
 
-/* los servicios: para lectores de pantalla (la claqueta es decorativa y se rellena desde aquí) */
+/* los servicios: para lectores de pantalla (la ficha es decorativa y se rellena desde aquí) */
 .studio__scenes {
   position: absolute;
   width: 1px;
@@ -114,7 +114,8 @@
 }
 .af__label b { color: var(--studio-orange); font-weight: 500; }
 
-/* línea fina del recuadro a la claqueta (se dibuja con stroke-dashoffset; pathLength = 1) */
+/* línea fina del recuadro a la escuadra de arriba a la izquierda de la ficha (se dibuja con
+   stroke-dashoffset; pathLength = 1), con un punto naranja en la punta */
 .af-link {
   position: absolute;
   inset: 0;
@@ -130,80 +131,156 @@
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
+.af-link circle { fill: var(--studio-orange); opacity: 0; }
 
-/* ---------- claqueta: una sola, cambia de contenido en cada parada ----------
-   Abajo a la derecha */
-.clap {
+/* ---------- ficha de cámara: una sola, cambia de servicio con un cambio de foco ----------
+   Cristal ahumado como la barra del menú, con 4 escuadras de encuadre por fuera (8px) de la misma familia
+   que el recuadro AF. --spread separa las escuadras (entrada y cambio de foco, js/studio-ui.js).
+   --glass: opacidad del cristal; sube donde el estudio es más claro detrás (contraste ≥ 4.5:1). */
+.ficha {
+  --spread: 0;
+  --glass: 0.42;
   position: absolute;
   right: clamp(24px, 5vw, 96px);
   bottom: 120px;
-  width: clamp(300px, 26vw, 420px);
+  width: clamp(300px, 25vw, 400px);
   visibility: hidden;
 }
-/* barra de arriba (la que claquea): bisagra a la izquierda */
-.clap__bar {
-  position: relative;
-  height: 40px;
-  border-radius: 4px 4px 0 0;
-  background: repeating-linear-gradient(-45deg, var(--studio-orange) 0 22px, #f4f2ef 22px 44px);
-  transform-origin: 0% 100%;
-  overflow: hidden;
+.ficha__panel {
+  padding: 24px 26px 22px;
+  border: 1px solid rgb(244 242 239 / 0.14);
+  border-radius: 18px;
+  background: rgb(11 9 9 / var(--glass));
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.45);
+  color: #f4f2ef;
+  transition: background-color 0.4s ease;
 }
-.clap__bar::before { /* bisagra */
-  content: '';
+/* contraste ≥ 4.5:1 con lo más claro que queda detrás en cada parada (medido): Foto va sobre la pared blanca */
+.ficha[data-scene="foto"] { --glass: 0.55; }
+.ficha[data-scene="edicion"] { --glass: 0.45; }
+.ficha__c {
   position: absolute;
-  left: 8px;
-  bottom: 7px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #0b0909;
-  box-shadow: 0 0 0 2px #9c9490;
+  width: 14px;
+  height: 14px;
+  border: 0 solid rgb(244 242 239 / 0.7);
+  pointer-events: none;
 }
-.clap__flash {
-  position: absolute;
-  inset: 0;
-  background: #fff;
-  opacity: 0;
-}
-.clap__body {
-  padding: 22px;
-  border-radius: 0 0 6px 6px;
-  background: #0b0909;
-  overflow: hidden;
-}
-.clap__meta {
+.ficha__c--tl { left: -8px; top: -8px; border-width: 1.5px 0 0 1.5px; translate: calc(var(--spread) * -1px) calc(var(--spread) * -1px); }
+.ficha__c--tr { right: -8px; top: -8px; border-width: 1.5px 1.5px 0 0; translate: calc(var(--spread) * 1px) calc(var(--spread) * -1px); }
+.ficha__c--bl { left: -8px; bottom: -8px; border-width: 0 0 1.5px 1.5px; translate: calc(var(--spread) * -1px) calc(var(--spread) * 1px); }
+.ficha__c--br { right: -8px; bottom: -8px; border-width: 0 1.5px 1.5px 0; translate: calc(var(--spread) * 1px) calc(var(--spread) * 1px); }
+
+.ficha__top {
   display: flex;
-  gap: 1.6em;
+  align-items: center;
+  justify-content: space-between;
   margin: 0;
   font: 400 11px / 1 'IBM Plex Mono', monospace;
   letter-spacing: 0.14em;
-  color: #9c9490;
+  color: rgb(244 242 239 / 0.7); /* al 60 % no llegaba a 4.5:1 sobre el estudio claro */
 }
-.clap__service {
-  margin: 14px 0 0;
-  font: 500 clamp(40px, 3.6vw, 60px) / 1 var(--font-display);
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
+/* 3 segmentos de progreso; el naranja se desliza al activo */
+.ficha__prog {
+  position: relative;
+  display: flex;
+  gap: 4px;
+}
+.ficha__prog i,
+.ficha__prog b {
+  width: 18px;
+  height: 2px;
+  background: rgb(244 242 239 / 0.25);
+}
+.ficha__prog b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--studio-orange);
+}
+.ficha__name {
+  margin: 18px 0 0;
+  padding: 0.06em 0 0.12em; /* la máscara de las letras: sitio para la tilde y la bajada */
+  overflow: hidden;
+  font: 500 clamp(44px, 4vw, 68px) / 0.95 var(--font-display);
+  letter-spacing: -0.025em;
   color: #f4f2ef;
+  white-space: nowrap;
 }
-.clap__text {
+.ficha__ch { display: inline-block; }
+.ficha__dot { color: var(--studio-orange); }
+.ficha__text {
   max-width: 30ch;
   margin: 12px 0 0;
-  font: 400 clamp(15px, 1.1vw, 18px) / 1.45 var(--font-display);
-  color: #cfc9c6;
+  font: 400 clamp(15px, 1.05vw, 17px) / 1.5 var(--font-display);
+  color: rgb(244 242 239 / 0.82);
+}
+.ficha__rule {
+  height: 1px;
+  margin: 18px 0 0;
+  border: 0;
+  background: rgb(244 242 239 / 0.14);
+}
+/* datos de cámara: distintos para cada servicio */
+.ficha__data {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 16px;
+  margin: 14px 0 0;
+  font: 400 11px / 1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+  color: rgb(244 242 239 / 0.7);
+  white-space: pre;
+}
+.ficha__rec {
+  color: var(--studio-orange);
+  animation: ficha-rec 1s ease-in-out infinite alternate;
+}
+@keyframes ficha-rec { to { opacity: 0.25; } }
+.ficha__tc { font-variant-numeric: tabular-nums; }
+.ficha__wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 12px;
+}
+.ficha__wave i {
+  width: 2px;
+  height: 100%;
+  background: var(--studio-orange);
+  transform-origin: 50% 50%;
+  animation: ficha-wave 0.9s ease-in-out infinite alternate;
+}
+.ficha__wave i:nth-child(1) { animation-delay: -0.1s; }
+.ficha__wave i:nth-child(2) { animation-delay: -0.55s; animation-duration: 0.7s; }
+.ficha__wave i:nth-child(3) { animation-delay: -0.3s; animation-duration: 1.1s; }
+.ficha__wave i:nth-child(4) { animation-delay: -0.8s; animation-duration: 0.6s; }
+.ficha__wave i:nth-child(5) { animation-delay: -0.2s; animation-duration: 0.95s; }
+.ficha__wave i:nth-child(6) { animation-delay: -0.65s; animation-duration: 0.75s; }
+.ficha__wave i:nth-child(7) { animation-delay: -0.4s; }
+@keyframes ficha-wave {
+  from { transform: scaleY(0.2); }
+  to { transform: scaleY(1); }
 }
 
-/* móvil: título arriba, claqueta abajo a lo ancho (por encima del botón fijo) */
+/* móvil: título arriba, ficha abajo a lo ancho (por encima del botón fijo) */
 @media (max-width: 767px) {
-  .clap {
-    left: 12px;
-    right: 12px;
+  .ficha {
+    left: 16px;
+    right: 16px;
     bottom: 76px;
     width: auto;
   }
-  .clap__body { padding: 18px; }
-  .clap__text { margin-top: 10px; }
+  .ficha__panel { padding: 20px 20px 18px; }
+  .ficha[data-scene="foto"] { --glass: 0.58; }
+  .ficha__name { margin-top: 14px; }
+  .ficha__text { margin-top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ficha__rec,
+  .ficha__wave i { animation: none; }
 }
 @media (min-width: 768px) {
   .tape-title { top: 14vh; }
@@ -211,7 +288,7 @@
 
 /* sin WebGL o con movimiento reducido: sin pin ni giro; un recorte fijo del set naranja de fondo
    (la imagen se pone desde js/studio.js al acercarse, para no cargarla con la página) y las tres
-   claquetas a la vez, cerradas */
+   fichas a la vez, en rejilla, con el mismo diseño */
 .studio.is-still {
   height: auto;
   background: #f4f2ef var(--studio-still, none) 50% 58% / auto 220% no-repeat;
@@ -228,17 +305,19 @@
 .studio.is-still .tape-title { position: relative; inset: auto; }
 .studio.is-still .af,
 .studio.is-still .af-link { display: none; }
-.studio.is-still .studio__claps {
+.studio.is-still .studio__fichas {
   display: grid;
-  gap: 24px;
+  gap: 32px;
   margin-top: auto;
+  padding: 8px;
 }
-.studio.is-still .clap {
+.studio.is-still .ficha {
   position: relative;
   inset: auto;
   width: auto;
   visibility: visible;
 }
+.studio.is-still .ficha__panel { height: 100%; }
 @media (min-width: 1024px) {
-  .studio.is-still .studio__claps { grid-template-columns: repeat(3, 1fr); }
+  .studio.is-still .studio__fichas { grid-template-columns: repeat(3, 1fr); }
 }

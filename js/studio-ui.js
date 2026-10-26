@@ -1,11 +1,21 @@
 // "¿Qué hacemos?" dentro del estudio 360° (js/studio.js le pasa el progreso p del pin y dónde está cada
 // objeto en pantalla): el título en cinta americana, el recuadro de enfoque (AF) que se fija en quien hace
-// cada servicio y la claqueta que "claquea" al cambiar. Todo se dispara al cruzar cada umbral de p (no
-// scrub); hacia arriba, al revés. Los servicios salen de la lista [data-scenes] del HTML.
+// cada servicio y la ficha de cámara (cristal) que lo cuenta: cambia de servicio con un CAMBIO DE FOCO.
+// Todo se dispara al cruzar cada umbral de p (no scrub); hacia arriba, al revés. Los servicios salen de la
+// lista [data-scenes] del HTML. (LEGACY: la claqueta, en legacy/js/studio-ui-claqueta.js)
 export const STOPS = [[0.32, 0.46], [0.54, 0.68], [0.74, 0.88]]; // paradas: FOTO, VÍDEO, EDICIÓN
 const TITLE = [0.08, 0.88];  // el título se pega aquí y se va aquí
-const CLAP = [0.30, 0.88];   // la claqueta sube desde fuera de pantalla y se va
-const OPEN = -24;            // grados: barra abierta
+const CARD = [0.30, 0.88];   // la ficha aparece enfocándose y se va
+const CORNER = 8;            // px: las escuadras, por fuera del panel
+const SEGMENT = 22;          // px: segmento de progreso (18) + separación (4)
+const FPS_TC = 25;           // el timecode de Edición corre a 25 fps
+const TC_START = ((12 * 25) + 4);   // 00:00:12:04 en frames
+// datos de cámara de cada servicio (por nombre, en minúsculas y sin tildes)
+const DATA = {
+  foto: () => 'ISO 400   ·   f/2.8   ·   1/200',
+  video: () => '<span class="ficha__rec">●</span> REC   ·   4K   ·   25p',
+  edicion: () => '<span class="ficha__tc" data-tc>00:00:12:04</span><span class="ficha__wave" aria-hidden="true">' + '<i></i>'.repeat(7) + '</span>',
+};
 
 export function createStudioUI({ gsap, section, still }) {
   const pin = section.querySelector('[data-studio-pin]');
@@ -16,30 +26,43 @@ export function createStudioUI({ gsap, section, still }) {
   }));
   if (!pin || !scenes.length) return { update() {} };
 
-  // --- sin movimiento: las tres claquetas a la vez, cerradas ---
+  // --- sin movimiento: las tres fichas a la vez, en rejilla ---
   if (still) {
-    const claps = document.createElement('div');
-    claps.className = 'studio__claps';
+    const grid = document.createElement('div');
+    grid.className = 'studio__fichas';
     scenes.forEach((_, i) => {
-      const c = buildClap();
+      const c = buildCard();
       fill(c, scenes, i);
-      claps.append(c);
+      gsap.set(c.querySelector('.ficha__prog b'), { x: i * SEGMENT });
+      grid.append(c);
+      const tc = timecode(gsap, c);
+      if (tc) new IntersectionObserver(([e]) => (e.isIntersecting ? tc.start() : tc.stop())).observe(c);
     });
-    pin.insertBefore(claps, flash);
+    pin.insertBefore(grid, flash);
     return { update() {} };
   }
 
-  const clap = buildClap();
-  pin.insertBefore(clap, flash);
-  const bar = clap.querySelector('.clap__bar');
-  const barFlash = clap.querySelector('.clap__flash');
-  const content = clap.querySelector('.clap__content');
+  const card = buildCard();
+  pin.insertBefore(card, flash);
+  const panel = card.querySelector('.ficha__panel');
+  const corners = card.querySelectorAll('.ficha__c');
+  const blocks = card.querySelectorAll('[data-f-block]');
+  const bar = card.querySelector('.ficha__prog b');
   const tapes = [...section.querySelectorAll('[data-tape]')];
   const af = section.querySelector('[data-af]');
   const label = section.querySelector('[data-af-label]');
   const line = section.querySelector('[data-af-line]');
+  const dot = section.querySelector('[data-af-dot]');
   let shown = 0;
-  fill(clap, scenes, 0);
+  let tc = null;
+  let cardOn = false;
+  const show = (i) => {
+    tc?.stop();
+    fill(card, scenes, i);
+    tc = timecode(gsap, card);
+    if (cardOn) tc?.start();
+  };
+  show(0);
 
   // --- título: cada tira se pega de izquierda a derecha con un pequeño aplaste; clip-path con margen
   //   negativo para no cortar la sombra ---
@@ -48,39 +71,51 @@ export function createStudioUI({ gsap, section, still }) {
       clipPath: 'inset(-30% -5% -30% -5%)', scaleY: 1, duration: 0.55, ease: 'power3.out', stagger: 0.18,
     });
 
-  // --- claqueta: sube desde fuera de pantalla con la barra abierta ---
-  const clapTl = gsap.timeline({ paused: true })
-    .set(clap, { visibility: 'visible' })
-    .fromTo(clap, { yPercent: 140 }, { yPercent: 0, duration: 0.8, ease: 'expo.out' });
-  gsap.set(bar, { rotate: OPEN });
-  let barOpen = true;
-  let slateTl = null;
+  // --- ficha: aparece desenfocada y se enfoca; las escuadras llegan de 18px más afuera y se cierran
+  //   sobre el panel 0.15 s después (el autofoco ajustando). La salida, al revés ---
+  const cardTl = gsap.timeline({ paused: true })
+    .set(card, { visibility: 'visible' })
+    .fromTo(panel, { opacity: 0, filter: 'blur(14px)', scale: 1.03 }, { opacity: 1, filter: 'blur(0px)', scale: 1, duration: 0.9, ease: 'expo.out' })
+    .fromTo(corners, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power1.out' }, 0.15)
+    .fromTo(card, { '--spread': 18 }, { '--spread': 0, duration: 0.9, ease: 'expo.out' }, 0.15);
 
-  // claqueo: abre (si estaba cerrada) y se cierra de golpe; en el impacto la tarjeta tiembla y la barra
-  // destella. A la vez el contenido viejo se va hacia arriba y entra el nuevo desde abajo (al revés si dir < 0)
-  const slate = (i, dir) => {
-    slateTl?.progress(1).kill();
-    slateTl = gsap.timeline();
-    const close = barOpen ? 0 : 0.18;
-    if (!barOpen) slateTl.to(bar, { rotate: OPEN, duration: 0.18, ease: 'power2.out' }, 0);
-    slateTl
-      .to(bar, { rotate: 0, duration: 0.16, ease: 'power4.in' }, close)
-      .fromTo(clap, { x: 0 }, { keyframes: { x: [2, -2, 1, 0] }, duration: 0.15, ease: 'none' }, close + 0.16)
-      .fromTo(barFlash, { opacity: 0.4 }, { opacity: 0, duration: 0.1, ease: 'none' }, close + 0.16);
-    if (i !== shown) {
-      shown = i;
-      slateTl
-        .to(content, { y: -16 * dir, opacity: 0, duration: 0.3, ease: 'power2.in' }, Math.max(0, close + 0.16 - 0.3))
-        .call(() => fill(clap, scenes, i), null, close + 0.16)
-        .fromTo(content, { y: 16 * dir, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'expo.out' }, close + 0.16);
-    }
-    barOpen = false;
+  // --- cambio de foco: lo de ahora se desenfoca y se va; las escuadras se abren 6px y vuelven; entra lo
+  //   nuevo desenfocado y se enfoca con el rebote del autofoco (10 → 0 → 1.5 → 0); el nombre, letra a letra ---
+  let focusTl = null;
+  const focus = (i) => {
+    if (i === shown) return;
+    focusTl?.progress(1).kill();
+    shown = i;
+    focusTl = gsap.timeline()
+      .to(blocks, { filter: 'blur(10px)', opacity: 0, y: -6, duration: 0.28, ease: 'power2.in' }, 0)
+      .to(card, { '--spread': 6, duration: 0.12, ease: 'power2.out' }, 0)
+      .to(card, { '--spread': 0, duration: 0.35, ease: 'back.out(2)' }, 0.12)
+      .to(bar, { x: i * SEGMENT, duration: 0.6, ease: 'expo.inOut' }, 0)
+      .call(() => {
+        show(i);
+        gsap.fromTo(card.querySelectorAll('.ficha__ch'), { yPercent: 40 }, { yPercent: 0, duration: 0.5, ease: 'expo.out', stagger: 0.025 });
+      }, null, 0.28)
+      .set(blocks, { y: 0 }, 0.28)
+      .to(blocks, { opacity: 1, duration: 0.2, ease: 'power1.out' }, 0.28)
+      .fromTo(blocks, { filter: 'blur(10px)' }, {
+        keyframes: { filter: ['blur(10px)', 'blur(0px)', 'blur(1.5px)', 'blur(0px)'], easeEach: 'power1.out' },
+        duration: 0.45,
+        ease: 'none',
+      }, 0.28)
+      .set(blocks, { clearProps: 'filter' });
+  };
+  // se rehace sin animar (al volver a entrar por arriba, de nuevo en Foto)
+  const reset = (i) => {
+    focusTl?.progress(1).kill();
+    shown = i;
+    gsap.set(bar, { x: i * SEGMENT });
+    show(i);
   };
 
   // --- recuadro de enfoque: aparece grande, "busca" (140 → 92 → 104 → 96) y se fija ---
   const box = { s: 140 };
   let lockTl = null;
-  const lock = (k, dir) => {
+  const lock = (k) => {
     lockTl?.kill();
     label.innerHTML = `AF <b>●</b> ${scenes[k].name.toUpperCase()}`;
     af.classList.remove('is-locked');
@@ -88,32 +123,31 @@ export function createStudioUI({ gsap, section, still }) {
       .set(af, { opacity: 1 })
       .set(label, { opacity: 0 })
       .set(line, { strokeDashoffset: 1 })
+      .set(dot, { opacity: 0 })
       .fromTo(box, { s: 140 }, { s: 92, duration: 0.16, ease: 'power2.out' })
       .to(box, { s: 104, duration: 0.14, ease: 'power1.inOut' })
       .to(box, { s: 96, duration: 0.2, ease: 'power2.out' })
-      .call(() => { af.classList.add('is-locked'); slate(k, dir); })
+      .call(() => { af.classList.add('is-locked'); focus(k); })
       .to(label, { opacity: 1, duration: 0.2 })
-      .to(line, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' }, '<');
+      .to(line, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' }, '<')
+      .to(dot, { opacity: 1, duration: 0.15 }, '>-0.05');
   };
   const unlock = () => {
     lockTl?.kill();
     lockTl = gsap.timeline()
       .to(af, { opacity: 0, duration: 0.25, ease: 'power1.out' })
+      .to(dot, { opacity: 0, duration: 0.1 }, 0)
       .to(line, { strokeDashoffset: 1, duration: 0.2, ease: 'power1.in' }, 0)
       .call(() => af.classList.remove('is-locked'));
   };
 
-  // la esquina de arriba a la izquierda de la claqueta (destino de la línea); fija mientras está en su sitio
-  let clapCorner = null;
-  const measure = () => {
-    const r = clap.getBoundingClientRect();
-    const y = gsap.getProperty(clap, 'yPercent') / 100 * r.height; // sin la entrada
-    clapCorner = { x: r.left + 6, y: r.top - y };
-  };
-  window.addEventListener('resize', () => { clapCorner = null; });
+  // la punta de la escuadra de arriba a la izquierda de la ficha (destino de la línea): con offset, sin
+  // las transformaciones de la entrada
+  let corner = null;
+  const measure = () => { corner = { x: card.offsetLeft - CORNER, y: card.offsetTop - CORNER }; };
+  window.addEventListener('resize', () => { corner = null; });
 
   let titleOn = false;
-  let clapOn = false;
   let stop = -1;
   let applied = '';
   return {
@@ -122,62 +156,92 @@ export function createStudioUI({ gsap, section, still }) {
       const t = p >= TITLE[0] && p < TITLE[1];
       if (t !== titleOn) { titleOn = t; if (t) titleTl.play(); else titleTl.reverse(); }
 
-      const c = p >= CLAP[0] && p < CLAP[1];
-      if (c !== clapOn) {
-        clapOn = c;
+      const c = p >= CARD[0] && p < CARD[1];
+      if (c !== cardOn) {
+        cardOn = c;
         if (c) {
-          if (stop < 0 && p < 0.4 && shown !== 0) { shown = 0; fill(clap, scenes, 0); }
-          if (stop < 0) { gsap.set(bar, { rotate: OPEN }); barOpen = true; }
-          clapTl.play();
+          if (stop < 0 && p < 0.4 && shown !== 0) reset(0);
+          cardTl.play();
+          tc?.start();
         } else {
-          clapTl.reverse();
+          cardTl.reverse();
+          tc?.stop();
         }
       }
 
       const k = STOPS.findIndex(([a, b]) => p >= a && p < b);
       if (k !== stop) {
-        const dir = k > stop ? 1 : -1;
         if (stop >= 0) unlock();
-        if (k >= 0) lock(k, k > shown ? 1 : k < shown ? -1 : dir);
+        if (k >= 0) lock(k);
         stop = k;
       }
 
-      // el recuadro sigue a su objeto (y la línea va de su esquina a la claqueta)
+      // el recuadro sigue a su objeto (y la línea va de su esquina a la ficha)
       const pt = stop >= 0 ? points[stop] : null;
       if (!pt) return;
-      if (!clapCorner) measure();
+      if (!corner) measure();
       const s = box.s;
-      const key = `${pt.x.toFixed(1)}|${pt.y.toFixed(1)}|${s.toFixed(1)}`;
+      const key = `${pt.x.toFixed(1)}|${pt.y.toFixed(1)}|${s.toFixed(1)}|${corner.x}|${corner.y}`;
       if (key === applied) return;
       applied = key;
       af.style.setProperty('--af', `${s}px`);
       af.style.transform = `translate3d(${pt.x - s / 2}px, ${pt.y - s / 2}px, 0)`;
       line.setAttribute('x1', pt.x + s / 2);
       line.setAttribute('y1', pt.y + s / 2);
-      line.setAttribute('x2', clapCorner.x);
-      line.setAttribute('y2', clapCorner.y);
+      line.setAttribute('x2', corner.x);
+      line.setAttribute('y2', corner.y);
+      dot.setAttribute('cx', corner.x);
+      dot.setAttribute('cy', corner.y);
     },
   };
 }
 
-function buildClap() {
-  const clap = document.createElement('div');
-  clap.className = 'clap';
-  clap.setAttribute('aria-hidden', 'true'); // los servicios ya están en la lista [data-scenes]
-  clap.innerHTML = `
-    <div class="clap__bar"><i class="clap__flash"></i></div>
-    <div class="clap__body">
-      <div class="clap__content">
-        <p class="clap__meta"><span data-clap-n></span><span>TOMA 1</span><span>DISCO.</span></p>
-        <p class="clap__service" data-clap-service></p>
-        <p class="clap__text" data-clap-text></p>
+function buildCard() {
+  const card = document.createElement('div');
+  card.className = 'ficha';
+  card.setAttribute('aria-hidden', 'true'); // los servicios ya están en la lista [data-scenes]
+  card.innerHTML = `
+    <i class="ficha__c ficha__c--tl"></i><i class="ficha__c ficha__c--tr"></i><i class="ficha__c ficha__c--bl"></i><i class="ficha__c ficha__c--br"></i>
+    <div class="ficha__panel">
+      <p class="ficha__top"><span data-f-n></span><span class="ficha__prog"><i></i><i></i><i></i><b></b></span></p>
+      <div data-f-block>
+        <p class="ficha__name" data-f-name></p>
+        <p class="ficha__text" data-f-text></p>
       </div>
+      <hr class="ficha__rule">
+      <p class="ficha__data" data-f-block data-f-data></p>
     </div>`;
-  return clap;
+  return card;
 }
 
-function fill(clap, scenes, i) {
-  clap.querySelector('[data-clap-n]').textContent = `ESCENA ${String(i + 1).padStart(2, '0')}`;
-  clap.querySelector('[data-clap-service]').textContent = scenes[i].name;
-  clap.querySelector('[data-clap-text]').textContent = scenes[i].text;
+function fill(card, scenes, i) {
+  const pad = (n) => String(n).padStart(2, '0');
+  card.querySelector('[data-f-n]').textContent = `${pad(i + 1)} / ${pad(scenes.length)}`;
+  card.querySelector('[data-f-name]').innerHTML = [...scenes[i].name].map((ch) => `<span class="ficha__ch">${ch}</span>`).join('')
+    + '<span class="ficha__ch ficha__dot">.</span>';
+  card.querySelector('[data-f-text]').textContent = scenes[i].text;
+  const key = scenes[i].name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  card.dataset.scene = key; // el cristal se oscurece más donde el estudio es claro detrás (css/studio.css)
+  card.querySelector('[data-f-data]').innerHTML = DATA[key] ? DATA[key]() : '';
+}
+
+// timecode de Edición corriendo a 25 fps mientras la ficha está a la vista (null si la ficha no lo lleva)
+function timecode(gsap, card) {
+  const el = card.querySelector('[data-tc]');
+  if (!el) return null;
+  let t0 = 0;
+  let last = -1;
+  const pad = (n) => String(n).padStart(2, '0');
+  const tick = () => {
+    const f = TC_START + Math.floor((performance.now() - t0) / (1000 / FPS_TC));
+    if (f === last) return;
+    last = f;
+    const s = Math.floor(f / FPS_TC);
+    el.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(f % FPS_TC)}`;
+  };
+  let on = false;
+  return {
+    start() { if (on) return; on = true; t0 = performance.now(); gsap.ticker.add(tick); },
+    stop() { on = false; gsap.ticker.remove(tick); },
+  };
 }
