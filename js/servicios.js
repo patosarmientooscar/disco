@@ -1,17 +1,16 @@
 import { config } from './config.js';
-import { formats, sectors } from './servicios-data.js';
-import { initShoot } from './shoot.js';
+import { sectors } from './servicios-data.js';
+import { initOficios } from './oficios.js';
 import { initBento } from './bento.js';
 
 // Servicios v2 (css/servicios.css): fondo negro y la luz roja de seguridad del cuarto oscuro como ambiente (sigue
-// al cursor en la cabecera y se apaga al llegar a la sala de fotos); "Dispara" (js/shoot.js); la hoja de montaje
-// de vídeo; el proceso en bento (js/bento.js); para quién; y el cierre naranja, que entra con un degradado.
+// al cursor en la cabecera y se apaga al llegar a los tres oficios); los tres oficios en paneles (js/oficios.js); el proceso en bento (js/bento.js); para quién; y el cierre naranja, que entra con un degradado.
 // Todo en el loop único (gsap.ticker) y solo con su sección cerca. Movimiento reducido: todo visible y quieto.
-// (LEGACY: la cubeta, el cordel y el grano están en legacy/servicios-v2-cuarto-oscuro/)
+// (LEGACY: "Dispara" y la hoja de montaje, en legacy/servicios-v2/; la cubeta, el cordel y el grano, en
+// legacy/servicios-v2-cuarto-oscuro/)
 const RED = { lerp: 0.04, rest: [0.82, 0.12] }; // la luz roja persigue al cursor con mucha inercia; sin ratón, arriba a la derecha
 const HEAD_PARALLAX = { travel: 0.22, faster: 1.08 }; // las líneas del titular suben al hacer scroll; la 2.ª, un 8 % más rápida
 const FOLLOW = { lerp: 0.12, tilt: 0.06, max: 8 };
-const EDL_SWEEP = 0.6;
 
 export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Promise.resolve() }) {
   const still = reduced.matches;
@@ -19,8 +18,7 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
   initHead({ gsap, ScrollTrigger, lenis, still, arrived });
   initManifest(gsap, still);
   initLights({ ScrollTrigger, loop, still });
-  initShoot({ gsap, ScrollTrigger, lenis, loop, still });
-  initEdl({ gsap, ScrollTrigger, still, desktop });
+  initOficios({ gsap, ScrollTrigger, loop, still });
   initBento({ gsap, ScrollTrigger, loop, still });
   initSectors({ gsap, loop, still, desktop });
   initClose({ gsap, ScrollTrigger, still });
@@ -76,14 +74,14 @@ function initManifest(gsap, still) {
   });
 }
 
-// ---------- luz roja de seguridad: sigue al cursor con mucha inercia y se apaga al entrar en la sala de fotos ----------
+// ---------- luz roja de seguridad: sigue al cursor con mucha inercia y se apaga al llegar a los tres oficios ----------
 function initLights({ ScrollTrigger, loop, still }) {
   const red = document.querySelector('[data-light-red]');
   if (!red) return;
   const s = { x: innerWidth * RED.rest[0], y: innerHeight * RED.rest[1], tx: innerWidth * RED.rest[0], ty: innerHeight * RED.rest[1], k: 1, key: '' };
-  // 1 en la cabecera → 0 cuando la sala de fotos ocupa la pantalla (degradado de luz, sin corte)
+  // 1 en la cabecera → 0 cuando los tres oficios ocupan la pantalla (degradado de luz, sin corte)
   ScrollTrigger.create({
-    trigger: '[data-shoot]',
+    trigger: '[data-oficios]',
     start: 'top 90%',
     end: 'top 10%',
     scrub: true,
@@ -106,45 +104,6 @@ function initLights({ ScrollTrigger, loop, still }) {
     s.key = key;
     red.style.transform = `translate3d(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px, 0)`;
     red.style.opacity = s.k.toFixed(3);
-  });
-}
-
-// ---------- D) hoja de montaje: filas como clips; al pasar, cabezal y timecode que cuenta ----------
-function initEdl({ gsap, ScrollTrigger, still, desktop }) {
-  const list = document.querySelector('[data-formats]');
-  list.innerHTML = formats.map((f) => `<li class="sv-edl__row" data-tc="${f.tc}">
-      <span class="sv-edl__name">${f.name}</span><span class="sv-edl__dots" aria-hidden="true"></span>
-      <span class="sv-edl__spec">${f.spec}</span><span class="sv-edl__tc" aria-hidden="true">00:00:00:00</span>
-      <i class="sv-edl__head" aria-hidden="true"></i></li>`).join('');
-  const rows = [...list.children];
-  if (still) return;
-  const tc = (s) => {
-    const f = Math.floor((s % 1) * 25);
-    const sec = Math.floor(s);
-    const p = (v) => String(v).padStart(2, '0');
-    return `00:${p(Math.floor(sec / 60))}:${p(sec % 60)}:${p(f)}`;
-  };
-  const on = (row, yes) => {
-    row.classList.toggle('is-on', yes);
-    if (!yes) return;
-    const head = row.querySelector('.sv-edl__head');
-    const out = row.querySelector('.sv-edl__tc');
-    const clock = { s: 0 };
-    gsap.timeline()
-      .fromTo(head, { left: '0%', opacity: 1 }, { left: '100%', duration: EDL_SWEEP, ease: 'power1.inOut' })
-      .to(head, { opacity: 0, duration: 0.15 });
-    gsap.fromTo(clock, { s: 0 }, { s: Number(row.dataset.tc), duration: EDL_SWEEP, ease: 'power1.inOut', onUpdate: () => { out.textContent = tc(clock.s); } });
-  };
-  rows.forEach((row) => {
-    row.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') on(row, true); });
-    row.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') on(row, false); });
-  });
-  // entrada: como clips que se colocan en la línea de tiempo
-  gsap.from(rows, { x: -40, opacity: 0, duration: 0.7, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: list, start: 'top 82%', once: true } });
-  // móvil / táctil: se enciende la que pasa por el centro
-  gsap.matchMedia().add('(hover: none), (max-width: 899px)', () => {
-    const ts = rows.map((row) => ScrollTrigger.create({ trigger: row, start: 'top 55%', end: 'bottom 45%', onToggle: (self) => on(row, self.isActive) }));
-    return () => ts.forEach((t) => t.kill());
   });
 }
 

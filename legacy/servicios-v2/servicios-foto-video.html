@@ -1,0 +1,45 @@
+<!-- LEGACY servicios v2 (commit 9399961): secciones "Dispara" (foto + lightbox) y "Vídeo" (hoja de montaje) de servicios.html -->
+    <!-- C) Foto: "Dispara". Una sala a oscuras (pin de 400vh en escritorio): el cursor es una linterna que deja ver la
+         foto escondida; cada tramo de scroll (o un clic / toque) dispara el flash, la foto aparece "congelada" y se va
+         al muro; al final, el muro entero con un último flash. js/shoot.js; las fotos, en js/servicios-data.js -->
+    <section class="sv-shoot" id="foto" aria-labelledby="foto-title" data-shoot>
+      <div class="sv-shoot__pin">
+        <div class="sv-shoot__room" data-room>
+          <i class="sv-shoot__glow" data-glow aria-hidden="true"></i>
+          <ul class="sv-wall" data-wall aria-label="Fotos"></ul>
+          <div class="sv-shoot__frame" data-frame aria-hidden="true">
+            <img class="sv-shoot__dim" data-dim alt="">
+            <canvas class="sv-shoot__torch" data-torch></canvas>
+            <div class="sv-shoot__shot" data-shot><img class="sv-shoot__img" alt=""><img class="sv-shoot__after" alt=""></div>
+          </div>
+          <p class="sv-shoot__hint" data-hint aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M12 2l3.5 8.5M22 12l-8.5 3.5M12 22l-3.5-8.5M2 12l8.5-3.5M19 5l-5.5 8M5 19l5.5-8"/></svg><span data-hint-text>Haz scroll o pulsa para disparar</span></p>
+        </div>
+        <div class="sv-shoot__text">
+          <h2 class="sv-big" id="foto-title">Foto<b class="sv-dot">.</b></h2>
+          <p class="sv-desc">Fotografía de producto, espacios, ambiente y personas. Dirigimos el arte, iluminamos y retocamos cada imagen para que tu marca se vea como se siente.</p>
+          <p class="sv-shoot__kinds">Producto y gastronomía · Espacios · Eventos y ambiente · Retratos · Retoque y color</p>
+        </div>
+        <i class="sv-shoot__flash" data-flash aria-hidden="true"></i>
+      </div>
+    </section>
+    <!-- foto ampliada (clic en una foto del muro): Esc cierra, flechas para pasar -->
+    <dialog class="sv-lb" data-lb aria-label="Foto ampliada">
+      <figure class="sv-lb__fig">
+        <img data-lb-img alt="">
+        <figcaption data-lb-cap></figcaption>
+      </figure>
+      <button class="sv-lb__btn sv-lb__btn--prev" type="button" data-lb-prev aria-label="Foto anterior">←</button>
+      <button class="sv-lb__btn sv-lb__btn--next" type="button" data-lb-next aria-label="Foto siguiente">→</button>
+      <button class="sv-lb__close" type="button" data-lb-close>Cerrar</button>
+    </dialog>
+
+    <!-- D) Vídeo: la hoja de montaje (cada fila, un formato; al pasar, el cabezal y el timecode) -->
+    <section class="sv-video" id="video" aria-labelledby="video-title" data-video>
+      <div class="sv-wrap">
+        <h2 class="sv-big" id="video-title">Vídeo<b class="sv-dot">.</b></h2>
+        <p class="sv-desc">Reels, vídeos de marca y cobertura de eventos. Planificamos cada plano, grabamos el ritmo real de tu negocio y lo editamos con color y sonido para que se quede en la cabeza.</p>
+        <h3 class="sr-only">Formatos</h3>
+        <ul class="sv-edl" data-formats></ul>
+      </div>
+    </section>
+

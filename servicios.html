@@ -111,11 +111,11 @@
     </div>
   </header>
 
-  <!-- Servicios v2: "flash + bento" (css/servicios.css; js/servicios.js, js/shoot.js y js/bento.js; los datos en
+  <!-- Servicios v2 (css/servicios.css; js/servicios.js, js/oficios.js y js/bento.js; los datos en
        js/servicios-data.js). Fondo negro; la luz roja de seguridad del cuarto oscuro como ambiente (sigue al cursor
-       en la cabecera y se apaga al entrar en la sala de fotos). La foto nace del flash ("Dispara"); la hoja de
-       montaje de vídeo; el proceso en una rejilla bento; para quién; y el cierre naranja.
-       (LEGACY: legacy/servicios-v2-cuarto-oscuro/ y legacy/servicios-v1/) -->
+       en la cabecera y se apaga al llegar a los tres oficios). Los tres oficios en una foto partida en tres paneles;
+       el proceso en una rejilla bento; para quién; y el cierre naranja.
+       (LEGACY: legacy/servicios-v2/, legacy/servicios-v2-cuarto-oscuro/ y legacy/servicios-v1/) -->
   <main id="contenido" class="ip sv">
     <i class="sv-light sv-light--red" data-light-red aria-hidden="true"></i>
 
@@ -138,48 +138,72 @@
     <section class="sv-manifest" aria-label="Manifiesto">
       <p class="sv-manifest__text sv-wrap" data-manifest>No solo grabamos. Entendemos tu marca, buscamos la <em>idea</em> y la convertimos en <em>imágenes</em> que transmiten lo que se siente al estar ahí.</p>
     </section>
-
-    <!-- C) Foto: "Dispara". Una sala a oscuras (pin de 400vh en escritorio): el cursor es una linterna que deja ver la
-         foto escondida; cada tramo de scroll (o un clic / toque) dispara el flash, la foto aparece "congelada" y se va
-         al muro; al final, el muro entero con un último flash. js/shoot.js; las fotos, en js/servicios-data.js -->
-    <section class="sv-shoot" id="foto" aria-labelledby="foto-title" data-shoot>
-      <div class="sv-shoot__pin">
-        <div class="sv-shoot__room" data-room>
-          <i class="sv-shoot__glow" data-glow aria-hidden="true"></i>
-          <ul class="sv-wall" data-wall aria-label="Fotos"></ul>
-          <div class="sv-shoot__frame" data-frame aria-hidden="true">
-            <img class="sv-shoot__dim" data-dim alt="">
-            <canvas class="sv-shoot__torch" data-torch></canvas>
-            <div class="sv-shoot__shot" data-shot><img class="sv-shoot__img" alt=""><img class="sv-shoot__after" alt=""></div>
-          </div>
-          <p class="sv-shoot__hint" data-hint aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M12 2l3.5 8.5M22 12l-8.5 3.5M12 22l-3.5-8.5M2 12l8.5-3.5M19 5l-5.5 8M5 19l5.5-8"/></svg><span data-hint-text>Haz scroll o pulsa para disparar</span></p>
+    <!-- C) Tres oficios: UNA sola foto partida en tres paneles que se abren (pin corto de 150vh; js/oficios.js).
+         La foto está anclada al escenario: al cambiar los anchos solo se mueven las "ventanas". Foto: flash y AF;
+         Vídeo: cobra vida (assets/servicios/oficios.mp4 si existe; si no, se simula), bandas de cine, REC y
+         timecode; Edición: cortinilla LOG / GRADE y una mini línea de tiempo -->
+    <section class="oficios" id="oficios" aria-labelledby="oficios-title" data-oficios>
+      <div class="oficios__in">
+        <div class="oficios__head sv-wrap">
+          <h2 class="oficios__title" id="oficios-title">Tres oficios,<br> una sola mirada<b class="sv-dot">.</b></h2>
+          <p class="oficios__lead">Hacemos la foto, rodamos el vídeo y lo editamos. Todo en el mismo equipo, de la idea a la entrega.</p>
         </div>
-        <div class="sv-shoot__text">
-          <h2 class="sv-big" id="foto-title">Foto<b class="sv-dot">.</b></h2>
-          <p class="sv-desc">Fotografía de producto, espacios, ambiente y personas. Dirigimos el arte, iluminamos y retocamos cada imagen para que tu marca se vea como se siente.</p>
-          <p class="sv-shoot__kinds">Producto y gastronomía · Espacios · Eventos y ambiente · Retratos · Retoque y color</p>
+        <div class="oficios__stage sv-wrap" data-of-stage>
+          <article class="of-panel of-panel--foto" id="foto" data-of-panel="foto">
+            <div class="of-pic" data-of-pic aria-hidden="true">
+              <div class="of-pic__in" data-of-in>
+                <picture><source media="(max-width: 767px)" srcset="assets/servicios/oficios-1280.webp"><img class="of-img" src="assets/servicios/oficios.webp" width="2560" height="1434" alt="" loading="lazy" decoding="async"></picture>
+                <div class="of-af" data-of-af><i></i><i></i><i></i><i></i><span class="of-af__exif">1/200 · f/1.8 · ISO 800</span></div>
+              </div>
+            </div>
+            <i class="of-shade" data-of-shade aria-hidden="true"></i>
+            <i class="of-flash" data-of-flash aria-hidden="true"></i>
+            <span class="of-vert" aria-hidden="true">Foto</span>
+            <div class="of-copy">
+              <h3 class="of-name"><button class="of-btn" type="button" aria-expanded="false" aria-controls="of-foto-text" data-of-btn><span class="of-mask"><span data-of-rise>Foto<b class="sv-dot">.</b></span></span></button></h3>
+              <p class="of-text" id="of-foto-text"><span class="of-mask"><span data-of-rise>Imágenes que paran el scroll: producto, espacios y personas con dirección de arte, luz y retoque.</span></span></p>
+            </div>
+          </article>
+          <article class="of-panel of-panel--video" id="video" data-of-panel="video">
+            <div class="of-pic" data-of-pic>
+              <div class="of-pic__in" data-of-in>
+                <picture><source media="(max-width: 767px)" srcset="assets/servicios/oficios-1280.webp"><img class="of-img" src="assets/servicios/oficios.webp" width="2560" height="1434" alt="Mujer bailando en una discoteca iluminada con luz naranja" loading="lazy" decoding="async"></picture>
+                <video class="of-video" data-of-video muted playsinline loop preload="none" poster="assets/servicios/oficios.webp" aria-hidden="true"></video>
+              </div>
+            </div>
+            <i class="of-shade" data-of-shade aria-hidden="true"></i>
+            <i class="of-bar of-bar--top" data-of-bar aria-hidden="true"></i>
+            <i class="of-bar of-bar--bot" data-of-bar aria-hidden="true"></i>
+            <p class="of-rec" aria-hidden="true"><i></i>REC</p>
+            <p class="of-tc" data-of-tc aria-hidden="true">00:00:00:00</p>
+            <span class="of-vert" aria-hidden="true">Vídeo</span>
+            <div class="of-copy">
+              <h3 class="of-name"><button class="of-btn" type="button" aria-expanded="false" aria-controls="of-video-text" data-of-btn><span class="of-mask"><span data-of-rise>Vídeo<b class="sv-dot">.</b></span></span></button></h3>
+              <p class="of-text" id="of-video-text"><span class="of-mask"><span data-of-rise>Piezas que se sienten: reels, vídeo de marca y eventos rodados con ritmo y calidad de cine.</span></span></p>
+            </div>
+          </article>
+          <article class="of-panel of-panel--edit" id="edicion" data-of-panel="edit">
+            <div class="of-pic" data-of-pic aria-hidden="true">
+              <div class="of-pic__in" data-of-in>
+                <picture><source media="(max-width: 767px)" srcset="assets/servicios/oficios-1280.webp"><img class="of-img" src="assets/servicios/oficios.webp" width="2560" height="1434" alt="" loading="lazy" decoding="async"></picture>
+              </div>
+            </div>
+            <i class="of-log" data-of-log aria-hidden="true"></i>
+            <i class="of-grade" data-of-grade aria-hidden="true"></i>
+            <i class="of-shade" data-of-shade aria-hidden="true"></i>
+            <div class="of-wipe" data-of-wipe aria-hidden="true"><i class="of-wipe__knob"></i><span class="of-wipe__tag of-wipe__tag--l">LOG</span><span class="of-wipe__tag of-wipe__tag--r">GRADE</span></div>
+            <span class="of-vert" aria-hidden="true">Edición</span>
+            <div class="of-copy">
+              <div class="of-tl" data-of-tl aria-hidden="true">
+                <ul class="of-tl__clips"><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+                <canvas class="of-tl__wave" data-of-wave></canvas>
+                <i class="of-tl__head" data-of-head></i>
+              </div>
+              <h3 class="of-name"><button class="of-btn" type="button" aria-expanded="false" aria-controls="of-edit-text" data-of-btn><span class="of-mask"><span data-of-rise>Edición<b class="sv-dot">.</b></span></span></button></h3>
+              <p class="of-text" id="of-edit-text"><span class="of-mask"><span data-of-rise>Montaje, color y sonido que convierten horas de material en segundos que se recuerdan.</span></span></p>
+            </div>
+          </article>
         </div>
-        <i class="sv-shoot__flash" data-flash aria-hidden="true"></i>
-      </div>
-    </section>
-    <!-- foto ampliada (clic en una foto del muro): Esc cierra, flechas para pasar -->
-    <dialog class="sv-lb" data-lb aria-label="Foto ampliada">
-      <figure class="sv-lb__fig">
-        <img data-lb-img alt="">
-        <figcaption data-lb-cap></figcaption>
-      </figure>
-      <button class="sv-lb__btn sv-lb__btn--prev" type="button" data-lb-prev aria-label="Foto anterior">←</button>
-      <button class="sv-lb__btn sv-lb__btn--next" type="button" data-lb-next aria-label="Foto siguiente">→</button>
-      <button class="sv-lb__close" type="button" data-lb-close>Cerrar</button>
-    </dialog>
-
-    <!-- D) Vídeo: la hoja de montaje (cada fila, un formato; al pasar, el cabezal y el timecode) -->
-    <section class="sv-video" id="video" aria-labelledby="video-title" data-video>
-      <div class="sv-wrap">
-        <h2 class="sv-big" id="video-title">Vídeo<b class="sv-dot">.</b></h2>
-        <p class="sv-desc">Reels, vídeos de marca y cobertura de eventos. Planificamos cada plano, grabamos el ritmo real de tu negocio y lo editamos con color y sonido para que se quede en la cabeza.</p>
-        <h3 class="sr-only">Formatos</h3>
-        <ul class="sv-edl" data-formats></ul>
       </div>
     </section>
 
