@@ -295,7 +295,27 @@
   height: 100%;
   object-fit: cover;
 }
-.of-video { opacity: 0; }
+/* panel Vídeo: el vídeo debajo, la foto quieta encima (es su fotograma 0: al quitarla no se nota) y, encima de todo,
+   el lienzo que congela el fotograma al salir */
+.of-pic__in picture { position: absolute; inset: 0; display: block; }
+.of-freeze { position: absolute; inset: 0; display: block; width: 100%; height: 100%; visibility: hidden; }
+.of-freeze.is-on { visibility: visible; }
+.of-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 7;
+  min-height: 44px;
+  padding: 0 20px;
+  translate: -50% -50%;
+  border: 1px solid rgb(244 242 239 / 0.6);
+  border-radius: 999px;
+  background: rgb(11 9 9 / 0.6);
+  color: var(--paper);
+  font: 500 15px / 1 var(--font-display);
+  cursor: pointer;
+}
+.of-play:hover { border-color: var(--paper); }
 .of-shade { position: absolute; inset: 0; z-index: 2; background: #000; opacity: 0.15; pointer-events: none; }
 .of-panel::after {
   content: "";
@@ -481,7 +501,7 @@
   width: 46px;
   height: 26px;
   border-radius: 4px;
-  background: url("../assets/servicios/oficios-1280.webp") 0 0 / 240px auto no-repeat;
+  background: url("../assets/servicios/oficios-first.webp") 0 0 / 240px auto no-repeat;
   box-shadow: inset 0 0 0 1px rgb(244 242 239 / 0.18);
 }
 .of-tl__clips li:nth-child(1) { background-position: -30px -10px; }

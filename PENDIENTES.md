@@ -32,11 +32,7 @@ Los sectores están en `js/servicios-data.js`. Los textos de "Tres oficios" y de
 
 - [ ] **Hero en capas:** si cambian las fotos (fondo, persona o luces), hay que volver a generar el fondo sin el chico (`bg-limpio`). Los pasos están en `assets/servicios/hero/LEEME.md`. Además, el título está colocado para que el chico tape ~1,5 letras de "PANTALLA."; con otra foto habría que medirlo otra vez.
 
-- [ ] **Vídeo de "Tres oficios" (opcional):** `assets/servicios/oficios.mp4`.
-  - Un clip de unos 5 s de la misma foto: el primer fotograma tiene que ser la foto (`oficios.webp`).
-  - Mudo, H.264, unos 1280–1920 px de ancho y como mucho 2–3 MB.
-  - Basta con dejarlo en la carpeta, sin tocar código: el panel Vídeo lo reproduce y Edición lo corrige.
-  - Mientras no exista, la vida se simula con la foto. En la consola sale un aviso 404 al buscarlo; es normal.
+- [ ] **Si cambia el vídeo de "Tres oficios":** son `assets/servicios/oficios.webm`, `oficios.mp4` y `oficios-720.mp4`, y `oficios-first.webp` es su fotograma 0 exacto (la foto de los tres paneles). Si se cambia el vídeo, hay que sacar también su primer fotograma con el mismo encuadre; si no, se notará el salto al pasar de la foto al vídeo.
 - [ ] **Fotos por sector (`sectors[].photo`):** "Marcas, moda y producto" no tiene foto (no sale ninguna al pasar el ratón). Las demás son provisionales.
 - [ ] **Proceso (BORRADOR):** los 8 textos de las tarjetas del bento, en `servicios.html` (`data-draft`).
 - [ ] **Fotos de las tarjetas del proceso:** "Postproducción" (antes/después) usa `assets/hero/05.webp` y "Entrega a medida" usa `assets/hero/03.webp`, las dos provisionales. Mejor una foto real de un rodaje.

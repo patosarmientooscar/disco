@@ -160,9 +160,9 @@
     <section class="sv-manifest" aria-label="Manifiesto">
       <p class="sv-manifest__text sv-wrap" data-manifest>No solo grabamos. Entendemos tu marca, buscamos la <em>idea</em> y la convertimos en <em>imágenes</em> que transmiten lo que se siente al estar ahí.</p>
     </section>
-    <!-- C) Tres oficios: UNA sola foto partida en tres paneles que se abren (pin corto de 150vh; js/oficios.js).
+    <!-- C) Tres oficios: UNA sola foto partida en tres paneles que se abren al pasar el ratón o al tocar (js/oficios.js).
          La foto está anclada al escenario: al cambiar los anchos solo se mueven las "ventanas". Foto: flash y AF;
-         Vídeo: cobra vida (assets/servicios/oficios.mp4 si existe; si no, se simula), bandas de cine, REC y
+         Vídeo: la foto cobra vida (oficios.webm / .mp4, su fotograma 0 es la foto: oficios-first.webp), bandas de cine, REC y
          timecode; Edición: cortinilla LOG / GRADE y una mini línea de tiempo -->
     <section class="oficios" id="oficios" aria-labelledby="oficios-title" data-oficios>
       <div class="oficios__in">
@@ -174,7 +174,7 @@
           <article class="of-panel of-panel--foto" id="foto" data-of-panel="foto">
             <div class="of-pic" data-of-pic aria-hidden="true">
               <div class="of-pic__in" data-of-in>
-                <picture><source media="(max-width: 767px)" srcset="assets/servicios/oficios-1280.webp"><img class="of-img" src="assets/servicios/oficios.webp" width="2560" height="1434" alt="" loading="lazy" decoding="async"></picture>
+                <picture><img class="of-img" src="assets/servicios/oficios-first.webp" width="1920" height="1074" alt="" loading="lazy" decoding="async"></picture>
                 <div class="of-af" data-of-af><i></i><i></i><i></i><i></i><span class="of-af__exif">1/200 · f/1.8 · ISO 800</span></div>
               </div>
             </div>
@@ -186,11 +186,12 @@
               <p class="of-text" id="of-foto-text"><span class="of-mask"><span data-of-rise>Imágenes que paran el scroll: producto, espacios y personas con dirección de arte, luz y retoque.</span></span></p>
             </div>
           </article>
-          <article class="of-panel of-panel--video" id="video" data-of-panel="video">
+          <article class="of-panel of-panel--video" id="video" data-of-panel="video" role="group" aria-label="Vídeo: Piezas que se sienten: reels, vídeo de marca y eventos rodados con ritmo y calidad de cine.">
             <div class="of-pic" data-of-pic>
               <div class="of-pic__in" data-of-in>
-                <picture><source media="(max-width: 767px)" srcset="assets/servicios/oficios-1280.webp"><img class="of-img" src="assets/servicios/oficios.webp" width="2560" height="1434" alt="Mujer bailando en una discoteca iluminada con luz naranja" loading="lazy" decoding="async"></picture>
-                <video class="of-video" data-of-video muted playsinline loop preload="none" poster="assets/servicios/oficios.webp" aria-hidden="true"></video>
+                <video class="of-video" data-of-video muted playsinline loop preload="none" poster="assets/servicios/oficios-first.webp" aria-hidden="true"></video>
+                <picture data-of-still><img class="of-img" src="assets/servicios/oficios-first.webp" width="1920" height="1074" alt="Mujer bailando en una discoteca iluminada con luz naranja" loading="lazy" decoding="async"></picture>
+                <canvas class="of-freeze" data-of-freeze aria-hidden="true"></canvas>
               </div>
             </div>
             <i class="of-shade" data-of-shade aria-hidden="true"></i>
@@ -198,6 +199,7 @@
             <i class="of-bar of-bar--bot" data-of-bar aria-hidden="true"></i>
             <p class="of-rec" aria-hidden="true"><i></i>REC</p>
             <p class="of-tc" data-of-tc aria-hidden="true">00:00:00:00</p>
+            <button class="of-play" type="button" data-of-play hidden>▶ Reproducir</button>
             <span class="of-vert" aria-hidden="true">Vídeo</span>
             <div class="of-copy">
               <h3 class="of-name"><button class="of-btn" type="button" aria-expanded="false" aria-controls="of-video-text" data-of-btn><span class="of-mask"><span data-of-rise>Vídeo<b class="sv-dot">.</b></span></span></button></h3>
@@ -207,7 +209,7 @@
           <article class="of-panel of-panel--edit" id="edicion" data-of-panel="edit">
             <div class="of-pic" data-of-pic aria-hidden="true">
               <div class="of-pic__in" data-of-in>
-                <picture><source media="(max-width: 767px)" srcset="assets/servicios/oficios-1280.webp"><img class="of-img" src="assets/servicios/oficios.webp" width="2560" height="1434" alt="" loading="lazy" decoding="async"></picture>
+                <picture><img class="of-img" src="assets/servicios/oficios-first.webp" width="1920" height="1074" alt="" loading="lazy" decoding="async"></picture>
               </div>
             </div>
             <i class="of-log" data-of-log aria-hidden="true"></i>
