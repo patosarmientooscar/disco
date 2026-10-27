@@ -1,0 +1,46 @@
+/* LEGACY servicios v2 (commit eea12fe): la luz roja y la cabecera (las clases compartidas .sv-mask, .sv-more y .sv-btn siguen en css/servicios.css) */
+/* ---------- luz roja de seguridad: un foco suave que sigue al cursor (js/servicios.js) ---------- */
+.sv-light--red {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  width: 120vmax;
+  height: 120vmax;
+  margin: -60vmax 0 0 -60vmax;
+  background: radial-gradient(closest-side, rgb(179 38 13 / 0.3), rgb(179 38 13 / 0.11) 45%, rgb(179 38 13 / 0) 100%);
+  pointer-events: none;
+  transform: translate3d(82vw, 12vh, 0);
+  will-change: transform, opacity;
+}
+
+/* ---------- A) cabecera ---------- */
+.sv-head {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(120px, 20vh, 200px) 0 clamp(48px, 8vh, 88px);
+}
+.sv-head__title {
+  margin: 0;
+  font: 600 clamp(56px, 9vw, 170px) / 0.9 var(--font-display);
+  letter-spacing: -0.035em;
+}
+
+.sv-head__sub {
+  max-width: 46ch;
+  margin: clamp(24px, 4vh, 40px) 0 0;
+  font: 400 clamp(17px, 1.4vw, 22px) / 1.45 var(--font-display);
+  color: rgb(244 242 239 / 0.8);
+}
+.sv-head__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+  margin-top: clamp(32px, 5vh, 48px);
+}
+
+  .sv-light--red { transform: translate3d(82vw, 12vh, 0); }

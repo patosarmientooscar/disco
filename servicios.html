@@ -36,6 +36,11 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
+  <!-- hero: fondo y persona cuanto antes (la versión 1280 por debajo de 900px, como en los <picture>) -->
+  <link rel="preload" as="image" href="assets/servicios/hero/bg-limpio.webp" imagesrcset="assets/servicios/hero/bg-limpio.webp 2560w" imagesizes="106vw" media="(min-width: 900px)" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/servicios/hero/bg-limpio-1280.webp" imagesrcset="assets/servicios/hero/bg-limpio-1280.webp 1280w" imagesizes="106vw" media="(max-width: 899px)" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/servicios/hero/persona.webp" imagesrcset="assets/servicios/hero/persona.webp 2560w" imagesizes="106vw" media="(min-width: 900px)">
+  <link rel="preload" as="image" href="assets/servicios/hero/persona-1280.webp" imagesrcset="assets/servicios/hero/persona-1280.webp 1280w" imagesizes="106vw" media="(max-width: 899px)">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/interior.css">
@@ -111,27 +116,44 @@
     </div>
   </header>
 
-  <!-- Servicios v2 (css/servicios.css; js/servicios.js, js/oficios.js y js/bento.js; los datos en
-       js/servicios-data.js). Fondo negro; la luz roja de seguridad del cuarto oscuro como ambiente (sigue al cursor
-       en la cabecera y se apaga al llegar a los tres oficios). Los tres oficios en una foto partida en tres paneles;
-       el proceso en una rejilla bento; para quién; y el cierre naranja.
-       (LEGACY: legacy/servicios-v2/, legacy/servicios-v2-cuarto-oscuro/ y legacy/servicios-v1/) -->
+  <!-- Servicios v2 (css/servicios.css; js/servicios.js, js/sv-hero.js, js/oficios.js y js/bento.js; los datos en
+       js/servicios-data.js). Fondo negro. El hero en capas con profundidad; los tres oficios en una foto partida en
+       tres paneles; el proceso en una rejilla bento; para quién; y el cierre naranja.
+       (LEGACY: legacy/servicios-v2-hero/, legacy/servicios-v2/, legacy/servicios-v2-cuarto-oscuro/ y
+       legacy/servicios-v1/) -->
   <main id="contenido" class="ip sv">
-    <i class="sv-light sv-light--red" data-light-red aria-hidden="true"></i>
-
-    <!-- A) cabecera -->
-    <header class="sv-head" data-head>
-      <div class="sv-wrap">
-        <h1 class="sv-head__title" aria-label="De la idea a la pantalla.">
-          <span class="sv-mask" aria-hidden="true" data-head-mask><span data-head-line>De la idea</span></span>
-          <span class="sv-mask" aria-hidden="true" data-head-mask><span data-head-line>a la pantalla<b class="sv-dot">.</b></span></span>
-        </h1>
-        <p class="sv-head__sub" data-head-after>Pensamos, producimos y entregamos. Foto, vídeo y edición con la energía de tu negocio, de principio a fin.</p>
-        <div class="sv-head__cta" data-head-after>
+    <!-- A) Hero en capas (js/sv-hero.js): fondo · título · el chico con la cámara · sus estelas de luz (screen) por
+         encima de todo · velo · grano · subtítulo y botones. Las capas tienen el mismo encuadre y el mismo object-fit /
+         object-position, cada una en su wrapper (inset −3 %) para el parallax. El fondo es bg-limpio: el original sin
+         el cuerpo del chico, para que al separarse las capas no asome un segundo chico detrás. -->
+    <header class="sv-hero" data-hero>
+      <div class="sv-hero__scene" data-hero-scene>
+        <div class="sv-hero__layer" data-hero-layer="bg">
+          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/bg-limpio-1280.webp"><img src="assets/servicios/hero/bg-limpio.webp" width="2560" height="1434" alt="Operador de cámara caminando por un set oscuro entre estelas de luz naranja" fetchpriority="high" decoding="async"></picture>
+        </div>
+        <div class="sv-hero__layer sv-hero__layer--title" data-hero-layer="title">
+          <h1 class="sv-hero__title" aria-label="De la idea a la pantalla.">
+            <span class="sv-mask" aria-hidden="true"><span data-hero-line>De la idea</span></span>
+            <span class="sv-mask" aria-hidden="true"><span data-hero-line>A la pantalla<b class="sv-dot">.</b></span></span>
+          </h1>
+        </div>
+        <div class="sv-hero__layer" data-hero-layer="persona" aria-hidden="true">
+          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/persona-1280.webp"><img src="assets/servicios/hero/persona.webp" width="2560" height="1434" alt="" fetchpriority="high" decoding="async"></picture>
+        </div>
+        <div class="sv-hero__layer sv-hero__layer--luces" data-hero-layer="luces" aria-hidden="true">
+          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/luces-1280.webp"><img src="assets/servicios/hero/luces.webp" width="2560" height="1434" alt="" decoding="async"></picture>
+        </div>
+      </div>
+      <i class="sv-hero__veil" aria-hidden="true"></i>
+      <i class="sv-hero__grain" aria-hidden="true"></i>
+      <div class="sv-hero__ui">
+        <p class="sv-hero__sub" data-hero-after>Pensamos, producimos y entregamos. Foto, vídeo y edición, de principio a fin.</p>
+        <div class="sv-hero__cta" data-hero-after>
           <a class="sv-btn sv-btn--shine" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
           <a class="sv-more" href="#proceso" data-to-proc>Ver cómo trabajamos</a>
         </div>
       </div>
+      <i class="sv-hero__out" data-hero-out aria-hidden="true"></i>
     </header>
 
     <!-- B) manifiesto: se ilumina palabra a palabra con el scroll -->

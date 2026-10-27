@@ -30,6 +30,8 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 
 Los sectores están en `js/servicios-data.js`. Los textos de "Tres oficios" y del proceso (bento) están en `servicios.html`.
 
+- [ ] **Hero en capas:** si cambian las fotos (fondo, persona o luces), hay que volver a generar el fondo sin el chico (`bg-limpio`). Los pasos están en `assets/servicios/hero/LEEME.md`. Además, el título está colocado para que el chico tape ~1,5 letras de "PANTALLA."; con otra foto habría que medirlo otra vez.
+
 - [ ] **Vídeo de "Tres oficios" (opcional):** `assets/servicios/oficios.mp4`.
   - Un clip de unos 5 s de la misma foto: el primer fotograma tiene que ser la foto (`oficios.webp`).
   - Mudo, H.264, unos 1280–1920 px de ancho y como mucho 2–3 MB.
