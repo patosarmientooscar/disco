@@ -58,6 +58,9 @@
   background: var(--title-shade), linear-gradient(to top, rgb(11 9 9 / 0.75) 0%, rgb(11 9 9 / 0) 45%);
 }
 .sv-hero__layer--title { inset: 0; }
+/* las estelas vivas (js/sv-luces.js): el canvas ocupa el wrapper igual que la <img>, que se queda debajo hasta que el
+   shader está listo */
+.sv-hero__luces-gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .sv-hero__layer[data-hero-layer="persona"] { transform-origin: 66% 82%; }
 .sv-hero__layer--luces {
   --luces-dim: radial-gradient(ellipse 40% 19% at 40% 66%, rgb(0 0 0 / 0.3) 55%, #000 100%);
@@ -129,13 +132,10 @@
 }
 .sv-hero__out { position: absolute; inset: 0; z-index: 3; background: var(--ink); opacity: 0; pointer-events: none; }
 
-/* estado de antes de la entrada, ya en el CSS: sin él, mientras cargan los scripts se ve el hero compuesto y luego
-   vuelve a negro para entrar (js/sv-hero.js lo toma desde aquí) */
+/* estado de antes de la entrada del título, ya en el CSS (si no, mientras cargan los scripts se vería puesto y luego
+   volvería a bajar). El fondo y el chico no entran: están desde el primer pintado */
 @media (prefers-reduced-motion: no-preference) {
-  .js .sv-hero [data-hero-layer="bg"] [data-hero-in],
-  .js .sv-hero [data-hero-layer="persona"] [data-hero-in],
   .js .sv-hero [data-hero-after] { opacity: 0; }
-  .js .sv-hero [data-hero-layer="luces"] [data-hero-in] { clip-path: inset(0% 100% 0% 0%); }
   .js .sv-hero [data-hero-line] { transform: translateY(105%); }
 }
 /* pantallas más cuadradas: la foto sobra por los lados; se corre para que el chico no tape más de ~1,5 letras */
