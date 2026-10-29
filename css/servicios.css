@@ -26,11 +26,12 @@
   will-change: transform;
 }
 .sv-mask > span { display: inline-block; }
-/* ---------- A) hero en capas (js/sv-hero.js) ----------
-   De atrás hacia delante: fondo (con el velo inferior) · título · el chico · sus estelas (screen, pasan por encima
-   de las letras) · viñeta · grano · subtítulo y botones · el negro de salida. Las tres fotos comparten encuadre,
-   object-fit y object-position (--hero-pos); cada una va en su wrapper sobredimensionado (inset −3 %) para que el
-   parallax nunca enseñe bordes. El velo inferior va detrás del título (encima lo dejaría gris). */
+/* ---------- A) hero en vídeo con el título entre capas (js/sv-hero.js, js/sv-video.js) ----------
+   De atrás hacia delante: fondo en vídeo (con el velo inferior) · título · el chico con sus estelas (el mismo vídeo
+   recortado) · viñeta · grano · subtítulo y botones · el negro de salida. Los pósters y los dos canvas comparten
+   encuadre: object-fit y object-position (--hero-pos), que el shader copia; cada capa va en su wrapper
+   sobredimensionado (inset −3 %) para que el parallax nunca enseñe bordes. El velo inferior va detrás del título
+   (encima lo dejaría gris). */
 .sv-hero {
   --hero-pos: 62% 50%;
   --hero-x: clamp(20px, 4vw, 72px);
@@ -47,6 +48,10 @@
 .sv-hero__layer { position: absolute; inset: -3%; will-change: transform; }
 .sv-hero__layer picture,
 .sv-hero__layer img { display: block; width: 100%; height: 100%; }
+/* el <video> solo alimenta la textura de los canvas: no se ve (encima de él, el póster y luego el canvas) */
+.sv-hero__layer video { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.sv-hero__layer picture { position: relative; }
+.sv-hero__gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .sv-hero__layer img { object-fit: cover; object-position: var(--hero-pos); }
 /* velo inferior para leer el título (va con el fondo) y, detrás del título, una sombra suave que apaga la estela del
    propio fondo pegada a las letras (contraste) */
@@ -58,19 +63,7 @@
   background: var(--title-shade), linear-gradient(to top, rgb(11 9 9 / 0.75) 0%, rgb(11 9 9 / 0) 45%);
 }
 .sv-hero__layer--title { inset: 0; }
-/* las estelas vivas (js/sv-luces.js): el canvas ocupa el wrapper igual que la <img>, que se queda debajo hasta que el
-   shader está listo */
-.sv-hero__luces-gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .sv-hero__layer[data-hero-layer="persona"] { transform-origin: 66% 82%; }
-.sv-hero__layer--luces {
-  --luces-dim: radial-gradient(ellipse 40% 19% at 40% 66%, rgb(0 0 0 / 0.3) 55%, #000 100%);
-  mix-blend-mode: screen;
-  opacity: 0.8;
-  transform-origin: 100% 50%;
-  /* junto al título las estelas bajan (siguen cruzándolo, pero sin quemar el fondo pegado a las letras: contraste) */
-  -webkit-mask-image: var(--luces-dim);
-  mask-image: var(--luces-dim);
-}
 .sv-hero__title {
   position: absolute;
   left: var(--hero-x);
@@ -142,12 +135,12 @@
 @media (max-aspect-ratio: 3 / 2) and (min-width: 768px) {
   .sv-hero { --hero-pos: 35% 50%; }
 }
-/* móvil: se ve al chico; el título, encima de él (prioridad: leerlo) y ajustado al ancho */
+/* móvil: el chico ocupa todo el ancho (con la cámara entera). Entre capas, su torso taparía "DE LA IDEA": aquí el
+   título va encima de él (prioridad: leerlo), ajustado al ancho */
 @media (max-width: 767px) {
-  .sv-hero { --hero-pos: 70% 50%; --hero-bottom: 33svh; }
+  .sv-hero { --hero-pos: 79% 50%; --hero-bottom: 33svh; }
   .sv-hero__layer--title { z-index: 1; }
   .sv-hero__layer[data-hero-layer="bg"]::after { --title-shade: radial-gradient(ellipse 62% 12% at 45% 63%, rgb(11 9 9 / 0.75) 45%, rgb(11 9 9 / 0) 100%); }
-  .sv-hero__layer--luces { z-index: 2; --luces-dim: radial-gradient(ellipse 62% 11% at 45% 63%, rgb(0 0 0 / 0.25) 55%, #000 100%); }
   .sv-hero__title { font-size: min(clamp(44px, 12vw, 64px), calc((100vw - 2 * var(--hero-x)) / 8.4)); }
   .sv-hero__cta { flex-direction: column; align-items: stretch; gap: 8px; max-width: 340px; }
   .sv-hero__cta .sv-btn { justify-content: center; }

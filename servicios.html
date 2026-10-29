@@ -36,11 +36,9 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-  <!-- hero: fondo y persona cuanto antes (la versión 1280 por debajo de 900px, como en los <picture>) -->
-  <link rel="preload" as="image" href="assets/servicios/hero/bg-limpio.webp" imagesrcset="assets/servicios/hero/bg-limpio.webp 2560w" imagesizes="106vw" media="(min-width: 900px)" fetchpriority="high">
-  <link rel="preload" as="image" href="assets/servicios/hero/bg-limpio-1280.webp" imagesrcset="assets/servicios/hero/bg-limpio-1280.webp 1280w" imagesizes="106vw" media="(max-width: 899px)" fetchpriority="high">
-  <link rel="preload" as="image" href="assets/servicios/hero/persona.webp" imagesrcset="assets/servicios/hero/persona.webp 2560w" imagesizes="106vw" media="(min-width: 900px)">
-  <link rel="preload" as="image" href="assets/servicios/hero/persona-1280.webp" imagesrcset="assets/servicios/hero/persona-1280.webp 1280w" imagesizes="106vw" media="(max-width: 899px)">
+  <!-- hero: los pósters (fotograma 0 del vídeo, fondo y figura) cuanto antes -->
+  <link rel="preload" as="image" href="assets/servicios/hero/poster-bg.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/servicios/hero/poster-fg.webp">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/interior.css">
@@ -117,19 +115,21 @@
   </header>
 
   <!-- Servicios v2 (css/servicios.css; js/servicios.js, js/sv-hero.js, js/oficios.js y js/bento.js; los datos en
-       js/servicios-data.js). Fondo negro. El hero en capas con profundidad; los tres oficios en una foto partida en
+       js/servicios-data.js). Fondo negro. El hero en vídeo, en capas con profundidad; los tres oficios en una foto partida en
        tres paneles; el proceso en una rejilla bento; para quién; y el cierre naranja.
-       (LEGACY: legacy/servicios-v2-hero/, legacy/servicios-v2/, legacy/servicios-v2-cuarto-oscuro/ y
+       (LEGACY: legacy/servicios-v2-hero-fotos/, legacy/servicios-v2-hero/, legacy/servicios-v2/, legacy/servicios-v2-cuarto-oscuro/ y
        legacy/servicios-v1/) -->
   <main id="contenido" class="ip sv">
-    <!-- A) Hero en capas (js/sv-hero.js): fondo · título · el chico con la cámara · sus estelas de luz (screen) por
-         encima de todo · velo · grano · subtítulo y botones. Las capas tienen el mismo encuadre y el mismo object-fit /
-         object-position, cada una en su wrapper (inset −3 %) para el parallax. El fondo es bg-limpio: el original sin
-         el cuerpo del chico, para que al separarse las capas no asome un segundo chico detrás. -->
+    <!-- A) Hero en vídeo con el título entre capas (js/sv-hero.js, js/sv-video.js): el fondo en vídeo · el título ·
+         delante, el chico con su cámara y sus estelas (el mismo vídeo recortado con su máscara) · velo · grano ·
+         subtítulo y botones. El vídeo (hero-stack: color arriba, máscara abajo) lo pinta WebGL en dos canvas; hasta
+         entonces, sin WebGL o con movimiento reducido se ven los pósters, que son su fotograma 0. Cada capa en su
+         wrapper (inset −3 %) para el parallax. -->
     <header class="sv-hero" data-hero>
       <div class="sv-hero__scene" data-hero-scene>
         <div class="sv-hero__layer" data-hero-layer="bg">
-          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/bg-limpio-1280.webp"><img src="assets/servicios/hero/bg-limpio.webp" width="2560" height="1434" alt="Operador de cámara caminando por un set oscuro entre estelas de luz naranja" fetchpriority="high" decoding="sync"></picture>
+          <video class="sv-hero__video" data-hero-video muted playsinline loop preload="auto" aria-hidden="true" tabindex="-1"></video>
+          <picture data-hero-poster><img src="assets/servicios/hero/poster-bg.webp" width="1920" height="1072" alt="Operador de cámara caminando por un set oscuro entre estelas de luz naranja" fetchpriority="high" decoding="sync"></picture>
         </div>
         <div class="sv-hero__layer sv-hero__layer--title" data-hero-layer="title">
           <h1 class="sv-hero__title" aria-label="De la idea a la pantalla.">
@@ -138,10 +138,7 @@
           </h1>
         </div>
         <div class="sv-hero__layer" data-hero-layer="persona" aria-hidden="true">
-          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/persona-1280.webp"><img src="assets/servicios/hero/persona.webp" width="2560" height="1434" alt="" fetchpriority="high" decoding="sync"></picture>
-        </div>
-        <div class="sv-hero__layer sv-hero__layer--luces" data-hero-layer="luces" aria-hidden="true">
-          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/luces-1280.webp"><img src="assets/servicios/hero/luces.webp" width="2560" height="1434" alt="" decoding="async"></picture>
+          <picture data-hero-poster><img src="assets/servicios/hero/poster-fg.webp" width="1920" height="1072" alt="" decoding="sync"></picture>
         </div>
       </div>
       <i class="sv-hero__veil" aria-hidden="true"></i>

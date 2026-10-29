@@ -1,0 +1,127 @@
+/* ---------- A) hero en capas (js/sv-hero.js) ----------
+   De atrás hacia delante: fondo (con el velo inferior) · título · el chico · sus estelas (screen, pasan por encima
+   de las letras) · viñeta · grano · subtítulo y botones · el negro de salida. Las tres fotos comparten encuadre,
+   object-fit y object-position (--hero-pos); cada una va en su wrapper sobredimensionado (inset −3 %) para que el
+   parallax nunca enseñe bordes. El velo inferior va detrás del título (encima lo dejaría gris). */
+.sv-hero {
+  --hero-pos: 62% 50%;
+  --hero-x: clamp(20px, 4vw, 72px);
+  --hero-bottom: 20svh; /* medido: así el chico tapa ~1,5 letras de "PANTALLA." (piernas sobre "LL") */
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 640px;
+  overflow: hidden;
+  background: var(--ink);
+  perspective: 1600px;
+}
+.sv-hero__scene { position: absolute; inset: 0; will-change: transform; }
+.sv-hero__layer { position: absolute; inset: -3%; will-change: transform; }
+.sv-hero__layer picture,
+.sv-hero__layer img { display: block; width: 100%; height: 100%; }
+.sv-hero__layer img { object-fit: cover; object-position: var(--hero-pos); }
+/* velo inferior para leer el título (va con el fondo) y, detrás del título, una sombra suave que apaga la estela del
+   propio fondo pegada a las letras (contraste) */
+.sv-hero__layer[data-hero-layer="bg"]::after {
+  --title-shade: radial-gradient(ellipse 44% 27% at 40% 64%, rgb(11 9 9 / 0.72) 45%, rgb(11 9 9 / 0) 100%);
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--title-shade), linear-gradient(to top, rgb(11 9 9 / 0.75) 0%, rgb(11 9 9 / 0) 45%);
+}
+.sv-hero__layer--title { inset: 0; }
+/* las estelas vivas (js/sv-luces.js): el canvas ocupa el wrapper igual que la <img>, que se queda debajo hasta que el
+   shader está listo */
+.sv-hero__luces-gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.sv-hero__layer[data-hero-layer="persona"] { transform-origin: 66% 82%; }
+.sv-hero__layer--luces {
+  --luces-dim: radial-gradient(ellipse 40% 19% at 40% 66%, rgb(0 0 0 / 0.3) 55%, #000 100%);
+  mix-blend-mode: screen;
+  opacity: 0.8;
+  transform-origin: 100% 50%;
+  /* junto al título las estelas bajan (siguen cruzándolo, pero sin quemar el fondo pegado a las letras: contraste) */
+  -webkit-mask-image: var(--luces-dim);
+  mask-image: var(--luces-dim);
+}
+.sv-hero__title {
+  position: absolute;
+  left: var(--hero-x);
+  bottom: var(--hero-bottom);
+  margin: 0;
+  font: 600 clamp(56px, 8.6vw, 168px) / 0.9 var(--font-display);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--paper);
+  white-space: nowrap;
+  /* sombra difusa: oscurece lo que pasa justo detrás de las letras (estelas), sin verse como contorno */
+  text-shadow: 0 0 0.3em rgb(11 9 9 / 0.55), 0 0 0.08em rgb(11 9 9 / 0.35);
+}
+.sv-hero__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse 125% 110% at 55% 45%, rgb(11 9 9 / 0) 55%, rgb(11 9 9 / 0.6) 100%);
+  pointer-events: none;
+}
+.sv-hero__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+}
+.sv-hero__ui {
+  position: absolute;
+  left: var(--hero-x);
+  right: var(--hero-x);
+  top: calc(100% - var(--hero-bottom) + 14px);
+  z-index: 2;
+}
+.sv-hero__sub {
+  max-width: 46ch;
+  margin: 0;
+  font: 400 clamp(16px, 1.3vw, 20px) / 1.45 var(--font-display);
+  color: rgb(244 242 239 / 0.85);
+}
+.sv-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+  margin-top: 28px;
+}
+.sv-hero .sv-btn:hover b { translate: 4px 0; }
+/* el último tramo funde a negro: al salir, el borde de abajo no corta con la sección siguiente */
+.sv-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 12%;
+  background: linear-gradient(rgb(11 9 9 / 0), var(--ink));
+  pointer-events: none;
+}
+.sv-hero__out { position: absolute; inset: 0; z-index: 3; background: var(--ink); opacity: 0; pointer-events: none; }
+
+/* estado de antes de la entrada del título, ya en el CSS (si no, mientras cargan los scripts se vería puesto y luego
+   volvería a bajar). El fondo y el chico no entran: están desde el primer pintado */
+@media (prefers-reduced-motion: no-preference) {
+  .js .sv-hero [data-hero-after] { opacity: 0; }
+  .js .sv-hero [data-hero-line] { transform: translateY(105%); }
+}
+/* pantallas más cuadradas: la foto sobra por los lados; se corre para que el chico no tape más de ~1,5 letras */
+@media (max-aspect-ratio: 3 / 2) and (min-width: 768px) {
+  .sv-hero { --hero-pos: 35% 50%; }
+}
+/* móvil: se ve al chico; el título, encima de él (prioridad: leerlo) y ajustado al ancho */
+@media (max-width: 767px) {
+  .sv-hero { --hero-pos: 70% 50%; --hero-bottom: 33svh; }
+  .sv-hero__layer--title { z-index: 1; }
+  .sv-hero__layer[data-hero-layer="bg"]::after { --title-shade: radial-gradient(ellipse 62% 12% at 45% 63%, rgb(11 9 9 / 0.75) 45%, rgb(11 9 9 / 0) 100%); }
+  .sv-hero__layer--luces { z-index: 2; --luces-dim: radial-gradient(ellipse 62% 11% at 45% 63%, rgb(0 0 0 / 0.25) 55%, #000 100%); }
+  .sv-hero__title { font-size: min(clamp(44px, 12vw, 64px), calc((100vw - 2 * var(--hero-x)) / 8.4)); }
+  .sv-hero__cta { flex-direction: column; align-items: stretch; gap: 8px; max-width: 340px; }
+  .sv-hero__cta .sv-btn { justify-content: center; }
+  .sv-hero__cta .sv-more { align-self: center; }
+}

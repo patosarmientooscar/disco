@@ -1,0 +1,33 @@
+    <!-- A) Hero en capas (js/sv-hero.js): fondo · título · el chico con la cámara · sus estelas de luz (screen) por
+         encima de todo · velo · grano · subtítulo y botones. Las capas tienen el mismo encuadre y el mismo object-fit /
+         object-position, cada una en su wrapper (inset −3 %) para el parallax. El fondo es bg-limpio: el original sin
+         el cuerpo del chico, para que al separarse las capas no asome un segundo chico detrás. -->
+    <header class="sv-hero" data-hero>
+      <div class="sv-hero__scene" data-hero-scene>
+        <div class="sv-hero__layer" data-hero-layer="bg">
+          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/bg-limpio-1280.webp"><img src="assets/servicios/hero/bg-limpio.webp" width="2560" height="1434" alt="Operador de cámara caminando por un set oscuro entre estelas de luz naranja" fetchpriority="high" decoding="sync"></picture>
+        </div>
+        <div class="sv-hero__layer sv-hero__layer--title" data-hero-layer="title">
+          <h1 class="sv-hero__title" aria-label="De la idea a la pantalla.">
+            <span class="sv-mask" aria-hidden="true"><span data-hero-line>De la idea</span></span>
+            <span class="sv-mask" aria-hidden="true"><span data-hero-line>A la pantalla<b class="sv-dot">.</b></span></span>
+          </h1>
+        </div>
+        <div class="sv-hero__layer" data-hero-layer="persona" aria-hidden="true">
+          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/persona-1280.webp"><img src="assets/servicios/hero/persona.webp" width="2560" height="1434" alt="" fetchpriority="high" decoding="sync"></picture>
+        </div>
+        <div class="sv-hero__layer sv-hero__layer--luces" data-hero-layer="luces" aria-hidden="true">
+          <picture data-hero-in><source media="(max-width: 899px)" srcset="assets/servicios/hero/luces-1280.webp"><img src="assets/servicios/hero/luces.webp" width="2560" height="1434" alt="" decoding="async"></picture>
+        </div>
+      </div>
+      <i class="sv-hero__veil" aria-hidden="true"></i>
+      <i class="sv-hero__grain" aria-hidden="true"></i>
+      <div class="sv-hero__ui">
+        <p class="sv-hero__sub" data-hero-after>Pensamos, producimos y entregamos. Foto, vídeo y edición, de principio a fin.</p>
+        <div class="sv-hero__cta" data-hero-after>
+          <a class="sv-btn sv-btn--shine" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
+          <a class="sv-more" href="#proceso" data-to-proc>Ver cómo trabajamos</a>
+        </div>
+      </div>
+      <i class="sv-hero__out" data-hero-out aria-hidden="true"></i>
+    </header>
