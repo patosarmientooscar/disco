@@ -88,7 +88,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   model.traverse((o) => { if (o.isMesh) materials.push(o.material); });
 
   const gate = document.querySelector('[data-star-gate]'); // servicios: "Tres oficios"
-  const hero = document.querySelector('[data-page-hero], [data-star-hero]'); // (nosotros: el contraplano, js/contraplano.js)
+  const hero = document.querySelector('[data-page-hero], [data-star-hero]'); // (nosotros: el hero "Somos disco.", js/nosotros-hero.js)
   const bento = document.querySelector('[data-bento]');
   const list = document.querySelector('[data-sectors]');
 

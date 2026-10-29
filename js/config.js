@@ -44,8 +44,6 @@ export const config = {
   pageHeroes: {
     servicios: { video: 'assets/paginas/servicios-bg.mp4', videoSm: 'assets/paginas/servicios-bg-1280.mp4', poster: 'assets/paginas/servicios-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
     portfolio: { video: 'assets/portfolio/hero/bola.mp4', videoSm: 'assets/portfolio/hero/bola-1280.mp4', poster: 'assets/portfolio/hero/bola-poster.webp', pos: '50% 50%', start: 0, fps: 24, star: false }, // la bola: sin destello (js/portfolio-hero.js)
-    nosotros: { // el contraplano (js/contraplano.js) solo usa videoSm, como atmósfera
-      video: 'assets/paginas/nosotros-bg.mp4', videoSm: 'assets/paginas/nosotros-bg-1280.mp4', poster: 'assets/paginas/nosotros-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
   },
 
   // (LEGACY PRE-HERO: la configuración de la secuencia de frames de la cámara está en la historia de git.)

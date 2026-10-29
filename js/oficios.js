@@ -7,10 +7,10 @@
 //   FOTO, el disparo: obturador (dos láminas que se cierran hasta el centro y se abren en 0.18 s), flash, la foto
 //     "congelada" (zoom 1.04 → 1) y el AF que se cierra con rebote sobre una cara (con el ratón: parallax ±10 px y el
 //     AF salta a la cara que tengas debajo).
-//   VÍDEO, el directo: corte (un fotograma en negro), el reel recap de Cachondeo, bandas de cine hasta 2.39:1, REC y
-//     el timecode real del vídeo. El botón de sonido pone el audio del reel original (reel-recap.mp4, aparte: el
-//     montaje horizontal no lleva audio); al cerrar el panel, se vuelve a silenciar.
-//   EDICIÓN, la sala de montaje: visor 16:9 con el reel de la fiesta y la cortinilla LOG / GRADE que sigue al ratón
+//   VÍDEO, el directo: corte (un fotograma en negro), el baile en el bus (oficios-real/bus.mp4), bandas de cine hasta
+//     2.39:1, REC y el timecode real del vídeo. El botón de sonido le quita el silencio al propio vídeo (su audio, a
+//     la vez que la imagen); al cerrar el panel, se vuelve a silenciar.
+//   EDICIÓN, la sala de montaje: el visor ocupa todo el panel, con el reel de la fiesta y la cortinilla LOG / GRADE que sigue al ratón
 //     (con el dedo, se arrastra); debajo, la línea de tiempo: V1 con los 8 clips del reel (al pasar por uno, el visor
 //     salta a ese tramo), A1 con la forma de onda real del audio y el cabezal sincronizado con el visor.
 // Los vídeos solo corren con su panel abierto y la sección en pantalla. Todo en el loop único (gsap.ticker).
@@ -18,7 +18,7 @@
 // (LEGACY: la bailarina, en legacy/servicios-oficios-bailarina/)
 const MEDIA = {
   foto: { w: 2000, h: 1333, fx: 0.42, fy: 0.4 },   // oficios-real/foto.webp: encuadre entre las dos caras de delante
-  video: { w: 1920, h: 1080, fx: 0.5, fy: 0.5 },   // portfolio-bg.mp4
+  video: { w: 1280, h: 720, fx: 0.5, fy: 0.45 },   // oficios-real/bus.mp4 (el baile en el bus)
 };
 // caras de la foto (fracción de la imagen: centro y ancho); la primera, la de la izquierda (donde se cierra el AF)
 const FACES = [
@@ -38,8 +38,7 @@ const CUT = 1 / 24;                // s: el corte en negro (un fotograma)
 const WIPE = { lerp: 0.15, sweep: 1.6 };
 const INTENT = 80; // ms con el ratón encima antes de abrir (cruzar la sección de camino a otro sitio no abre nada)
 const SRC = {
-  video: { desk: 'assets/paginas/portfolio-bg.mp4', narrow: 'assets/paginas/portfolio-bg-1280.mp4', fps: 30 },
-  sound: 'assets/portfolio/cachondeo/reel-recap.mp4',
+  video: { desk: 'assets/servicios/oficios-real/bus.mp4', narrow: 'assets/servicios/oficios-real/bus-720.mp4', fps: 25 },
   edit: 'assets/portfolio/cachondeo/reel-fiesta.mp4',
   near: '100% 0px', // los metadatos, con la sección a una pantalla
 };
@@ -234,7 +233,7 @@ export function initOficios({ gsap, loop, still }) {
     const tcEl = p.el.querySelector('[data-of-tc]');
     const btn = p.el.querySelector('[data-of-sound]');
     const bars = p.el.querySelectorAll('[data-of-bar]');
-    const s = { on: false, loaded: false, tc: '', audio: null, loud: false };
+    const s = { on: false, loaded: false, tc: '', loud: false };
     const size = () => {
       const pw = st.col ? st.W : st.open;
       const ph = st.col ? st.open : st.H;
@@ -248,14 +247,12 @@ export function initOficios({ gsap, loop, still }) {
       v.src = matchMedia(NARROW).matches ? SRC.video.narrow : SRC.video.desk;
     };
     const run = () => { if (s.on && st.vis && !document.hidden) v.play().catch(() => {}); else v.pause(); };
-    // el sonido: el audio del reel original, aparte (y en bucle); solo con el panel abierto y en pantalla
+    // el sonido: el del propio vídeo (solo con el panel abierto y en pantalla: el vídeo se para con ellos)
     const sound = (on) => {
       s.loud = on;
       btn.setAttribute('aria-pressed', String(on));
-      if (on && !s.audio) { s.audio = new Audio(SRC.sound); s.audio.loop = true; }
-      if (!s.audio) return;
-      if (on) s.audio.play().catch(() => sound(false));
-      else s.audio.pause();
+      v.muted = !on;
+      if (on) { load(); v.play().catch(() => { v.muted = true; s.loud = false; btn.setAttribute('aria-pressed', 'false'); }); }
     };
     btn.addEventListener('click', () => sound(!s.loud));
     return {
@@ -276,10 +273,7 @@ export function initOficios({ gsap, loop, still }) {
         v.pause(); // se queda congelado en ese fotograma
         if (s.loud) sound(false);
       },
-      visible() {
-        run();
-        if (s.audio && s.loud) { if (st.vis && !document.hidden) s.audio.play().catch(() => {}); else s.audio.pause(); }
-      },
+      visible: run,
       still() { size(); gsap.set(bars, { scaleY: 1 }); },
       // movimiento reducido: no se reproduce solo; un botón
       button() {
@@ -312,7 +306,6 @@ export function initOficios({ gsap, loop, still }) {
     const clips = [...clipsEl.children];
     const wave = p.el.querySelector('[data-of-wave]');
     const head = p.el.querySelector('[data-of-head]');
-    const copy = p.el.querySelector('.of-copy');
     const s = { on: false, loaded: false, x: 0.5, tx: 0.5, user: false, drag: false, sweep: null, px: '', hx: '', clip: -1, hover: -1 };
     const load = () => {
       if (s.loaded) return;
@@ -321,12 +314,9 @@ export function initOficios({ gsap, loop, still }) {
       v.src = SRC.edit;
     };
     const run = () => { if (s.on && st.vis && !document.hidden) v.play().catch(() => {}); else v.pause(); };
-    // el visor y la línea de tiempo caben encima del texto del panel abierto
+    // el visor ocupa todo el panel; la línea de tiempo, abajo a lo ancho, y el texto encima de ella (--of-tlh)
     const size = () => {
-      const pad = parseFloat(getComputedStyle(stage).getPropertyValue('--of-pad')) || 24;
-      const avail = p.box.h - copy.offsetHeight - pad * 1.5;
-      const vw = Math.max(120, Math.min(p.box.w - 2 * pad, (avail - 44) / (9 / 16 + 9 / 16 / CLIPS)));
-      suite.style.setProperty('--of-vw', `${vw.toFixed(1)}px`);
+      p.el.style.setProperty('--of-tlh', `${suite.querySelector('[data-of-tl]').offsetHeight.toFixed(0)}px`);
       // forma de onda: barras de 2 px (una cada 4 px) sacadas de WAVE
       const dpr = Math.min(2, devicePixelRatio || 1);
       const cw = wave.clientWidth;
