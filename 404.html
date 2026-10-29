@@ -6,8 +6,10 @@
   <title>Corte en negro — disco.</title>
   <meta name="description" content="Esta toma no existe. Vuelve al inicio de disco.">
   <meta name="robots" content="noindex">
-  <!-- se sirve desde cualquier ruta: los enlaces relativos parten de la raíz (si la web va en una subcarpeta, cámbialo) -->
-  <base href="/">
+  <!-- se sirve desde cualquier ruta: los enlaces relativos parten de la raíz de la web. En GitHub Pages sin dominio
+       propio la web va en una subcarpeta (usuario.github.io/repo/): la raíz es esa subcarpeta -->
+  <script>document.write('<base href="' + (/\.github\.io$/.test(location.hostname) && location.pathname.split('/')[1] ? '/' + location.pathname.split('/')[1] + '/' : '/') + '">');</script>
+  <noscript><base href="/"></noscript>
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
   <script src="js/file-guard.js"></script>
   <meta name="theme-color" content="#0b0909">

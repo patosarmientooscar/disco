@@ -3,3 +3,8 @@ node_modules/
 Thumbs.db
 *.log
 .playwright-mcp/
+# Carpetas de trabajo de Oscar que no van a la web
+_revision/
+.agents/
+skills-lock.json
+desktop.ini
