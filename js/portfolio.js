@@ -1,11 +1,13 @@
 import { showreel, works } from './portfolio-data.js';
 import { initPlaceholders } from './placeholder.js';
+import { initManifesto } from './manifesto.js';
 
-// Portfolio: contador, showreel, filtros con Flip y la rejilla "hoja de contactos". Cada trabajo abre su
-// ficha en un <dialog> (foco dentro, Esc cierra, URL con #slug para compartir). Sin trabajos: 6 huecos al
-// .55 y el aviso "Estamos rodando...". Con UN solo trabajo, en vez de la rejilla, el proyecto destacado: portada
-// grande, sus reels verticales, la galería de fotos (con visor a pantalla completa) y "Próximo proyecto".
-// Los datos, en js/portfolio-data.js.
+// Portfolio: el hero de la bola (js/portfolio-hero.js), contador, showreel, filtros con Flip y la rejilla "hoja de
+// contactos". Cada trabajo lleva a SU página (proyecto.html#slug, js/proyecto.js), con la transición entre páginas;
+// los enlaces viejos (portfolio.html#slug) también. Sin trabajos: 6 huecos al .55 y el aviso "Estamos rodando...".
+// Con UN solo trabajo, en vez de la rejilla, el proyecto destacado: portada grande (toda ella, el enlace), 3 fotos de
+// adelanto y "Ver las 20 fotos", y "Próximo proyecto". Los datos, en js/portfolio-data.js.
+// (LEGACY: la ficha en <dialog>, los reels y la galería con visor del destacado, en legacy/portfolio-ficha-modal/)
 const LABEL = { restaurantes: 'Restaurante', noche: 'Noche', eventos: 'Evento', marcas: 'Marca' };
 const RATIOS = ['4/5', '1/1', '9/16'];
 const EMPTY = 6;
@@ -13,11 +15,17 @@ const FPS = 25;
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = (n) => String(n).padStart(2, '0');
+const page = (slug, extra = '') => `proyecto.html${extra}#${encodeURIComponent(slug)}`;
 const setCount = (n) => { document.querySelector('[data-count]').textContent = `${pad(n)} PROYECTO${n === 1 ? '' : 'S'}`; };
 
-export function init({ gsap, ScrollTrigger, lenis, reduced }) {
+export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
+  // los enlaces de antes (portfolio.html#slug) llevan a la página del proyecto
+  const old = decodeURIComponent(location.hash.slice(1));
+  if (old && works.some((w) => w.slug === old)) { location.replace(page(old)); return; }
   setCount(works.length);
   initReel({ gsap, reduced });
+  initManifesto({ gsap, lenis, reduced });
+  import('./portfolio-hero.js').then((m) => m.initBallHero({ gsap, lenis, loop, reduced })).catch(() => {});
 
   const grid = document.querySelector('[data-grid]');
   if (!works.length) {
@@ -32,8 +40,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced }) {
   }
 
   if (works.length === 1) {
-    initFeatured({ gsap, ScrollTrigger, lenis, reduced, work: works[0] });
-    initModal({ lenis });
+    initFeatured({ work: works[0] });
     return;
   }
 
@@ -44,7 +51,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced }) {
       : '';
     const preview = w.kind === 'video' && w.preview ? `<video src="${esc(w.preview)}" muted loop playsinline preload="none" aria-hidden="true"></video>` : '';
     return `<li class="pf__item" data-cat="${esc(w.category)}">
-      <a class="work" href="#${esc(w.slug)}" data-slug="${esc(w.slug)}">
+      <a class="work" href="${page(w.slug)}">
         <figure class="ph work__media" data-ratio="${ratio}" data-ph="${esc(w.cover || `assets/portfolio/${w.slug}/cover.webp`)}">${cover}${preview}</figure>
         <p class="work__meta">${pad(i + 1)} · ${esc(LABEL[w.category] || w.category)} · ${esc(w.year)}</p>
         <h3 class="work__title">${esc(w.title)}</h3>
@@ -64,7 +71,6 @@ export function init({ gsap, ScrollTrigger, lenis, reduced }) {
   }
 
   initFilters({ gsap, grid, reduced });
-  initModal({ lenis });
 }
 
 // --- filtros: Flip de gsap (el plugin se carga en portfolio.html) ---
@@ -89,48 +95,6 @@ function initFilters({ gsap, grid, reduced }) {
     }
     setCount(items.filter((li) => !li.classList.contains('is-out')).length);
   }));
-}
-
-// --- ficha: <dialog> + #slug ---
-function initModal({ lenis }) {
-  const modal = document.querySelector('[data-modal]');
-  const $ = (s) => modal.querySelector(s);
-  let opener = null;
-
-  const open = (slug, from) => {
-    const i = works.findIndex((w) => w.slug === slug);
-    if (i < 0) return;
-    const w = works[i];
-    opener = from || document.querySelector(`[data-slug="${CSS.escape(slug)}"]`);
-    $('[data-wm-meta]').textContent = `${pad(i + 1)} · ${LABEL[w.category] || w.category} · ${w.year}`;
-    $('[data-wm-title]').textContent = w.title;
-    $('[data-wm-client]').textContent = w.client || '';
-    $('[data-wm-media]').innerHTML = (w.media || []).map((m) => (m.type === 'video'
-      ? `<video src="${esc(m.src)}" poster="${esc(m.poster || '')}" controls playsinline preload="none"${m.alt ? ` aria-label="${esc(m.alt)}"` : ''}></video>`
-      : `<img src="${esc(m.thumb || m.src)}"${m.thumb ? ` srcset="${esc(m.thumb)} 1000w, ${esc(m.src)} ${m.w || 2000}w" sizes="(min-width: 900px) 60vw, 100vw"` : ''}${m.w ? ` width="${m.w}" height="${m.h}"` : ''} alt="${esc(m.alt || '')}" loading="lazy" decoding="async">`)).join('');
-    $('[data-wm-deliv]').textContent = w.deliverables?.length ? `Entregamos: ${w.deliverables.join(' · ')}` : '';
-    $('[data-wm-cta]').href = `contacto.html?ref=${encodeURIComponent(w.slug)}`;
-    if (location.hash !== `#${slug}`) history.replaceState(null, '', `#${slug}`);
-    lenis.stop();
-    if (!modal.open) modal.showModal();
-  };
-  const close = () => { if (modal.open) modal.close(); };
-
-  modal.addEventListener('close', () => {
-    modal.querySelectorAll('video').forEach((v) => v.pause());
-    history.replaceState(null, '', location.pathname + location.search);
-    lenis.start();
-    opener?.focus();
-  });
-  $('[data-modal-close]').addEventListener('click', close);
-  modal.addEventListener('click', (e) => { if (e.target === modal) close(); }); // clic en el fondo
-  document.querySelectorAll('[data-slug]').forEach((a) => a.addEventListener('click', (e) => {
-    e.preventDefault();
-    open(a.dataset.slug, a);
-  }));
-  const fromHash = () => { const s = decodeURIComponent(location.hash.slice(1)); if (s) open(s); };
-  window.addEventListener('hashchange', fromHash);
-  fromHash();
 }
 
 // --- showreel: hueco si no hay vídeo; con vídeo: póster, play, sonido opcional y timecode ---
@@ -169,20 +133,20 @@ function initReel({ reduced }) {
 }
 
 // --- un solo trabajo: proyecto destacado ---
-// Portada grande con el título encima (abre la ficha); debajo, en la misma página: los reels verticales (mudos al
-// entrar en pantalla; clic = con sonido y controles), la galería "hoja de contactos" (aparece escalonada; clic =
-// visor a pantalla completa con flechas, Esc, swipe y contador) y la tarjeta del próximo proyecto.
-function initFeatured({ gsap, ScrollTrigger, lenis, reduced, work: w }) {
+// Portada grande con el título encima (toda ella, el enlace a la página del proyecto); debajo, 3 fotos de adelanto en
+// fila y "Ver las 20 fotos" (a la galería del proyecto); al final, la tarjeta del próximo proyecto.
+function initFeatured({ work: w }) {
   document.querySelector('[data-filters]').hidden = true;
   const stage = document.querySelector('[data-stage]');
   stage.classList.add('is-featured');
-  const reels = (w.media || []).filter((m) => m.type === 'video');
   const photos = (w.media || []).filter((m) => m.type === 'img');
   const first = photos[0];
+  const peek = photos.filter((m) => m.h > m.w).slice(0, 3);
   const line = [w.client, ...(w.deliverables || [])].filter(Boolean).map(esc).join(' · ');
+  const all = page(w.slug, '?ver=galeria');
   stage.innerHTML = `
     <article class="pf-feat">
-      <a class="pf-feat__cover" href="#${esc(w.slug)}" data-slug="${esc(w.slug)}">
+      <a class="pf-feat__cover" href="${page(w.slug)}">
         <img src="${esc(w.coverLarge || w.cover)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || w.cover)} 2000w" sizes="100vw"${first ? ` width="${first.w}" height="${first.h}"` : ''} alt="${esc(first?.alt || '')}" decoding="async">
         <span class="pf-feat__text">
           <span class="pf-feat__title">${esc(w.title)}</span>
@@ -191,104 +155,13 @@ function initFeatured({ gsap, ScrollTrigger, lenis, reduced, work: w }) {
         </span>
       </a>
     </article>
-    <div class="pf-body">
-      ${reels.length ? `<div class="pf-reels">${reels.map((m) => `
-        <figure class="pf-reel">
-          <video src="${esc(m.src)}" poster="${esc(m.poster || '')}" muted loop playsinline preload="none"${m.alt ? ` aria-label="${esc(m.alt)}"` : ''}></video>
-          <button class="pf-reel__sound" type="button">Ver con sonido</button>
-        </figure>`).join('')}</div>` : ''}
-      <ul class="pf-sheet">${photos.map((m, i) => `
-        <li class="pf-sheet__item"><button class="pf-shot" type="button" data-shot="${i}" aria-label="Ampliar: ${esc(m.alt)}">
-          <img src="${esc(m.thumb || m.src)}" width="${m.w || 1000}" height="${m.h || 1000}" alt="" loading="lazy" decoding="async">
-        </button></li>`).join('')}</ul>
-    </div>
+    ${peek.length ? `<div class="pf-peek">
+      <ul class="pf-peek__row">${peek.map((m) => `
+        <li><a href="${all}" aria-label="Ver la galería: ${esc(m.alt)}"><img src="${esc(m.thumb || m.src)}" width="${m.w}" height="${m.h}" alt="" loading="lazy" decoding="async"></a></li>`).join('')}</ul>
+      <a class="pf-peek__more" href="${all}">Ver las ${photos.length} fotos <b aria-hidden="true">→</b></a>
+    </div>` : ''}
     <a class="pf-next" href="contacto.html">
       <span class="pf-next__kicker">Próximo proyecto: en rodaje</span>
       <span class="pf-next__title">¿El siguiente es el tuyo? <b aria-hidden="true">→</b></span>
     </a>`;
-
-  // reels: mudos al entrar en pantalla; clic = con sonido y controles (solo suena uno)
-  stage.querySelectorAll('.pf-reel').forEach((fig) => {
-    const v = fig.querySelector('video');
-    const btn = fig.querySelector('.pf-reel__sound');
-    btn.addEventListener('click', () => {
-      fig.classList.add('is-loud');
-      stage.querySelectorAll('.pf-reel video').forEach((o) => { if (o !== v) o.muted = true; });
-      v.muted = false;
-      v.controls = true;
-      v.play().catch(() => {});
-      v.focus();
-    });
-    if (reduced.matches) return; // movimiento reducido: no se reproducen solos
-    new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { if (v.paused && v.muted) v.play().catch(() => {}); } else v.pause();
-    }, { threshold: 0.4 }).observe(fig);
-  });
-
-  // galería: aparición escalonada al hacer scroll
-  const items = [...stage.querySelectorAll('.pf-sheet__item')];
-  if (!reduced.matches && ScrollTrigger) {
-    gsap.set(items, { opacity: 0, y: 28 });
-    ScrollTrigger.batch(items, {
-      start: 'top 92%',
-      once: true,
-      onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out', stagger: 0.06 }),
-    });
-  }
-  initViewer({ lenis, photos, stage });
-}
-
-// visor de fotos a pantalla completa: flechas (botones y teclado), Esc, swipe en móvil y contador
-function initViewer({ lenis, photos, stage }) {
-  const dlg = document.createElement('dialog');
-  dlg.className = 'pv';
-  dlg.setAttribute('aria-label', 'Fotos del proyecto');
-  dlg.setAttribute('data-lenis-prevent', '');
-  dlg.innerHTML = `
-    <figure class="pv__fig"><img class="pv__img" alt=""><figcaption class="pv__cap"></figcaption></figure>
-    <button class="pv__nav pv__nav--prev" type="button" aria-label="Foto anterior"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
-    <button class="pv__nav pv__nav--next" type="button" aria-label="Foto siguiente"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
-    <p class="pv__count" aria-live="polite"></p>
-    <button class="pv__close" type="button" aria-label="Cerrar el visor"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>`;
-  document.querySelector('main').append(dlg);
-  const img = dlg.querySelector('.pv__img');
-  const cap = dlg.querySelector('.pv__cap');
-  const count = dlg.querySelector('.pv__count');
-  let i = 0;
-  let opener = null;
-  const show = (n) => {
-    i = (n + photos.length) % photos.length;
-    const m = photos[i];
-    img.src = m.src;
-    img.alt = m.alt || '';
-    if (m.w) { img.width = m.w; img.height = m.h; }
-    cap.textContent = m.alt || '';
-    count.textContent = `${pad(i + 1)} / ${pad(photos.length)}`;
-    [i + 1, i - 1].forEach((k) => { new Image().src = photos[(k + photos.length) % photos.length].src; }); // las vecinas, ya listas
-  };
-  stage.querySelectorAll('[data-shot]').forEach((b) => b.addEventListener('click', () => {
-    opener = b;
-    show(Number(b.dataset.shot));
-    lenis.stop();
-    dlg.showModal();
-  }));
-  dlg.querySelector('.pv__nav--prev').addEventListener('click', () => show(i - 1));
-  dlg.querySelector('.pv__nav--next').addEventListener('click', () => show(i + 1));
-  dlg.querySelector('.pv__close').addEventListener('click', () => dlg.close());
-  dlg.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') { e.preventDefault(); show(i + 1); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); show(i - 1); }
-  });
-  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
-  // swipe (dedo): más de 50 px en horizontal pasa de foto
-  let sx = null;
-  dlg.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') sx = e.clientX; });
-  dlg.addEventListener('pointerup', (e) => {
-    if (sx === null) return;
-    const dx = e.clientX - sx;
-    sx = null;
-    if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
-  });
-  dlg.addEventListener('pointercancel', () => { sx = null; });
-  dlg.addEventListener('close', () => { lenis.start(); opener?.focus(); });
 }

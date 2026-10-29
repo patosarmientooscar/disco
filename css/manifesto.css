@@ -1,0 +1,89 @@
+/* El manifiesto a pantalla completa (js/manifesto.js) para portfolio y la página de proyecto. Es el mismo bloque que
+   está al final de css/servicios.css (servicios lo sigue cargando de allí).
+   <dialog> modal: fondo #0b0909 al 96 %, el vídeo 16:9 centrado (máx. 1280 px) y debajo sus controles: play/pausa,
+   barra naranja con el timecode, silencio. Cerrar (×) arriba a la derecha. */
+.mf {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: clamp(56px, 8vh, 88px) clamp(16px, 4vw, 56px) clamp(20px, 4vh, 40px);
+  border: 0;
+  background: transparent;
+  color: var(--paper);
+  overflow: hidden;
+}
+.mf[open] { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+.mf::backdrop { background: rgb(11 9 9 / 0.96); }
+.mf__frame {
+  position: relative;
+  width: min(1280px, 100%, (100svh - 200px) * 16 / 9);
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+.mf__video { display: block; width: 100%; height: 100%; object-fit: contain; cursor: pointer; }
+.mf__flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.mf__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(1280px, 100%, (100svh - 200px) * 16 / 9);
+}
+.mf__btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(244 242 239 / 0.3);
+  border-radius: 50%;
+  background: none;
+  color: var(--paper);
+  cursor: pointer;
+}
+.mf__btn:hover { border-color: var(--paper); }
+.mf__i-play,
+.mf.is-playing .mf__i-pause { display: block; }
+.mf__i-pause,
+.mf.is-playing .mf__i-play { display: none; }
+.mf__i-muted,
+.mf.is-muted .mf__i-sound { display: none; }
+.mf.is-muted .mf__i-muted { display: block; }
+.mf__seek {
+  --p: 0%;
+  flex: 1;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.mf__seek::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: linear-gradient(to right, var(--orange) var(--p), rgb(244 242 239 / 0.2) var(--p)); }
+.mf__seek::-moz-range-track { height: 3px; border-radius: 3px; background: linear-gradient(to right, var(--orange) var(--p), rgb(244 242 239 / 0.2) var(--p)); }
+.mf__seek::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; margin-top: -5px; border-radius: 50%; background: var(--orange); }
+.mf__seek::-moz-range-thumb { width: 13px; height: 13px; border: 0; border-radius: 50%; background: var(--orange); }
+.mf__tc { flex: none; font: 400 12px / 1 var(--font-mono); letter-spacing: 0.06em; font-variant-numeric: tabular-nums; color: #8a807c; }
+.mf__close {
+  position: absolute;
+  top: clamp(10px, 2vh, 20px);
+  right: clamp(10px, 2vw, 20px);
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgb(244 242 239 / 0.3);
+  border-radius: 50%;
+  background: none;
+  color: var(--paper);
+  cursor: pointer;
+}
+.mf__close:hover { border-color: var(--paper); }
+.mf :focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+@media (max-width: 639px) {
+  .mf__bar { gap: 10px; }
+  .mf__tc { font-size: 11px; }
+}

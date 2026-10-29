@@ -10,7 +10,9 @@ export const showreel = { src: 'assets/paginas/disco-manifiesto.mp4', poster: 'a
 // preview: (opcional, solo vídeo) mp4 mudo y corto (3–6 s, 720 px) que se reproduce al pasar el ratón
 // media: lo que se ve en la ficha: fotos { type: 'img', src, thumb, w, h, alt } (src: la grande, para el visor;
 //   thumb: la de 1000 px, para la rejilla) y vídeos { type: 'video', src, poster, alt }
-// Con UN solo trabajo, la página lo enseña como proyecto destacado (portada, reels y galería); con 2 o más, la rejilla.
+// bw: true en las fotos en blanco y negro (filtro "B/N" de la galería del proyecto).
+// project: lo de su página (proyecto.html#slug): frase, ficha, encargo / idea / resultado, reels y secuencia.
+// Con UN solo trabajo, el portfolio lo enseña como proyecto destacado; con 2 o más, la rejilla. Cada uno abre su página.
 export const works = [
   {
     slug: 'cachondeo-group',
@@ -41,13 +43,44 @@ export const works = [
       { type: 'img', src: 'assets/portfolio/cachondeo/cachondeo-14.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-14-1000.webp', w: 2000, h: 1500, alt: 'Grupo de chicas cantando y riendo en la pista con un micro' },
       { type: 'img', src: 'assets/portfolio/cachondeo/cachondeo-15.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-15-1000.webp', w: 2000, h: 1333, alt: 'Chico con camiseta naranja cantando al micro con la gente detrás' },
       { type: 'img', src: 'assets/portfolio/cachondeo/cachondeo-16.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-16-1000.webp', w: 1333, h: 2000, alt: 'Chico sonriente con camiseta naranja de Cachondeo Group y la bufanda del Getafe al hombro' },
-      { type: 'img', src: 'assets/portfolio/cachondeo/cachondeo-17.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-17-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: grupo de amigos abrazados bajo el letrero luminoso de Cachondeo Group' },
-      { type: 'img', src: 'assets/portfolio/cachondeo/cachondeo-18.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-18-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chico con la bufanda del Getafe sobre la cabeza haciendo cuernos con las manos' },
-      { type: 'img', src: 'assets/portfolio/cachondeo/cachondeo-19.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-19-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chico con camiseta de Cachondeo Group sonriendo de perfil' },
-      { type: 'img', src: 'assets/portfolio/cachondeo/cachondeo-20.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-20-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: micrófono y pulseras de Cachondeo Group sobre una mesa' },
+      { type: 'img', bw: true, src: 'assets/portfolio/cachondeo/cachondeo-17.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-17-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: grupo de amigos abrazados bajo el letrero luminoso de Cachondeo Group' },
+      { type: 'img', bw: true, src: 'assets/portfolio/cachondeo/cachondeo-18.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-18-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chico con la bufanda del Getafe sobre la cabeza haciendo cuernos con las manos' },
+      { type: 'img', bw: true, src: 'assets/portfolio/cachondeo/cachondeo-19.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-19-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chico con camiseta de Cachondeo Group sonriendo de perfil' },
+      { type: 'img', bw: true, src: 'assets/portfolio/cachondeo/cachondeo-20.webp', thumb: 'assets/portfolio/cachondeo/cachondeo-20-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: micrófono y pulseras de Cachondeo Group sobre una mesa' },
     ],
     year: 2026,
     deliverables: ['2 reels verticales', '+80 fotos editadas', 'Cobertura completa del evento'],
+    // la página del proyecto (proyecto.html#cachondeo-group, js/proyecto.js). Textos: BORRADOR (Oscar los confirma)
+    project: {
+      tagline: 'Una noche de karaoke, fútbol y camisetas naranjas. La contamos en dos reels y más de 80 fotos.',
+      facts: [
+        ['Cliente', 'Cachondeo Group'],
+        ['Tipo', 'Evento nocturno'],
+        ['Lugar', 'Madrid [CONFIRMAR]'],
+        ['Año', '2026'],
+        ['Entregables', '2 reels, +80 fotos'],
+        ['Equipo', 'Luna López, Bruno Marín'],
+      ],
+      story: [
+        ['El encargo', 'Contar la fiesta de Cachondeo Group para sus redes, con la energía real de la noche.'],
+        ['La idea', 'Rodar sin interrumpir: cámara en mano entre la gente, flash directo y el naranja de la marca en cada plano.'],
+        ['El resultado', 'Dos reels verticales listos para Instagram y TikTok y una galería completa para el cliente al día siguiente.'],
+      ],
+      // los reels (duración: la real, se vuelve a leer del vídeo)
+      reels: [
+        { src: 'assets/portfolio/cachondeo/reel-recap.mp4', poster: 'assets/portfolio/cachondeo/reel-recap-poster.webp', title: 'Recap de la noche', duration: '0:19', alt: 'Reel resumen de la fiesta de Cachondeo Group' },
+        { src: 'assets/portfolio/cachondeo/reel-fiesta.mp4', poster: 'assets/portfolio/cachondeo/reel-fiesta-poster.webp', title: 'La fiesta', duration: '0:23', alt: 'Reel de la fiesta de Cachondeo Group' },
+      ],
+      // "La noche en secuencia": 6 fotos (número de la foto) con su pie
+      sequence: [
+        ['01', '21:47 · Foto de grupo'],
+        ['05', '22:20 · Abrazos'],
+        ['08', '23:05 · La pista'],
+        ['13', '23:40 · Karaoke'],
+        ['15', '00:15 · El micro'],
+        ['17', '01:30 · La última'],
+      ],
+    },
   },
   /* EJEMPLO (descoméntalo y cámbialo):
   {

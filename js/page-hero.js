@@ -100,7 +100,7 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   hint.className = 'pgh__hint';
   hint.setAttribute('aria-hidden', 'true');
   hint.textContent = 'Arrastra el destello';
-  stage.append(hint);
+  if (cfg.star !== false) stage.append(hint);
 
   // ---------- vídeo (con movimiento reducido, solo el póster). Solo los metadatos hasta que hace falta ----------
   let video = null;
@@ -141,7 +141,8 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   // ---------- el destello 3D (three + el GLB, compartidos con el recorrido: js/star-core.js) ----------
   let interacted = false;
   const hideHint = () => gsap.to(hint, { opacity: 0, duration: 0.3, overwrite: true });
-  const star = import('./hero-star.js')
+  // (portfolio: sin destello, la bola del vídeo es la protagonista: js/portfolio-hero.js)
+  const star = cfg.star === false ? Promise.resolve(null) : import('./hero-star.js')
     .then((m) => m.createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, onInteract: () => { interacted = true; hideHint(); } }))
     .catch(() => null);
 

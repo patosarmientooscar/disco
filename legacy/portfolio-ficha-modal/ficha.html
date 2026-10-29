@@ -1,0 +1,16 @@
+    <!-- ficha de cada trabajo (modal accesible; URL con #slug) -->
+    <dialog class="work-modal" data-modal data-lenis-prevent aria-labelledby="wm-title">
+      <div class="work-modal__inner">
+        <button class="work-modal__close" type="button" data-modal-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+        </button>
+        <p class="work-modal__meta" data-wm-meta></p>
+        <h2 class="work-modal__title" id="wm-title" data-wm-title></h2>
+        <p class="work-modal__client" data-wm-client></p>
+        <div class="work-modal__media" data-wm-media></div>
+        <div class="work-modal__foot">
+          <p class="work-modal__deliv" data-wm-deliv></p>
+          <a class="btn btn--orange" href="contacto.html" data-wm-cta>Quiero algo así <b aria-hidden="true">→</b></a>
+        </div>
+      </div>
+    </dialog>

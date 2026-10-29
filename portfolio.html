@@ -36,12 +36,13 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-  <link rel="preload" as="image" href="assets/paginas/portfolio-poster.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/portfolio/hero/bola-poster.webp" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/placeholder.css">
   <link rel="stylesheet" href="css/interior.css">
   <link rel="stylesheet" href="css/portfolio.css">
+  <link rel="stylesheet" href="css/manifesto.css">
   <link rel="stylesheet" href="css/page-hero.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/fin.css">
@@ -80,20 +81,23 @@
   </header>
 
   <main id="contenido" class="ip">
-    <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): vídeo a pantalla
-         completa, el destello 3D de la home en el centro y, abajo, la etiqueta de la página y el titular (js/hero-star.js). Una sección normal de
-         100svh, sin pin: al bajar, el destello se suelta y sale en diagonal con su estela -->
+    <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): la bola de espejos
+         girando, sin el destello 3D. Con el ratón, la imagen se ondula (el fluido de la home); al bajar (sin pin), los
+         reflejos se escapan de la bola, la bola se acerca y gira más rápido, el titular se va y el fondo se oscurece
+         (js/portfolio-hero.js, css/portfolio.css) -->
     <section class="pgh" data-page-hero="portfolio" aria-labelledby="ph-title">
       <div class="pgh__stage">
-        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/paginas/portfolio-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
+        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/portfolio/hero/bola-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
         <i class="pgh__grade" aria-hidden="true"></i>
+        <i class="pgh__dark" data-ball-dark aria-hidden="true"></i>
         <div class="pgh__foot">
           <div>
             <h1 class="pgh__tag" id="ph-title"><span class="pgh__tag-star" aria-hidden="true"><svg viewBox="1194 585 84 119" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>Portfolio</h1>
-            <p class="pgh__head" data-ph-head>Lo que hemos rodado: marcas, eventos y noches que se quedan en la cabeza.</p>
+            <p class="pgh__head" data-ph-head>Lo que rodamos.</p>
+            <p class="pgh__sub" data-ph-after>Fiestas, marcas y momentos que se quedan. Este es nuestro trabajo.</p>
             <div class="pgh__ctas" data-ph-after>
-              <a class="pgh__btn" href="#trabajos" data-ph-to>Ver trabajos <b aria-hidden="true">→</b></a>
-              <a class="pgh__link" href="#showreel" data-ph-to>Ver el showreel</a>
+              <a class="pgh__btn" href="#trabajos" data-ph-to>Ver el último proyecto <b aria-hidden="true">→</b></a>
+              <button class="pgh__play" type="button" data-manifesto-open aria-haspopup="dialog"><span class="pgh__play-dot" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="pgh__play-txt">Ver el manifiesto</span></button>
             </div>
           </div>
           <p class="pgh__meta" data-ph-after><span data-ph-tc>TC 00:00:00:00</span><span><span data-count aria-live="polite">00 PROYECTOS</span></span><span>MADRID · 40.4168° N</span></p>
@@ -136,21 +140,27 @@
       </div>
     </section>
 
-    <!-- ficha de cada trabajo (modal accesible; URL con #slug) -->
-    <dialog class="work-modal" data-modal data-lenis-prevent aria-labelledby="wm-title">
-      <div class="work-modal__inner">
-        <button class="work-modal__close" type="button" data-modal-close aria-label="Cerrar">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
-        </button>
-        <p class="work-modal__meta" data-wm-meta></p>
-        <h2 class="work-modal__title" id="wm-title" data-wm-title></h2>
-        <p class="work-modal__client" data-wm-client></p>
-        <div class="work-modal__media" data-wm-media></div>
-        <div class="work-modal__foot">
-          <p class="work-modal__deliv" data-wm-deliv></p>
-          <a class="btn btn--orange" href="contacto.html" data-wm-cta>Quiero algo así <b aria-hidden="true">→</b></a>
-        </div>
+    <!-- el manifiesto completo (con sus frases y con sonido), a pantalla completa (js/manifesto.js) -->
+    <dialog class="mf" data-manifesto aria-label="Manifiesto de disco" data-lenis-prevent>
+      <div class="mf__frame">
+        <video class="mf__video" playsinline preload="none" poster="assets/paginas/disco-manifiesto-poster.webp" data-mf-video></video>
+        <i class="mf__flash" aria-hidden="true"></i>
       </div>
+      <div class="mf__bar">
+        <button class="mf__btn" type="button" data-mf-toggle aria-label="Pausar">
+          <svg class="mf__i-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+          <svg class="mf__i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        </button>
+        <input class="mf__seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avance del manifiesto" data-mf-seek>
+        <span class="mf__tc" data-mf-tc>TC 00:00:00:00</span>
+        <button class="mf__btn" type="button" data-mf-mute aria-pressed="false" aria-label="Silenciar">
+          <svg class="mf__i-sound" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <svg class="mf__i-muted" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <button class="mf__close" type="button" data-mf-close aria-label="Cerrar el manifiesto">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+      </button>
     </dialog>
   </main>
 

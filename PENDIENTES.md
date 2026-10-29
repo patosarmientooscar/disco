@@ -38,7 +38,11 @@ Los sectores están en `js/servicios-data.js`. Los textos de "Tres oficios" y de
 - [ ] **Foto de Restaurantes y gastronomía:** sigue la provisional (`assets/hero/03.webp`). Falta una foto real de un restaurante.
 - [ ] **Proceso (BORRADOR):** los 8 textos de las tarjetas del bento, en `servicios.html` (`data-draft`).
 - [x] **Fotos de las tarjetas del proceso:** reales (Cachondeo Group). "Postproducción" es un antes / después real: `assets/servicios/post/post-antes.webp` (RAW) y `post-despues.webp` (DISCO GRADE), con sus versiones `-1000`. "Entrega a medida": `cachondeo-02`.
-- [ ] **Titulares de los heroes de Portfolio, Nosotros y Contacto:** de momento llevan su texto de antes como titular (pendiente de AB / AC). Servicios ya tiene el suyo.
+- [ ] **Titulares de los heroes de Nosotros y Contacto:** de momento llevan su texto de antes como titular (pendiente de AC). Servicios y Portfolio ya tienen el suyo.
+- [x] **Hero de Portfolio: la bola de espejos** (`assets/portfolio/hero/bola.mp4`, `-1280` y `bola-poster.webp`; js/portfolio-hero.js). Los reflejos que se escapan salen de los puntos de luz del póster (`SPOTS`): si se cambia el vídeo, hay que volver a sacarlos (y el centro de la bola, `BALL`).
+- [ ] **Página de proyecto (`proyecto.html#cachondeo-group`):** textos BORRADOR en `js/portfolio-data.js` → `project`: la frase de la portada, la ficha (Lugar: "Madrid [CONFIRMAR]"), el encargo / la idea / el resultado, los títulos de los reels ("Recap de la noche", "La fiesta") y los pies con hora de "La noche en secuencia" (21:47 · Foto de grupo, etc.). Oscar los confirma.
+- [ ] **Compartir proyectos:** el título y la descripción de `proyecto.html` están escritos para Cachondeo Group (las redes no leen el #slug). Con un segundo proyecto, conviene una página por proyecto (proyecto-casa-lola.html, copiando la plantilla) para que cada uno tenga su og:image.
+- [ ] **CSS del manifiesto duplicado:** `css/manifesto.css` (portfolio) es una copia del bloque del final de `css/servicios.css`. Cuando se pueda tocar Servicios, que cargue `css/manifesto.css` y se borra el bloque de allí.
 - [ ] **Para quién (BORRADOR):** los 5 sectores y sus frases (`sectors`).
 
 ## Hero de las páginas interiores (js/page-hero.js, js/config.js → pageHeroes)
