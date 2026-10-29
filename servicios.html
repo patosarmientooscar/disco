@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-  <link rel="preload" as="image" href="assets/servicios/hero/bg-poster.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/paginas/servicios-poster.webp" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/interior.css">
@@ -120,11 +120,11 @@
        legacy/servicios-v1/) -->
   <main id="contenido" class="ip sv">
     <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): vídeo a pantalla
-         completa, el título enorme y, delante, el destello 3D de la home (js/hero-star.js). 240vh con el escenario fijo
-         para la salida con el scroll -->
+         completa, el título enorme y, delante, el destello 3D de la home (js/hero-star.js). Una sección normal de
+         100svh: el scroll no la cambia -->
     <section class="pgh" data-page-hero="servicios" aria-labelledby="ph-title">
       <div class="pgh__stage">
-        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/servicios/hero/bg-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
+        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/paginas/servicios-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
         <i class="pgh__grade" aria-hidden="true"></i>
         <h1 class="pgh__title" id="ph-title">Servicios<b>.</b></h1>
         <div class="pgh__foot">
@@ -133,6 +133,7 @@
             <div class="pgh__ctas" data-ph-after>
               <a class="pgh__btn" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
               <a class="pgh__link" href="#proceso" data-ph-to>Ver cómo trabajamos</a>
+              <button class="pgh__play" type="button" data-manifesto-open aria-haspopup="dialog"><span class="pgh__play-dot" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="pgh__play-txt">Ver el manifiesto · 0:38</span></button>
             </div>
           </div>
           <p class="pgh__meta" data-ph-after><span data-ph-tc>TC 00:00:00:00</span><span>FOTO · VÍDEO · EDICIÓN</span><span>MADRID · 40.4168° N</span></p>
@@ -304,8 +305,8 @@
               <article class="bento__card" data-card="post">
                 <div class="bento__art b-grade" aria-hidden="true">
                   <div class="b-grade__img" data-grade>
-                    <img src="assets/hero/05.webp" alt="" loading="lazy" decoding="async">
-                    <img class="b-grade__log" src="assets/hero/05.webp" alt="" loading="lazy" decoding="async">
+                    <img src="assets/portfolio/cachondeo/cachondeo-08.webp" alt="" loading="lazy" decoding="async">
+                    <img class="b-grade__log" src="assets/portfolio/cachondeo/cachondeo-08.webp" alt="" loading="lazy" decoding="async">
                     <i class="b-grade__line"></i>
                   </div>
                   <div class="b-tl" data-tl><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__head"></i></div>
@@ -322,7 +323,7 @@
               <article class="bento__card" data-card="entrega">
                 <div class="bento__art b-fmt" aria-hidden="true">
                   <div class="b-fmt__box" data-fmt>
-                    <img src="assets/hero/03.webp" alt="" loading="lazy" decoding="async">
+                    <img src="assets/portfolio/cachondeo/cachondeo-02.webp" alt="" loading="lazy" decoding="async">
                     <i class="b-fmt__c"></i><i class="b-fmt__c"></i><i class="b-fmt__c"></i><i class="b-fmt__c"></i>
                   </div>
                   <span class="b-fmt__ratio" data-ratio>9:16</span>
@@ -379,6 +380,28 @@
         </div>
       </div>
     </section>
+    <!-- el manifiesto completo (con sus frases y con sonido), a pantalla completa (js/manifesto.js) -->
+    <dialog class="mf" data-manifesto aria-label="Manifiesto de disco" data-lenis-prevent>
+      <div class="mf__frame">
+        <video class="mf__video" playsinline preload="none" poster="assets/paginas/disco-manifiesto-poster.webp" data-mf-video></video>
+        <i class="mf__flash" aria-hidden="true"></i>
+      </div>
+      <div class="mf__bar">
+        <button class="mf__btn" type="button" data-mf-toggle aria-label="Pausar">
+          <svg class="mf__i-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+          <svg class="mf__i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        </button>
+        <input class="mf__seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avance del manifiesto" data-mf-seek>
+        <span class="mf__tc" data-mf-tc>TC 00:00:00:00</span>
+        <button class="mf__btn" type="button" data-mf-mute aria-pressed="false" aria-label="Silenciar">
+          <svg class="mf__i-sound" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <svg class="mf__i-muted" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <button class="mf__close" type="button" data-mf-close aria-label="Cerrar el manifiesto">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+      </button>
+    </dialog>
   </main>
 
   <!-- Footer "fin de la sesión" (css/fin.css; js/fin.js lo monta, js/fin-physics.js la física).

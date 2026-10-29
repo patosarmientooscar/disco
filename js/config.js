@@ -36,13 +36,13 @@ export const config = {
   },
 
   // Hero de las páginas interiores (js/page-hero.js): el vídeo de fondo de cada una. video: el de 1920; videoSm: el
-  // de < 900 px o con ahorro de datos; poster: su fotograma en `start` (s); pos: encuadre (object-position).
-  // Portfolio, Nosotros y Contacto usan DE MOMENTO el vídeo de la bailarina de "Tres oficios" (PENDIENTES.md).
+  // de < 900 px o con ahorro de datos; poster: su primer fotograma (o el de `start`, en s); pos: encuadre
+  // (object-position); fps: los del vídeo (el timecode del hero es el real).
   pageHeroes: {
-    servicios: { video: 'assets/servicios/hero/bg.mp4', videoSm: 'assets/servicios/hero/bg-1280.mp4', poster: 'assets/servicios/hero/bg-poster.webp', pos: '50% 34%', start: 0 },
-    portfolio: { video: 'assets/servicios/oficios-720.mp4', videoSm: 'assets/servicios/oficios-720.mp4', poster: 'assets/paginas/portfolio-poster.webp', pos: '50% 30%', start: 0.8 },
-    nosotros: { video: 'assets/servicios/oficios-720.mp4', videoSm: 'assets/servicios/oficios-720.mp4', poster: 'assets/paginas/nosotros-poster.webp', pos: '28% 40%', start: 2.2 },
-    contacto: { video: 'assets/servicios/oficios-720.mp4', videoSm: 'assets/servicios/oficios-720.mp4', poster: 'assets/paginas/contacto-poster.webp', pos: '72% 45%', start: 3.6 },
+    servicios: { video: 'assets/paginas/servicios-bg.mp4', videoSm: 'assets/paginas/servicios-bg-1280.mp4', poster: 'assets/paginas/servicios-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
+    portfolio: { video: 'assets/paginas/portfolio-bg.mp4', videoSm: 'assets/paginas/portfolio-bg-1280.mp4', poster: 'assets/paginas/portfolio-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
+    nosotros: { video: 'assets/paginas/nosotros-bg.mp4', videoSm: 'assets/paginas/nosotros-bg-1280.mp4', poster: 'assets/paginas/nosotros-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
+    contacto: { video: 'assets/servicios/hero/bg.mp4', videoSm: 'assets/servicios/hero/bg-1280.mp4', poster: 'assets/servicios/hero/bg-poster.webp', pos: '60% 45%', start: 0, fps: 24 },
   },
 
   // (LEGACY PRE-HERO: la configuración de la secuencia de frames de la cámara está en la historia de git.)

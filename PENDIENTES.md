@@ -30,18 +30,19 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 
 Los sectores están en `js/servicios-data.js`. Los textos de "Tres oficios" y del proceso (bento) están en `servicios.html`.
 
-- [ ] **Hero de Servicios:** el vídeo de fondo es `assets/servicios/hero/bg.mp4` (y `bg-1280.mp4` en móvil), con `bg-poster.webp`, su primer fotograma. Si cambia el vídeo, hay que sacar también el póster.
+- [x] **Hero de Servicios:** vídeo real, el DISCO VIDEO sin rótulos (`assets/paginas/servicios-bg.mp4`, `-1280` y `servicios-poster.webp`). El botón "Ver el manifiesto · 0:38" abre el vídeo completo con sonido (`assets/paginas/disco-manifiesto.mp4`). Si cambia su duración, cambia también el texto del botón en servicios.html.
 
 - [ ] **Si cambia el vídeo de "Tres oficios":** son `assets/servicios/oficios.webm`, `oficios.mp4` y `oficios-720.mp4`, y `oficios-first.webp` es su fotograma 0 exacto (la foto de los tres paneles). Si se cambia el vídeo, hay que sacar también su primer fotograma con el mismo encuadre; si no, se notará el salto al pasar de la foto al vídeo.
-- [ ] **Fotos por sector (`sectors[].photo`):** "Marcas, moda y producto" no tiene foto (no sale ninguna al pasar el ratón). Las demás son provisionales.
+- [x] **Fotos por sector (`sectors[].photo`):** reales en Eventos (Cachondeo Group), Marcas (pádel), Empresas y artistas (directo) y Deportes (rugby).
+- [ ] **Foto de Restaurantes y gastronomía:** sigue la provisional (`assets/hero/03.webp`). Falta una foto real de un restaurante.
 - [ ] **Proceso (BORRADOR):** los 8 textos de las tarjetas del bento, en `servicios.html` (`data-draft`).
-- [ ] **Fotos de las tarjetas del proceso:** "Postproducción" (antes/después) usa `assets/hero/05.webp` y "Entrega a medida" usa `assets/hero/03.webp`, las dos provisionales. Mejor una foto real de un rodaje.
+- [x] **Fotos de las tarjetas del proceso:** reales (Cachondeo Group): "Postproducción" usa `cachondeo-08` y "Entrega a medida", `cachondeo-02`.
 - [ ] **Para quién (BORRADOR):** los 5 sectores y sus frases (`sectors`).
 
 ## Hero de las páginas interiores (js/page-hero.js, js/config.js → pageHeroes)
 
-- [ ] **Vídeos de Portfolio, Nosotros y Contacto:** de momento los tres usan el vídeo de la bailarina de "Tres oficios" (`assets/servicios/oficios-720.mp4`), cada uno con otro encuadre y otro segundo de inicio. Cuando estén los vídeos reales, cambia en `pageHeroes` el `video` (1920 px), el `videoSm` (1280 px), el `poster` (su fotograma en el segundo `start`) y el `pos` (encuadre). Los pósters provisionales están en `assets/paginas/`.
-- [ ] **Reflejos del destello:** la plata refleja el vídeo de cada hero. Con un vídeo muy naranja (como el de la bailarina) el destello se ve casi entero naranja. Con los vídeos reales, revisar que siga leyéndose como plata.
+- [x] **Vídeos de los cuatro heroes:** reales. Servicios: el DISCO VIDEO sin rótulos; Portfolio: el reel RECAP de Cachondeo; Nosotros: el reel de la fiesta de Cachondeo; Contacto: el chico caminando con la cámara (`assets/servicios/hero/bg.mp4`). Para cambiar uno: `video` (1920 px), `videoSm` (1280 px), `poster` (su primer fotograma), `pos` (encuadre) y `fps` (los del vídeo, para el timecode).
+- [ ] **Reflejos del destello:** la plata refleja el vídeo de cada hero (en Servicios se tiñe de verde con el campo; en Nosotros, de dorado). Con un vídeo muy de un color, el destello se ve casi entero de ese color.
 
 ## Contacto (contacto.html, js/contact.js)
 
@@ -59,20 +60,20 @@ Los sectores están en `js/servicios-data.js`. Los textos de "Tres oficios" y de
 
 Todo se rellena en `js/portfolio-data.js`, que trae un ejemplo comentado. Las carpetas van en `assets/portfolio/`.
 
-- [ ] **Showreel (vídeo):**
-  - Archivo: `assets/portfolio/showreel.mp4`, de 30–60 s.
-  - Formato: 16:9, 1920×1080, H.264, unos 8–12 MB.
-  - Póster: `showreel.webp`, 1920×1080.
-  - Dónde se pone: `showreel.src` y `showreel.poster`.
-- [ ] **Trabajos.** Cada uno lleva:
+- [ ] **Showreel (vídeo):** de momento es el manifiesto de disco (`assets/paginas/disco-manifiesto.mp4`, 38 s, con sonido). Cuando haya un showreel propio (30–60 s, 16:9, H.264, 1920×1080 y su póster webp), cámbialo en `showreel.src` y `showreel.poster`.
+- [ ] **Cachondeo Group (BORRADOR):** confirmar el lugar y la fecha de la fiesta (`client`, ahora "Cachondeo Group · Fiesta en Madrid") y los entregables ("+80 fotos editadas"). Las fotos y los reels están en `assets/portfolio/cachondeo/`.
+- [ ] **Más proyectos:** con un solo trabajo, la página lo enseña como proyecto destacado (portada, reels y galería) y la tarjeta "Próximo proyecto: en rodaje". Al añadir el segundo, vuelve sola la rejilla con filtros.
+- [ ] **Cada trabajo nuevo lleva:**
   - Portada: `assets/portfolio/<slug>/cover.webp`, de 1200 px de ancho, en 4:5 (1200×1500), 1:1 (1200×1200) o 9:16 (1200×2133).
   - Fotos de la ficha: webp de 1600–2000 px en el lado largo.
   - Vídeos de la ficha: mp4 H.264 con póster webp.
   - Opcional: `preview.mp4`, mudo, de 3–6 s y 720 px, que se reproduce al pasar el ratón.
   - Datos: título, cliente, categoría (`restaurantes`, `noche`, `eventos` o `marcas`), año y qué se entregó.
-- [ ] Mientras no haya trabajos, la página enseña 6 huecos y el aviso "Estamos rodando nuestros primeros proyectos." No hay que hacer nada.
+- [ ] Si un día no hubiera trabajos, la página enseña 6 huecos y el aviso "Estamos rodando nuestros primeros proyectos." No hay que hacer nada.
 
 ## Nosotros (nosotros.html)
+
+- [ ] **Fotos de Luna y Bruno trabajando:** no hay ninguna real todavía (rodando, editando, en un set). Harían falta para la página y para el equipo de la home.
 
 - [ ] **Subtítulo (BORRADOR):** "Una productora pequeña, rápida y cercana…"
 - [ ] **Manifiesto (BORRADOR):** "Creemos que cada negocio tiene una energía propia…"

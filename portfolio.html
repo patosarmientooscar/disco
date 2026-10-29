@@ -81,8 +81,8 @@
 
   <main id="contenido" class="ip">
     <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): vídeo a pantalla
-         completa, el título enorme y, delante, el destello 3D de la home (js/hero-star.js). 240vh con el escenario fijo
-         para la salida con el scroll -->
+         completa, el título enorme y, delante, el destello 3D de la home (js/hero-star.js). Una sección normal de
+         100svh: el scroll no la cambia -->
     <section class="pgh" data-page-hero="portfolio" aria-labelledby="ph-title">
       <div class="pgh__stage">
         <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/paginas/portfolio-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
@@ -104,7 +104,7 @@
     <!-- B) showreel: visor 16:9 (vacío = hueco) -->
     <section class="ip-wrap reel" id="showreel" aria-label="Showreel">
       <div class="reel__viewer" data-reel>
-        <figure class="pgh" data-kind="video" data-ratio="16/9" data-ph="assets/portfolio/showreel.mp4" data-label="FALTA SHOWREEL · 16:9 · 30–60 s"></figure>
+        <figure class="ph" data-kind="video" data-ratio="16/9" data-ph="assets/portfolio/showreel.mp4" data-label="FALTA SHOWREEL · 16:9 · 30–60 s"></figure>
         <span class="reel__safe" aria-hidden="true"></span>
         <p class="reel__hud reel__hud--tl" aria-hidden="true"><i class="reel__rec"></i>SHOWREEL 2026</p>
         <p class="reel__hud reel__hud--tr" aria-hidden="true" data-reel-tc>00:00:00:00</p>

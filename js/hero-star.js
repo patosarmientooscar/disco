@@ -4,9 +4,12 @@ import { MODEL_HEIGHT, FOV, CAMERA_Z, sharedModel, softboxScene, studio } from '
 // El destello 3D en el hero de las páginas interiores (js/page-hero.js): el mismo de la home (GLB, materiales,
 // softboxes, ACES; js/star-core.js) en un canvas del escenario, encima del título. Reflejos vivos: el entorno es el
 // estudio de softboxes con una esfera por dentro que lleva el VÍDEO del hero (cuando pasa una luz naranja, la plata
-// se tiñe), regenerado cada 5 fotogramas solo con el hero en pantalla y el vídeo en marcha.
+// se tiñe), regenerado cada 5 fotogramas solo con el hero en pantalla y el vídeo en marcha. Para que no cueste
+// fotogramas, la escena se pinta con una CubeCamera en un cubemap que se reutiliza y el PMREM sale de él a un
+// render target que también se reutiliza (sin crear ni borrar texturas en cada regeneración).
 // En reposo oscila de frente; se inclina hacia el cursor; se puede coger y girar con inercia (al soltar, se
-// recoloca de frente); al salir con el scroll sube, crece y gira. Movimiento reducido: quieto de frente.
+// recoloca de frente). El canvas va dentro del hero: al hacer scroll se va con él (el scroll no le cambia nada).
+// Movimiento reducido: quieto de frente.
 const DPR = { desk: 1.75, mob: 1.25 };
 const MOBILE = '(max-width: 767px)';
 const SIZE = { desk: 0.56, mob: 0.38 };          // alto en el hero (fracción de la pantalla)
@@ -15,9 +18,7 @@ const ENTER = { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180) };
 const IDLE = { amp: 0.32, speed: 0.45 };         // oscila ±0.32 rad en Y (fase a 0.45 rad/s), sin vueltas completas
 const TILT = { x: 0.22, y: 0.35, z: 0.06, lerp: 0.06 };
 const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07, idleBack: 1.2 };
-const EXIT = { rise: 0.7, grow: 0.35, turns: 1.5 };
-const REFLECT = { every: 5, sigma: 0.02, gain: 1.9, radius: 15 };
-const TAU = Math.PI * 2;
+const REFLECT = { every: 5, size: 256, gain: 1.9, radius: 15 };
 
 export async function createHeroStar({ gsap, stage, video, state, loop, reduced, onInteract }) {
   let renderer;
@@ -59,7 +60,7 @@ export async function createHeroStar({ gsap, stage, video, state, loop, reduced,
   stage.querySelector('.pgh__grain').before(canvas);
 
   // ---------- reflejos vivos: softboxes + esfera interior con el vídeo ----------
-  const live = { env: null, pmrem: null, tex: null, frame: 0, rt: null };
+  const live = { env: null, pmrem: null, tex: null, frame: 0, rt: null, cube: null, cam: null };
   if (video && !reduced.matches) {
     live.env = softboxScene();
     live.tex = new THREE.VideoTexture(video);
@@ -72,12 +73,13 @@ export async function createHeroStar({ gsap, stage, video, state, loop, reduced,
     );
     sphere.rotation.y = -Math.PI / 2; // el centro del vídeo, detrás de la cámara: lo que reflejan las caras de frente
     live.pmrem = new THREE.PMREMGenerator(renderer);
+    live.cube = new THREE.WebGLCubeRenderTarget(REFLECT.size, { type: THREE.HalfFloatType });
+    live.cam = new THREE.CubeCamera(0.1, 100, live.cube);
   }
   const reflect = () => {
-    const rt = live.pmrem.fromScene(live.env.scene, REFLECT.sigma);
-    scene.environment = rt.texture;
-    live.rt?.dispose();
-    live.rt = rt;
+    live.cam.update(renderer, live.env.scene);
+    live.rt = live.pmrem.fromCubemap(live.cube.texture, live.rt);
+    scene.environment = live.rt.texture;
   };
 
   // ---------- tamaño ----------
@@ -126,9 +128,9 @@ export async function createHeroStar({ gsap, stage, video, state, loop, reduced,
     const h = ((star.scale.y * MODEL_HEIGHT) / (2 * view.halfH)) * r.height;
     return Math.abs(e.clientX - cx) < h * 0.36 && Math.abs(e.clientY - cy) < h * 0.5;
   };
-  canvas.addEventListener('pointermove', (e) => { if (!drag.on) canvas.classList.toggle('is-grab', state.p < 0.2 && onStar(e)); });
+  canvas.addEventListener('pointermove', (e) => { if (!drag.on) canvas.classList.toggle('is-grab', onStar(e)); });
   canvas.addEventListener('pointerdown', (e) => {
-    if (state.p > 0.2 || !onStar(e)) return;
+    if (!onStar(e)) return;
     drag.on = true;
     drag.id = e.pointerId;
     drag.x = e.clientX;
@@ -164,7 +166,7 @@ export async function createHeroStar({ gsap, stage, video, state, loop, reduced,
   let osc = 0;
 
   loop.add((time, ratio) => {
-    if (!entered || document.hidden || !state.inView || state.p >= 1) return;
+    if (!entered || document.hidden || !state.inView) return;
     const dt = ratio / 60;
     // giro de la mano: inercia al soltar y, quieta, se recoloca de frente en el múltiplo de π más cercano
     if (!drag.on) {
@@ -183,16 +185,10 @@ export async function createHeroStar({ gsap, stage, video, state, loop, reduced,
     cur.rx += (state.my * TILT.x - cur.rx) * a;
     cur.ry += (state.mx * TILT.y - cur.ry) * a;
     cur.rz += (-state.mx * TILT.z - cur.rz) * a;
-    // salida: sube, crece y gira
-    const p = state.p;
     const e = entry.p;
-    star.position.set(0, (LIFT * 2 + EXIT.rise * p) * view.halfH, 0);
-    star.scale.setScalar(baseScale() * (ENTER.scale + (1 - ENTER.scale) * e) * (1 + EXIT.grow * p));
-    star.rotation.set(
-      cur.rx * (1 - p),
-      (1 - e) * ENTER.turn + Math.sin(osc) * IDLE.amp * drag.idle + drag.spin + cur.ry + p * EXIT.turns * TAU,
-      cur.rz * (1 - p),
-    );
+    star.position.set(0, LIFT * 2 * view.halfH, 0);
+    star.scale.setScalar(baseScale() * (ENTER.scale + (1 - ENTER.scale) * e));
+    star.rotation.set(cur.rx, (1 - e) * ENTER.turn + Math.sin(osc) * IDLE.amp * drag.idle + drag.spin + cur.ry, cur.rz);
     // reflejos vivos: cada 5 fotogramas con el vídeo en marcha
     if (live.pmrem && video && !video.paused && video.readyState >= 2 && ++live.frame % REFLECT.every === 0) reflect();
     draw();
@@ -202,6 +198,7 @@ export async function createHeroStar({ gsap, stage, video, state, loop, reduced,
   // al salir de la página se liberan el vídeo de los reflejos y WebGL
   window.addEventListener('pagehide', () => {
     live.rt?.dispose();
+    live.cube?.dispose();
     live.tex?.dispose();
     live.pmrem?.dispose();
     live.env?.dispose();

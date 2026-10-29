@@ -2,6 +2,7 @@ import { config } from './config.js';
 import { sectors } from './servicios-data.js';
 import { initOficios } from './oficios.js';
 import { initBento } from './bento.js';
+import { initManifesto } from './manifesto.js';
 
 // Servicios v2 (css/servicios.css): fondo negro; el hero común de las páginas (js/page-hero.js, lo monta js/page.js);
 // los tres oficios en paneles (js/oficios.js); el proceso en bento (js/bento.js); para quién; y el cierre naranja,
@@ -15,6 +16,7 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
   const still = reduced.matches;
   const desktop = matchMedia('(min-width: 900px)');
   initManifest(gsap, still);
+  initManifesto({ gsap, lenis, reduced }); // el vídeo completo con sonido, desde el botón del hero
   initOficios({ gsap, ScrollTrigger, loop, still });
   initBento({ gsap, ScrollTrigger, loop, still });
   initSectors({ gsap, loop, still, desktop });

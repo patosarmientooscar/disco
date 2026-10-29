@@ -1,6 +1,6 @@
 /* ---------- hero de las páginas interiores (js/page-hero.js, js/hero-star.js) ----------
-   Servicios, Portfolio, Nosotros y Contacto. Sección de 240vh con el escenario fijo (sticky, 100svh) para la
-   salida con el scroll. De atrás hacia delante: vídeo (inset −4 % para el parallax) · etalonado · título enorme ·
+   Servicios, Portfolio, Nosotros y Contacto. Una sección normal de 100svh (mín. 600px): sube con el scroll como
+   cualquier otra, sin pin ni cambios. De atrás hacia delante: vídeo (inset −4 % para el parallax) · etalonado · título enorme ·
    el destello 3D (canvas) · grano · texto, botones y meta · flash de entrada. */
 .pgh {
   --ph-orange: #F35411;
@@ -8,16 +8,14 @@
   --ph-x: clamp(20px, 4vw, 64px);
   position: relative;
   z-index: 1;
-  height: 240vh;
   background: var(--ink);
   color: var(--paper);
 }
 .pgh__stage {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   height: 100svh;
-  min-height: 560px;
+  min-height: 600px;
   overflow: hidden;
   isolation: isolate;
 }
@@ -42,9 +40,8 @@
 .pgh__look {
   position: absolute;
   inset: 0;
-  filter: brightness(var(--ph-bright, 0.58)) saturate(0.9) contrast(1.05) blur(var(--ph-blur, 0px));
-  transform: scale(var(--ph-zoom, 1.06));
-  will-change: transform, filter;
+  filter: brightness(0.58) saturate(0.9) contrast(1.05);
+  transform: scale(1.06);
 }
 /* 2. etalonado: viñeta, degradado inferior (para leer el texto) y uno suave arriba (para la nav) */
 .pgh__grade {
@@ -143,6 +140,30 @@
   transition: background-size 0.45s cubic-bezier(0.65, 0, 0.35, 1), color 0.25s ease;
 }
 .pgh__link:hover { color: var(--ph-orange); background-size: 0% 1px; background-position: 100% calc(100% - 10px); }
+/* el botón del vídeo completo (servicios: el manifiesto): círculo de 52px con ▶ y su texto */
+.pgh__play {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  font: 500 15px / 1 var(--font-display);
+  cursor: pointer;
+}
+.pgh__play-dot {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgb(244 242 239 / 0.45);
+  border-radius: 50%;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.pgh__play-dot svg { translate: 1px 0; }
+.pgh__play:hover .pgh__play-dot { background: var(--paper); border-color: var(--paper); color: var(--ink); }
 .pgh__mail { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .pgh__copy {
   min-height: 44px;
@@ -200,7 +221,13 @@
   .pgh__lede { margin-bottom: 18px; }
   .pgh__ctas { flex-direction: column; align-items: stretch; max-width: 340px; gap: 6px; }
   .pgh__btn { justify-content: center; }
-  .pgh__link { align-self: center; }
+  .pgh__link,
+  .pgh__play { align-self: center; }
+  /* con tres (servicios: el manifiesto): el círculo ▶ junto al botón (su texto, solo para el lector de pantalla)
+     y el enlace debajo; el pie no crece hasta el destello */
+  .pgh__ctas:has(.pgh__play) { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 10px; }
+  .pgh__ctas:has(.pgh__play) .pgh__link { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+  .pgh__play-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .pgh__meta { align-items: flex-start; text-align: left; flex-direction: row; flex-wrap: wrap; gap: 4px 14px; }
 }
 
