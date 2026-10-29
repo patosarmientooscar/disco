@@ -4,7 +4,8 @@
 //   · PARALLAX: tres velocidades según la columna (−6 %, 0, +6 %), sin romper la rejilla (alineada en el centro)
 //   · HOVER: inclinación 3D hacia el cursor (máx. 4°), reflejo blanco al 7 % y borde naranja al 40 % junto al
 //     cursor; las demás tarjetas, al 70 %
-// "Viva" = con el ratón encima (escritorio) o centrada en pantalla (móvil, sin hover ni inclinación).
+// "Viva" = con el ratón encima (escritorio), centrada en pantalla (móvil, sin hover ni inclinación) o encendida por
+// el destello cuando aterriza en ella (evento "disco:light" desde js/page-star.js; el borde y el halo, en CSS).
 // Movimiento reducido: rejilla quieta con las ilustraciones en su estado final.
 const TILT = { max: 4, lerp: 0.12 };
 const SPEED = 0.06;
@@ -17,7 +18,14 @@ export function initBento({ gsap, ScrollTrigger, loop, still }) {
   const cards = cells.map((c) => c.querySelector('[data-card]'));
   const desktop = matchMedia('(min-width: 900px)');
   const mods = { marca: words, idea, plan: board, rodaje: focus, post: grade, entrega: formats };
-  const api = cards.map((card) => (mods[card.dataset.card] || (() => ({})))({ gsap, ScrollTrigger, card }));
+  const api = cards.map((card) => (mods[card.dataset.card] || (() => ({})))({ gsap, ScrollTrigger, card, desktop }));
+  // el halo del destello (debajo de todo lo de la tarjeta)
+  cards.forEach((card) => {
+    const halo = document.createElement('i');
+    halo.className = 'bento__halo';
+    halo.setAttribute('aria-hidden', 'true');
+    card.prepend(halo);
+  });
 
   if (still) {
     cards.forEach((c, i) => { c.classList.add('is-final', 'is-in'); api[i].final?.(); });
@@ -34,11 +42,16 @@ export function initBento({ gsap, ScrollTrigger, loop, still }) {
   }), { rootMargin: '10% 0px' });
   cards.forEach((c) => io.observe(c));
 
-  const live = (i, on) => {
-    if (cards[i].classList.contains('is-live') === on) return;
-    cards[i].classList.toggle('is-live', on);
-    api[i].live?.(on);
+  // viva por el ratón, por estar centrada (móvil) o por el destello
+  const why = cards.map(() => ({ hover: false, scroll: false, star: false }));
+  const live = (i, on, from = 'hover') => {
+    why[i][from] = on;
+    const v = why[i].hover || why[i].scroll || why[i].star;
+    if (cards[i].classList.contains('is-live') === v) return;
+    cards[i].classList.toggle('is-live', v);
+    api[i].live?.(v, why[i]);
   };
+  cards.forEach((card, i) => card.addEventListener('disco:light', (e) => live(i, !!e.detail, 'star')));
 
   // --- inclinación, reflejo y borde (escritorio con ratón) ---
   const tilt = cards.map(() => ({ x: 0, y: 0, tx: 0, ty: 0, on: false }));
@@ -120,8 +133,8 @@ export function initBento({ gsap, ScrollTrigger, loop, still }) {
     .add('(max-width: 899px)', () => {
       const ts = enters.map((el, i) => {
         const tw = gsap.fromTo(el, from, { ...to, scrollTrigger: { trigger: cells[i], start: 'top 90%', once: true } });
-        const c = ScrollTrigger.create({ trigger: cards[i], start: 'top 62%', end: 'bottom 38%', onToggle: (self) => live(i, self.isActive) });
-        return () => { tw.scrollTrigger?.kill(); tw.kill(); c.kill(); live(i, false); };
+        const c = ScrollTrigger.create({ trigger: cards[i], start: 'top 62%', end: 'bottom 38%', onToggle: (self) => live(i, self.isActive, 'scroll') });
+        return () => { tw.scrollTrigger?.kill(); tw.kill(); c.kill(); live(i, false, 'scroll'); };
       });
       return () => ts.forEach((f) => f());
     });
@@ -261,9 +274,9 @@ function focus({ card }) {
   };
   const toHome = () => { const h = home(); s.tx = h.x; s.ty = h.y; };
   return {
-    live(on) {
-      s.follow = on && matchMedia('(min-width: 900px)').matches;
-      if (on && !s.follow) { s.x = card.clientWidth - 60; s.y = 40; } // móvil: desde la esquina hasta el título
+    live(on, why) {
+      s.follow = on && !!why?.hover && matchMedia('(min-width: 900px)').matches;
+      if (on && !s.follow) { s.x = card.clientWidth - 60; s.y = 40; } // sin ratón: desde la esquina hasta el título
       toHome();
     },
     move(nx, ny) { if (s.follow) { s.tx = nx * card.clientWidth; s.ty = ny * card.clientHeight; } },
@@ -287,29 +300,42 @@ function focus({ card }) {
   };
 }
 
-// --- Postproducción: foto en LOG (plana) → etalonada según la x del ratón (línea divisoria) y cabezal en la
-//     línea de tiempo; en móvil, viva → barre sola ---
-function grade({ card }) {
+// --- Postproducción: la misma foto antes (RAW, a la izquierda de la línea) y después (DISCO GRADE): la línea sigue
+//     al ratón; con el dedo, se arrastra; sola (al entrar en móvil o al encenderla el destello), barre una vez y se
+//     queda a la mitad. El cabezal de la línea de tiempo va con ella ---
+function grade({ gsap, card, desktop }) {
   const box = card.querySelector('[data-grade]');
-  const log = box.querySelector('.b-grade__log');
+  const raw = box.querySelector('.b-grade__raw');
   const line = box.querySelector('.b-grade__line');
   const tl = card.querySelector('[data-tl]');
   const head = tl.querySelector('.b-tl__head');
-  const s = { v: 0.5, t: 0.5, last: -1, auto: false };
+  const s = { v: 0.5, t: 0.5, last: -1, drag: false, swept: false, sweep: null };
+  const sweep = () => {
+    s.sweep?.kill();
+    s.sweep = gsap.timeline()
+      .fromTo(s, { t: 0.06 }, { t: 0.94, duration: 1.1, ease: 'power2.inOut' })
+      .to(s, { t: 0.5, duration: 0.6, ease: 'power2.inOut' });
+  };
+  const point = (e) => {
+    const r = box.getBoundingClientRect();
+    s.t = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  };
+  box.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') return; s.drag = true; s.sweep?.kill(); point(e); });
+  box.addEventListener('pointermove', (e) => { if (s.drag) point(e); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => box.addEventListener(t, () => { s.drag = false; }));
   return {
-    live(on) { s.auto = on && !matchMedia('(min-width: 900px)').matches; if (!on) s.t = 0.5; },
-    move(nx, ny, e) {
-      const r = box.getBoundingClientRect();
-      s.t = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-    },
+    visible(on) { if (on && !s.swept && !desktop.matches) { s.swept = true; sweep(); } },
+    live(on, why) { if (on && !why?.hover) sweep(); },
+    move(nx, ny, e) { s.sweep?.kill(); point(e); },
     final() { s.v = 0.5; s.last = -1; this.tick(0, 1); },
     tick(time, ratio) {
-      if (s.auto) s.t = 0.5 + 0.42 * Math.sin(time * 1.3);
       s.v += (s.t - s.v) * (1 - Math.pow(1 - 0.12, ratio));
       if (Math.abs(s.v - s.last) < 0.0005) return;
       s.last = s.v;
-      log.style.clipPath = `inset(0 0 0 ${(s.v * 100).toFixed(2)}%)`;
-      line.style.transform = `translate3d(${(s.v * box.clientWidth).toFixed(1)}px, 0, 0)`;
+      const x = s.v * box.clientWidth;
+      raw.style.clipPath = `inset(0 ${(100 - s.v * 100).toFixed(2)}% 0 0)`;
+      line.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
+      box.style.setProperty('--x', `${x.toFixed(1)}px`);
       head.style.transform = `translate3d(${(s.v * tl.clientWidth).toFixed(1)}px, 0, 0)`;
     },
   };

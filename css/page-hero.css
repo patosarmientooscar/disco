@@ -1,13 +1,14 @@
 /* ---------- hero de las páginas interiores (js/page-hero.js, js/hero-star.js) ----------
-   Servicios, Portfolio, Nosotros y Contacto. Una sección normal de 100svh (mín. 600px): sube con el scroll como
-   cualquier otra, sin pin ni cambios. De atrás hacia delante: vídeo (inset −4 % para el parallax) · etalonado · título enorme ·
-   el destello 3D (canvas) · grano · texto, botones y meta · flash de entrada. */
+   Servicios, Portfolio, Nosotros y Contacto. Una sección normal de 100svh (mín. 600px), sin pin. El destello 3D
+   pinta en el canvas fijo de la página (.ps-canvas, z-index 1; un solo renderer: js/star-core.js): por eso el hero
+   NO crea contexto de apilamiento (sin z-index ni isolation) y sus capas se ordenan con el canvas: vídeo (inset −4 %
+   para el parallax) · etalonado · [el destello] · grano, texto, botones y meta (z 2) · flash de entrada (z 3). Al
+   salir, el destello sube por encima de todo (z 3, js/hero-star.js). */
 .pgh {
   --ph-orange: #F35411;
   --ph-dim: #8a807c;
   --ph-x: clamp(20px, 4vw, 64px);
   position: relative;
-  z-index: 1;
   background: var(--ink);
   color: var(--paper);
 }
@@ -16,9 +17,12 @@
   height: 100vh;
   height: 100svh;
   min-height: 600px;
-  overflow: hidden;
-  isolation: isolate;
+  overflow: clip;
+  touch-action: pan-y;
 }
+/* el destello se coge en el escenario (el canvas fijo no recibe el ratón; js comprueba que es sobre la estrella) */
+.pgh__stage.is-grab { cursor: grab; }
+.pgh__stage.is-dragging { cursor: grabbing; }
 /* 1. vídeo (o su póster mientras carga) */
 .pgh__media {
   position: absolute;
@@ -53,47 +57,22 @@
     linear-gradient(to bottom, rgb(11 9 9 / 0.55) 0%, rgb(11 9 9 / 0) 18%),
     radial-gradient(ellipse 80% 75% at 50% 48%, rgb(11 9 9 / 0) 40%, rgb(11 9 9 / 0.75) 100%);
 }
-/* 3. el título: una sola línea, centrado; cada letra en su <span> (js); el h1 conserva el texto en aria-label */
-.pgh__title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  margin: 0;
-  translate: 0 -50%;
-  font: 600 var(--ph-size, clamp(64px, 18vw, 320px)) / 0.8 var(--font-display);
-  letter-spacing: -0.045em;
-  text-align: center;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--paper);
-}
-.pgh__title b { font-weight: inherit; color: var(--ph-orange); }
-.pgh__l { display: inline-block; }
-/* 4. el destello (js/hero-star.js): encima del título; solo se coge en la estrella (js comprueba dónde) */
-.pgh__gl {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  touch-action: pan-y;
-}
-.pgh__gl.is-grab { cursor: grab; }
-.pgh__gl.is-dragging { cursor: grabbing; }
+/* 3. el destello 3D: en el canvas fijo (.ps-canvas, abajo) */
 /* 5. grano de película (240×140 escalado, 12 fps) */
 .pgh__grain {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  z-index: 2;
   mix-blend-mode: overlay;
   opacity: 0.07;
   pointer-events: none;
 }
-/* 6. texto, botones y meta: abajo, por encima de todo */
+/* 6. etiqueta de la página, titular, botones y meta: abajo, por encima del destello */
 .pgh__foot {
   position: absolute;
+  z-index: 2;
   left: var(--ph-x);
   right: var(--ph-x);
   bottom: clamp(24px, 5vh, 48px);
@@ -102,14 +81,38 @@
   align-items: end;
   gap: 24px 48px;
 }
-.pgh__lede {
-  max-width: 40ch;
-  margin: 0 0 22px;
-  font: 400 clamp(16px, 1.3vw, 20px) / 1.45 var(--font-display);
+/* la etiqueta de la página (es su h1): la estrellita del logo + el nombre */
+.pgh__tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  font: 500 15px / 1 var(--font-display);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   color: var(--paper);
+}
+.pgh__tag-star { display: block; flex: none; color: var(--ph-orange); }
+.pgh__tag-star svg { display: block; width: auto; height: 12px; }
+/* el titular: el mensaje de la página; cada línea en su máscara (js) */
+.pgh__head {
+  max-width: 20ch;
+  margin: 0;
+  font: 500 clamp(30px, 3.4vw, 56px) / 1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--paper);
+  text-wrap: balance;
+}
+.pgh__line { display: block; overflow: hidden; padding-bottom: 0.1em; margin-bottom: -0.1em; }
+.pgh__line-in { display: block; will-change: transform; }
+.pgh__sub {
+  max-width: 40ch;
+  margin: 14px 0 0;
+  font: 400 17px / 1.45 var(--font-display);
+  color: rgb(244 242 239 / 0.8);
   text-wrap: pretty;
 }
-.pgh__ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
+.pgh__ctas { margin-top: 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
 .pgh__btn {
   display: inline-flex;
   align-items: center;
@@ -195,6 +198,7 @@
 /* la pista para coger el destello (solo escritorio; aparece a los 3 s sin tocarlo) */
 .pgh__hint {
   position: absolute;
+  z-index: 2;
   left: 50%;
   top: var(--ph-hint-y, 16%);
   margin: 0;
@@ -207,18 +211,34 @@
   pointer-events: none;
 }
 /* flash de la entrada (como el de la intro) */
-.pgh__flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.pgh__flash { position: absolute; inset: 0; z-index: 3; background: #fff; opacity: 0; pointer-events: none; }
+/* el destello breve cuando el destello sale de pantalla (en el borde por donde sale) */
+.pgh-burst {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 220px;
+  height: 220px;
+  margin: -110px 0 0 -110px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 214 190 / 0.95), rgb(243 84 17 / 0.7) 35%, rgb(243 84 17 / 0));
+  opacity: 0;
+  pointer-events: none;
+}
 
 /* estado de antes de la entrada, ya en el CSS (no se ve el título puesto mientras cargan los scripts) */
 @media (prefers-reduced-motion: no-preference) {
-  .js .pgh__title { opacity: 0; }
-  .js .pgh__title.is-split { opacity: 1; }
+  .js .pgh__tag,
+  .js .pgh__head:not(.is-split),
   .js .pgh [data-ph-after] { opacity: 0; }
 }
 
 @media (max-width: 767px) {
   .pgh__foot { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .pgh__lede { margin-bottom: 18px; }
+  .pgh__tag { margin-bottom: 14px; }
+  .pgh__sub { font-size: 16px; }
+  .pgh__ctas { margin-top: 20px; }
   .pgh__ctas { flex-direction: column; align-items: stretch; max-width: 340px; gap: 6px; }
   .pgh__btn { justify-content: center; }
   .pgh__link,
@@ -231,10 +251,11 @@
   .pgh__meta { align-items: flex-start; text-align: left; flex-direction: row; flex-wrap: wrap; gap: 4px 14px; }
 }
 
-/* ---------- recorrido del destello (js/page-star.js) ----------
-   Canvas fijo, z-index 1: por encima del fondo de las secciones y por debajo de su contenido (z-index 2) y del
-   menú. En servicios, "Tres oficios" (z-index 2, fondo opaco) le hace de tapa. El resplandor naranja del salto va
-   justo debajo del canvas. */
+/* ---------- el canvas del destello (js/star-core.js → sharedGL; lo usan js/hero-star.js y js/page-star.js) ----------
+   Fijo, z-index 1: por encima del fondo de las secciones y por debajo de su contenido (z-index 2) y del menú. En
+   servicios, "Tres oficios" (z-index 2, fondo opaco) le hace de tapa. Mientras sale del hero y mientras salta por
+   el bento, z-index 3 (desde js). La luz por debajo del borde de "Tres oficios" (antes de que salte) y la onda
+   del sello del cierre van debajo del canvas. */
 .ps-canvas {
   position: fixed;
   inset: 0;
@@ -248,11 +269,22 @@
   left: 0;
   top: 0;
   z-index: 1;
-  width: 46vmin;
-  height: 46vmin;
-  margin: -23vmin 0 0 -23vmin;
+  width: 84vw;
+  height: 30vmin;
+  margin: -15vmin 0 0 -42vw;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(243 84 17 / 0.85), rgb(243 84 17 / 0));
+  background: radial-gradient(closest-side, rgb(255 190 150 / 0.9), rgb(243 84 17 / 0.75) 38%, rgb(243 84 17 / 0));
+  opacity: 0;
+  pointer-events: none;
+}
+.ps-ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgb(255 255 255 / 0.55), inset 0 0 12px rgb(255 255 255 / 0.35);
   opacity: 0;
   pointer-events: none;
 }

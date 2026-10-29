@@ -13,6 +13,8 @@
 /* el recorrido del destello (js/page-star.js, canvas fijo de z-index 1): "Tres oficios" lo tapa (fondo opaco); en el
    proceso, para quién y el cierre pasa por encima del fondo de la sección y por debajo de su contenido */
 .sv > .oficios { z-index: 2; }
+/* el hero no apila (sus capas se ordenan con el canvas del destello: css/page-hero.css) */
+.sv > .pgh { z-index: auto; }
 .sv > .sv-proc,
 .sv > .sv-for,
 .sv > .sv-close { z-index: auto; }
@@ -106,10 +108,11 @@
 .sv-manifest__text .mw { opacity: 0.15; }
 .sv-manifest__text .mw--hot { color: var(--orange); }
 
-/* ---------- C) Tres oficios: una sola foto partida en tres paneles (js/oficios.js) ----------
-   Cada panel pinta la foto del tamaño del escenario entero (.of-pic, medidas y desplazamiento desde JS): al
-   cambiar los anchos solo se mueven las "ventanas". Capas de cada panel: foto (0) · LOG / GRADE (1) · sombra (2) ·
-   degradado de abajo (3) · bandas, REC, cortinilla (4) · texto (5) · flash (6). */
+/* ---------- C) Tres oficios: tres paneles, cada uno con su material real y su escena (js/oficios.js) ----------
+   Cada panel pinta su material del tamaño del panel ABIERTO (.of-pic, medidas y desplazamiento desde JS), centrado
+   en el panel: al cambiar los anchos el material no se estira (cerrado, se ve su centro). Capas de cada panel:
+   material (0) · sombra (2) · degradado de abajo (3) · bandas, REC, timecode (4) · texto (5) · obturador, flash y
+   corte (6) · el botón que abre el panel (7) · sonido (8). */
 .oficios { background: var(--ink); }
 .oficios__in {
   display: flex;
@@ -138,6 +141,7 @@
   color: rgb(244 242 239 / 0.75);
 }
 .oficios__stage {
+  --of-pad: clamp(20px, 2.4vw, 36px);
   display: flex;
   flex: 0 1 68svh;
   gap: 10px;
@@ -159,17 +163,9 @@
   isolation: isolate;
   touch-action: pan-y;
 }
-.of-pic {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  will-change: transform;
-}
-.of-pic__in { position: absolute; inset: 0; will-change: transform; }
-.of-pic__in img,
+.of-pic { position: absolute; left: 0; top: 0; z-index: 0; will-change: transform; }
+.of-pic__in { position: absolute; left: 0; top: 0; will-change: transform; }
+.of-pic__in > img,
 .of-video {
   position: absolute;
   inset: 0;
@@ -178,16 +174,11 @@
   height: 100%;
   object-fit: cover;
 }
-/* panel Vídeo: el vídeo debajo, la foto quieta encima (es su fotograma 0: al quitarla no se nota) y, encima de todo,
-   el lienzo que congela el fotograma al salir */
-.of-pic__in picture { position: absolute; inset: 0; display: block; }
-.of-freeze { position: absolute; inset: 0; display: block; width: 100%; height: 100%; visibility: hidden; }
-.of-freeze.is-on { visibility: visible; }
 .of-play {
   position: absolute;
   left: 50%;
   top: 50%;
-  z-index: 7;
+  z-index: 8;
   min-height: 44px;
   padding: 0 20px;
   translate: -50% -50%;
@@ -209,6 +200,12 @@
   pointer-events: none;
 }
 .of-flash { position: absolute; inset: 0; z-index: 6; background: #fff; opacity: 0; pointer-events: none; }
+/* Foto: las dos láminas del obturador (arriba y abajo, se cierran hasta el centro) */
+.of-blade { position: absolute; left: 0; right: 0; z-index: 6; height: 50.5%; background: #050404; transform: scaleY(0); pointer-events: none; }
+.of-blade--top { top: 0; transform-origin: 50% 0; }
+.of-blade--bot { bottom: 0; transform-origin: 50% 100%; }
+/* Vídeo: el corte (un fotograma en negro) al entrar */
+.of-cut { position: absolute; inset: 0; z-index: 6; background: #000; opacity: 0; pointer-events: none; }
 
 /* nombre en vertical (panel cerrado) */
 .of-vert {
@@ -230,7 +227,7 @@
   z-index: 5;
   flex: none;
   width: var(--of-open, 100%);
-  padding: clamp(20px, 2.4vw, 36px);
+  padding: var(--of-pad);
   pointer-events: none;
 }
 .of-mask { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
@@ -248,8 +245,9 @@
   cursor: pointer;
   pointer-events: auto;
 }
-/* el botón ocupa el panel entero */
+/* el botón ocupa el panel entero (cerrado); abierto, deja pasar el ratón al material (AF, visor, clips) */
 .of-btn::after { content: ""; position: absolute; inset: 0; z-index: 7; border-radius: 22px; }
+.of-panel.is-open .of-btn::after { pointer-events: none; }
 .of-btn:focus { outline: none; }
 .of-btn:focus-visible::after { outline: 2px solid var(--orange); outline-offset: -2px; }
 .of-panel.is-open .of-btn { cursor: default; }
@@ -260,28 +258,29 @@
   color: rgb(244 242 239 / 0.88);
 }
 
-/* Foto: escuadras del AF sobre la cara (en % de la foto) y la exposición al lado */
+/* Foto: las escuadras del AF (tamaño y sitio de la cara desde js) y la exposición al lado */
 .of-af {
   position: absolute;
-  left: 52%;
-  top: 23.5%;
-  width: 10.5%;
+  left: 0;
+  top: 0;
+  width: var(--af-w, 120px);
   aspect-ratio: 4 / 5;
-  translate: -50% -50%;
   color: #f4f2ef;
   opacity: 0;
   filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.6));
   pointer-events: none;
+  will-change: transform;
 }
 .of-af > i { position: absolute; width: 18px; height: 18px; border: 0 solid currentColor; }
 .of-af > i:nth-child(1) { left: 0; top: 0; border-width: 2px 0 0 2px; }
 .of-af > i:nth-child(2) { right: 0; top: 0; border-width: 2px 2px 0 0; }
 .of-af > i:nth-child(3) { left: 0; bottom: 0; border-width: 0 0 2px 2px; }
 .of-af > i:nth-child(4) { right: 0; bottom: 0; border-width: 0 2px 2px 0; }
+.of-af.is-locked { color: #F35411; }
 .of-af__exif {
   position: absolute;
-  left: 0;
-  top: calc(100% + 10px);
+  left: calc(100% + 10px);
+  top: 0;
   padding: 5px 7px 4px;
   background: rgb(11 9 9 / 0.85);
   color: var(--paper);
@@ -292,8 +291,9 @@
   transition: opacity 0.3s ease;
 }
 .of-af.is-locked .of-af__exif { opacity: 1; }
+.of-af.is-left .of-af__exif { left: auto; right: calc(100% + 10px); }
 
-/* Vídeo: bandas de cine (alto desde JS), REC y timecode */
+/* Vídeo: bandas de cine (alto desde JS), REC, timecode y el botón de sonido */
 .of-bar {
   position: absolute;
   left: 0;
@@ -324,19 +324,59 @@
 .of-tc { right: 22px; font-variant-numeric: tabular-nums; }
 .of-panel.is-open .of-rec,
 .of-panel.is-open .of-tc { opacity: 1; transition-delay: 0.4s; }
+.of-sound {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgb(244 242 239 / 0.5);
+  border-radius: 50%;
+  background: rgb(11 9 9 / 0.5);
+  color: var(--paper);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.of-panel.is-open .of-sound { opacity: 1; visibility: visible; transition-delay: 0.4s, 0.4s, 0s, 0s, 0s; }
+.of-sound:hover { border-color: var(--paper); }
+.of-sound[aria-pressed="true"] { border-color: var(--orange); background: var(--orange); color: var(--ink); }
+.of-sound__on,
+.of-sound[aria-pressed="true"] .of-sound__off { display: none; }
+.of-sound__off,
+.of-sound[aria-pressed="true"] .of-sound__on { display: block; }
+.of-sound:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.of-panel--video .of-text { padding-right: 52px; } /* el texto no llega al botón de sonido */
 
-/* Edición: a la izquierda de la línea la versión LOG, a la derecha la etalonada (--x desde JS) */
-.of-log,
-.of-grade { position: absolute; inset: 0; z-index: 1; opacity: 0; pointer-events: none; }
+/* Edición: la sala de montaje. Arriba el visor 16:9 (el reel vertical, encuadrado a 16:9) con la
+   cortinilla: a la izquierda de la línea, LOG; a la derecha, GRADE (--x desde js). Debajo, la línea de tiempo:
+   V1 con los 8 clips del reel (tira-reel.webp), A1 con su forma de onda real y el cabezal sincronizado */
+.of-panel--edit { background: #0e0b0b; }
+.of-suite { position: absolute; left: var(--of-pad); top: var(--of-pad); width: var(--of-vw, 60%); }
+.of-viewer {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgb(244 242 239 / 0.12);
+  touch-action: pan-y;
+}
+.of-viewer__video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; }
 .of-log {
-  backdrop-filter: saturate(0.3) contrast(0.7) brightness(1.12);
+  position: absolute;
+  inset: 0;
+  backdrop-filter: saturate(0.35) contrast(0.7) brightness(1.1) sepia(0.15);
+  -webkit-backdrop-filter: saturate(0.35) contrast(0.7) brightness(1.1) sepia(0.15);
   clip-path: inset(0 calc(100% - var(--x, 50%)) 0 0);
+  pointer-events: none;
 }
-.of-grade {
-  backdrop-filter: contrast(1.06) saturate(1.1);
-  clip-path: inset(0 0 0 var(--x, 50%));
-}
-.of-wipe { position: absolute; inset: 0; z-index: 4; opacity: 0; pointer-events: none; }
+.of-wipe { position: absolute; inset: 0; pointer-events: none; }
 .of-wipe::before {
   content: "";
   position: absolute;
@@ -349,10 +389,10 @@
 .of-wipe__knob {
   position: absolute;
   left: var(--x, 50%);
-  top: 38%;
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
   border: 1px solid #fff;
   border-radius: 50%;
   background: rgb(11 9 9 / 0.45);
@@ -369,67 +409,70 @@
 .of-wipe__knob::after { right: 2px; border-left-color: #fff; }
 .of-wipe__tag {
   position: absolute;
-  top: 20px;
+  top: 10px;
   font: 400 10px / 1 var(--font-mono);
   letter-spacing: 0.12em;
   color: rgb(244 242 239 / 0.85);
 }
 .of-wipe__tag--l { right: calc(100% - var(--x, 50%) + 10px); }
 .of-wipe__tag--r { left: calc(var(--x, 50%) + 10px); }
-
-/* mini línea de tiempo: 6 clips de la misma foto, la forma de onda y el cabezal */
-.of-tl { position: relative; width: 296px; margin-bottom: 18px; opacity: 0; }
-.of-tl__clips { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.of-tl__clips li {
-  width: 46px;
-  height: 26px;
-  border-radius: 4px;
-  background: url("../assets/servicios/oficios-first.webp") 0 0 / 240px auto no-repeat;
-  box-shadow: inset 0 0 0 1px rgb(244 242 239 / 0.18);
+.of-tl {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
 }
-.of-tl__clips li:nth-child(1) { background-position: -30px -10px; }
-.of-tl__clips li:nth-child(2) { background-position: -104px -22px; }
-.of-tl__clips li:nth-child(3) { background-position: -122px -80px; }
-.of-tl__clips li:nth-child(4) { background-position: -8px -50px; }
-.of-tl__clips li:nth-child(5) { background-position: -186px -70px; }
-.of-tl__clips li:nth-child(6) { background-position: -60px -100px; }
-.of-tl__wave { display: block; width: 100%; height: 16px; margin-top: 6px; }
+.of-tl__track { font: 400 10px / 1 var(--font-mono); letter-spacing: 0.08em; color: var(--dim); }
+.of-tl__clips { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.of-tl__clips li {
+  flex: 1 1 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 2px;
+  background: url("../assets/servicios/oficios-real/tira-reel.webp") calc(var(--i) * 100% / 7) 0 / 800% 100% no-repeat;
+  box-shadow: inset 0 0 0 1px rgb(244 242 239 / 0.14);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+.of-tl__clips li.is-on { box-shadow: inset 0 0 0 1px #F35411; }
+.of-tl__wave { display: block; width: 100%; height: 20px; }
 .of-tl__head {
   position: absolute;
-  left: 0;
+  left: 28px;
   top: -4px;
   bottom: -2px;
   width: 2px;
   margin-left: -1px;
   background: var(--orange);
-  box-shadow: 0 0 6px rgb(243 84 17 / 0.6);
+  pointer-events: none;
+  will-change: transform;
 }
 
-/* móvil: los tres paneles apilados; la foto atraviesa los tres en vertical */
+/* móvil: los tres paneles apilados */
 @media (max-width: 767px) {
   .oficios__in { gap: 16px; padding: 96px 0 16px; justify-content: flex-start; }
   .oficios__head { display: block; }
   .oficios__lead { margin-top: 10px; font-size: 15px; }
-  .oficios__stage { flex-direction: column; flex: 1 1 auto; max-height: none; }
+  .oficios__stage { --of-pad: 18px; flex-direction: column; flex: 1 1 auto; max-height: none; }
   .of-vert { left: 18px; bottom: 16px; font-size: 18px; transform: none; }
-  .of-copy { padding: 18px; }
   .of-btn { font-size: clamp(36px, 11vw, 44px); }
   .of-text { margin-top: 8px; font-size: 15px; }
-  .of-tl { width: 236px; margin-bottom: 12px; }
-  .of-tl__clips li { width: 36px; height: 22px; }
   .of-rec,
   .of-tc { top: 14px; }
   .of-rec { left: 18px; }
   .of-tc { right: 18px; }
+  .of-sound { right: 14px; bottom: 14px; }
+  .of-tl { margin-top: 8px; }
 }
 
-/* movimiento reducido: sin pin; los tres abiertos en tres columnas (móvil: apilados), cada uno con su texto */
+/* movimiento reducido: los tres abiertos en tres columnas (móvil: apilados), cada uno con su texto */
 .oficios.is-still .oficios__in { height: auto; min-height: 100svh; }
 .oficios.is-still .of-vert { display: none; }
 .oficios.is-still .of-rec i { animation: none; }
 @media (max-width: 767px) {
   .oficios.is-still .oficios__stage { flex: none; height: auto; }
-  .oficios.is-still .of-panel { flex: none !important; height: 340px; }
+  .oficios.is-still .of-panel { flex: none !important; height: 420px; }
 }
 
 /* ---------- E) Proceso: bento (js/bento.js) ---------- */
@@ -474,8 +517,21 @@
   border-radius: 24px;
   background: #141111;
   overflow: hidden;
-  transition: opacity 0.45s ease;
+  transition: opacity 0.45s ease, border-color 0.7s ease;
 }
+/* encendida por el destello (js/page-star.js): borde naranja al 60 % y un halo cálido desde donde está el destello
+   (--sx / --sy, en px de la tarjeta); al irse a otra, se apaga despacio */
+.bento__card.is-lit { border-color: rgb(243 84 17 / 0.6); }
+.bento__halo {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(440px circle at var(--sx, 100%) var(--sy, 0%), rgb(243 84 17 / 0.24), rgb(255 150 90 / 0.07) 45%, rgb(243 84 17 / 0) 72%);
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  pointer-events: none;
+}
+.bento__card.is-lit .bento__halo { opacity: 1; transition-duration: 0.35s; }
 .bento.has-hover .bento__card:not(.is-live) { opacity: 0.7; }
 /* reflejo que sigue al cursor (7 %) y borde naranja al 40 % junto al cursor */
 .bento__card::before,
@@ -648,11 +704,25 @@
 .bento__card.is-in .b-rec i { animation-play-state: running; }
 @keyframes b-blink { 50% { opacity: 0.15; } }
 
-/* postproducción: antes (LOG) / después y línea de tiempo */
+/* postproducción: antes (RAW, como sale de la cámara) a la izquierda de la línea / después (DISCO GRADE) a la
+   derecha (--x desde js) y línea de tiempo */
 .b-grade { display: flex; flex-direction: column; gap: 14px; }
-.b-grade__img { position: relative; flex: 1; min-height: 140px; overflow: hidden; border-radius: 12px; background: #1d1817; }
-.b-grade__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.b-grade__log { filter: saturate(0.22) contrast(0.6) brightness(1.2) sepia(0.08); clip-path: inset(0 0 0 50%); }
+.b-grade__img { position: relative; flex: 1; min-height: 140px; overflow: hidden; border-radius: 12px; background: #1d1817; touch-action: pan-y; }
+.b-grade__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% 45%; }
+.b-grade__raw { clip-path: inset(0 50% 0 0); }
+.b-grade__tag {
+  position: absolute;
+  top: 12px;
+  padding: 4px 6px 3px;
+  background: rgb(11 9 9 / 0.6);
+  font: 400 10px / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  color: #f4f2ef;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.b-grade__tag--l { right: calc(100% - var(--x, 50%) + 8px); }
+.b-grade__tag--r { left: calc(var(--x, 50%) + 8px); }
 .b-grade__line {
   position: absolute;
   top: 0;

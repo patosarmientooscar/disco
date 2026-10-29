@@ -114,22 +114,23 @@
   </header>
 
   <!-- Servicios v2 (css/servicios.css; js/servicios.js, js/oficios.js y js/bento.js; el hero en js/page-hero.js; los datos en
-       js/servicios-data.js). Fondo negro. El hero con vídeo y el destello 3D, que reaparece por detrás de los tres oficios; los tres oficios en una foto partida en
-       tres paneles; el proceso en una rejilla bento; para quién; y el cierre naranja.
+       js/servicios-data.js). Fondo negro. El hero con vídeo y el destello 3D, que reaparece por detrás de los tres oficios; los tres oficios en tres paneles con material
+       real; el proceso en una rejilla bento; para quién; y el cierre naranja.
        (LEGACY: legacy/servicios-hero-capas/, legacy/servicios-v2-hero-fotos/, legacy/servicios-v2-hero/, legacy/servicios-v2/, legacy/servicios-v2-cuarto-oscuro/ y
        legacy/servicios-v1/) -->
   <main id="contenido" class="ip sv">
     <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): vídeo a pantalla
-         completa, el título enorme y, delante, el destello 3D de la home (js/hero-star.js). Una sección normal de
-         100svh: el scroll no la cambia -->
+         completa, el destello 3D de la home en el centro y, abajo, la etiqueta de la página y el titular (js/hero-star.js). Una sección normal de
+         100svh, sin pin: al bajar, el destello se suelta y sale en diagonal con su estela -->
     <section class="pgh" data-page-hero="servicios" aria-labelledby="ph-title">
       <div class="pgh__stage">
         <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/paginas/servicios-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
         <i class="pgh__grade" aria-hidden="true"></i>
-        <h1 class="pgh__title" id="ph-title">Servicios<b>.</b></h1>
         <div class="pgh__foot">
           <div>
-            <p class="pgh__lede" data-ph-after>Pensamos, producimos y entregamos. Foto, vídeo y edición, de principio a fin.</p>
+            <h1 class="pgh__tag" id="ph-title"><span class="pgh__tag-star" aria-hidden="true"><svg viewBox="1194 585 84 119" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>Servicios</h1>
+            <p class="pgh__head" data-ph-head>Pensamos, producimos y entregamos.</p>
+            <p class="pgh__sub" data-ph-after>Foto, vídeo y edición, de principio a fin.</p>
             <div class="pgh__ctas" data-ph-after>
               <a class="pgh__btn" href="contacto.html" data-cta>Pide presupuesto <b aria-hidden="true">→</b></a>
               <a class="pgh__link" href="#proceso" data-ph-to>Ver cómo trabajamos</a>
@@ -145,10 +146,11 @@
     <section class="sv-manifest" aria-label="Manifiesto">
       <p class="sv-manifest__text sv-wrap" data-manifest>No solo grabamos. Entendemos tu marca, buscamos la <em>idea</em> y la convertimos en <em>imágenes</em> que transmiten lo que se siente al estar ahí.</p>
     </section>
-    <!-- C) Tres oficios: UNA sola foto partida en tres paneles que se abren al pasar el ratón o al tocar (js/oficios.js).
-         La foto está anclada al escenario: al cambiar los anchos solo se mueven las "ventanas". Foto: flash y AF;
-         Vídeo: la foto cobra vida (oficios.webm / .mp4, su fotograma 0 es la foto: oficios-first.webp), bandas de cine, REC y
-         timecode; Edición: cortinilla LOG / GRADE y una mini línea de tiempo -->
+    <!-- C) Tres oficios: tres paneles que se abren al pasar el ratón o al tocar (js/oficios.js), cada uno con su material
+         real de disco y su escena. Foto, "el disparo": obturador, flash y el AF sobre una cara. Vídeo, "el directo":
+         corte, bandas de cine, REC, timecode real y el sonido del reel. Edición, "la sala de montaje": visor con la
+         cortinilla LOG / GRADE y una línea de tiempo real (clips, cabezal y forma de onda del reel).
+         (LEGACY: la bailarina, en legacy/servicios-oficios-bailarina/) -->
     <section class="oficios" id="oficios" aria-labelledby="oficios-title" data-oficios data-star-gate>
       <div class="oficios__in">
         <div class="oficios__head sv-wrap">
@@ -157,13 +159,15 @@
         </div>
         <div class="oficios__stage sv-wrap" data-of-stage>
           <article class="of-panel of-panel--foto" id="foto" data-of-panel="foto">
-            <div class="of-pic" data-of-pic aria-hidden="true">
+            <div class="of-pic" data-of-pic>
               <div class="of-pic__in" data-of-in>
-                <picture><img class="of-img" src="assets/servicios/oficios-first.webp" width="1920" height="1074" alt="" loading="lazy" decoding="async"></picture>
-                <div class="of-af" data-of-af><i></i><i></i><i></i><i></i><span class="of-af__exif">1/200 · f/1.8 · ISO 800</span></div>
+                <img class="of-img" src="assets/servicios/oficios-real/foto.webp" width="2000" height="1333" alt="Dos chicas cantando con un micrófono en una fiesta de Cachondeo Group" loading="lazy" decoding="async">
+                <div class="of-af" data-of-af aria-hidden="true"><i></i><i></i><i></i><i></i><span class="of-af__exif">1/125 · f/2.8 · ISO 3200</span></div>
               </div>
             </div>
             <i class="of-shade" data-of-shade aria-hidden="true"></i>
+            <i class="of-blade of-blade--top" data-of-blade aria-hidden="true"></i>
+            <i class="of-blade of-blade--bot" data-of-blade aria-hidden="true"></i>
             <i class="of-flash" data-of-flash aria-hidden="true"></i>
             <span class="of-vert" aria-hidden="true">Foto</span>
             <div class="of-copy">
@@ -171,20 +175,23 @@
               <p class="of-text" id="of-foto-text"><span class="of-mask"><span data-of-rise>Imágenes que paran el scroll: producto, espacios y personas con dirección de arte, luz y retoque.</span></span></p>
             </div>
           </article>
-          <article class="of-panel of-panel--video" id="video" data-of-panel="video" role="group" aria-label="Vídeo: Piezas que se sienten: reels, vídeo de marca y eventos rodados con ritmo y calidad de cine.">
+          <article class="of-panel of-panel--video" id="video" data-of-panel="video">
             <div class="of-pic" data-of-pic>
               <div class="of-pic__in" data-of-in>
-                <video class="of-video" data-of-video muted playsinline loop preload="none" poster="assets/servicios/oficios-first.webp" aria-hidden="true"></video>
-                <picture data-of-still><img class="of-img" src="assets/servicios/oficios-first.webp" width="1920" height="1074" alt="Mujer bailando en una discoteca iluminada con luz naranja" loading="lazy" decoding="async"></picture>
-                <canvas class="of-freeze" data-of-freeze aria-hidden="true"></canvas>
+                <video class="of-video" data-of-video muted playsinline loop preload="none" poster="assets/paginas/portfolio-poster.webp" aria-label="Reel de una fiesta de Cachondeo Group"></video>
               </div>
             </div>
             <i class="of-shade" data-of-shade aria-hidden="true"></i>
             <i class="of-bar of-bar--top" data-of-bar aria-hidden="true"></i>
             <i class="of-bar of-bar--bot" data-of-bar aria-hidden="true"></i>
+            <i class="of-cut" data-of-cut aria-hidden="true"></i>
             <p class="of-rec" aria-hidden="true"><i></i>REC</p>
             <p class="of-tc" data-of-tc aria-hidden="true">00:00:00:00</p>
             <button class="of-play" type="button" data-of-play hidden>▶ Reproducir</button>
+            <button class="of-sound" type="button" data-of-sound aria-pressed="false" aria-label="Sonido del reel">
+              <svg class="of-sound__on" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <svg class="of-sound__off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </button>
             <span class="of-vert" aria-hidden="true">Vídeo</span>
             <div class="of-copy">
               <h3 class="of-name"><button class="of-btn" type="button" aria-expanded="false" aria-controls="of-video-text" data-of-btn><span class="of-mask"><span data-of-rise>Vídeo<b class="sv-dot">.</b></span></span></button></h3>
@@ -193,21 +200,24 @@
           </article>
           <article class="of-panel of-panel--edit" id="edicion" data-of-panel="edit">
             <div class="of-pic" data-of-pic aria-hidden="true">
-              <div class="of-pic__in" data-of-in>
-                <picture><img class="of-img" src="assets/servicios/oficios-first.webp" width="1920" height="1074" alt="" loading="lazy" decoding="async"></picture>
+              <div class="of-suite" data-of-suite>
+                <div class="of-viewer" data-of-viewer>
+                  <video class="of-viewer__video" data-of-edit muted playsinline loop preload="none" poster="assets/portfolio/cachondeo/reel-fiesta-poster.webp"></video>
+                  <i class="of-log" data-of-log></i>
+                  <div class="of-wipe" data-of-wipe><i class="of-wipe__knob"></i><span class="of-wipe__tag of-wipe__tag--l">LOG</span><span class="of-wipe__tag of-wipe__tag--r">GRADE</span></div>
+                </div>
+                <div class="of-tl" data-of-tl>
+                  <span class="of-tl__track">V1</span>
+                  <ol class="of-tl__clips" data-of-clips><li style="--i: 0"></li><li style="--i: 1"></li><li style="--i: 2"></li><li style="--i: 3"></li><li style="--i: 4"></li><li style="--i: 5"></li><li style="--i: 6"></li><li style="--i: 7"></li></ol>
+                  <span class="of-tl__track">A1</span>
+                  <canvas class="of-tl__wave" data-of-wave></canvas>
+                  <i class="of-tl__head" data-of-head></i>
+                </div>
               </div>
             </div>
-            <i class="of-log" data-of-log aria-hidden="true"></i>
-            <i class="of-grade" data-of-grade aria-hidden="true"></i>
             <i class="of-shade" data-of-shade aria-hidden="true"></i>
-            <div class="of-wipe" data-of-wipe aria-hidden="true"><i class="of-wipe__knob"></i><span class="of-wipe__tag of-wipe__tag--l">LOG</span><span class="of-wipe__tag of-wipe__tag--r">GRADE</span></div>
             <span class="of-vert" aria-hidden="true">Edición</span>
             <div class="of-copy">
-              <div class="of-tl" data-of-tl aria-hidden="true">
-                <ul class="of-tl__clips"><li></li><li></li><li></li><li></li><li></li><li></li></ul>
-                <canvas class="of-tl__wave" data-of-wave></canvas>
-                <i class="of-tl__head" data-of-head></i>
-              </div>
               <h3 class="of-name"><button class="of-btn" type="button" aria-expanded="false" aria-controls="of-edit-text" data-of-btn><span class="of-mask"><span data-of-rise>Edición<b class="sv-dot">.</b></span></span></button></h3>
               <p class="of-text" id="of-edit-text"><span class="of-mask"><span data-of-rise>Montaje, color y sonido que convierten horas de material en segundos que se recuerdan.</span></span></p>
             </div>
@@ -305,15 +315,16 @@
               <article class="bento__card" data-card="post">
                 <div class="bento__art b-grade" aria-hidden="true">
                   <div class="b-grade__img" data-grade>
-                    <img src="assets/portfolio/cachondeo/cachondeo-08.webp" alt="" loading="lazy" decoding="async">
-                    <img class="b-grade__log" src="assets/portfolio/cachondeo/cachondeo-08.webp" alt="" loading="lazy" decoding="async">
+                    <img src="assets/servicios/post/post-despues-1000.webp" srcset="assets/servicios/post/post-despues-1000.webp 1000w, assets/servicios/post/post-despues.webp 2000w" sizes="(min-width: 1100px) 25vw, (min-width: 640px) 50vw, 100vw" width="2000" height="1500" alt="" loading="lazy" decoding="async">
+                    <img class="b-grade__raw" src="assets/servicios/post/post-antes-1000.webp" srcset="assets/servicios/post/post-antes-1000.webp 1000w, assets/servicios/post/post-antes.webp 2000w" sizes="(min-width: 1100px) 25vw, (min-width: 640px) 50vw, 100vw" width="2000" height="1500" alt="" loading="lazy" decoding="async">
                     <i class="b-grade__line"></i>
+                    <span class="b-grade__tag b-grade__tag--l">RAW</span><span class="b-grade__tag b-grade__tag--r">DISCO GRADE</span>
                   </div>
                   <div class="b-tl" data-tl><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__clip"></i><i class="b-tl__head"></i></div>
                 </div>
                 <div class="bento__body">
                   <h3 class="bento__title">Postproducción</h3>
-                  <p class="bento__text">Edición, color, sonido, retoque y subtítulos.</p>
+                  <p class="bento__text">Cada proyecto pasa por nuestra sala: selección, color, retoque y montaje con el ritmo de tu marca.</p>
                 </div>
               </article>
             </div>

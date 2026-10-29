@@ -32,11 +32,13 @@ Los sectores están en `js/servicios-data.js`. Los textos de "Tres oficios" y de
 
 - [x] **Hero de Servicios:** vídeo real, el DISCO VIDEO sin rótulos (`assets/paginas/servicios-bg.mp4`, `-1280` y `servicios-poster.webp`). El botón "Ver el manifiesto · 0:38" abre el vídeo completo con sonido (`assets/paginas/disco-manifiesto.mp4`). Si cambia su duración, cambia también el texto del botón en servicios.html.
 
-- [ ] **Si cambia el vídeo de "Tres oficios":** son `assets/servicios/oficios.webm`, `oficios.mp4` y `oficios-720.mp4`, y `oficios-first.webp` es su fotograma 0 exacto (la foto de los tres paneles). Si se cambia el vídeo, hay que sacar también su primer fotograma con el mismo encuadre; si no, se notará el salto al pasar de la foto al vídeo.
+- [x] **"Tres oficios" con material real** (la bailarina, en `legacy/servicios-oficios-bailarina/`). Foto: `assets/servicios/oficios-real/foto.webp` (si se cambia, ajusta las caras del AF en `FACES` de js/oficios.js). Vídeo: `assets/paginas/portfolio-bg.mp4` (y `-1280`); el botón de sonido pone el audio de `assets/portfolio/cachondeo/reel-recap.mp4` aparte, porque el montaje horizontal no lleva audio, así que imagen y sonido no van sincronizados. Edición: `reel-fiesta.mp4` en el visor; `oficios-real/tira-reel.webp` son sus 8 clips (160×90 cada uno) y la forma de onda de A1 es la de su audio (`WAVE` en js/oficios.js, sacada con ffmpeg): si cambia el reel, hay que rehacer las dos.
+- [ ] **Audio sincronizado en el panel Vídeo:** si se exporta `portfolio-bg.mp4` CON su audio, el botón de sonido puede quitarle el silencio al propio vídeo (imagen y sonido a la vez).
 - [x] **Fotos por sector (`sectors[].photo`):** reales en Eventos (Cachondeo Group), Marcas (pádel), Empresas y artistas (directo) y Deportes (rugby).
 - [ ] **Foto de Restaurantes y gastronomía:** sigue la provisional (`assets/hero/03.webp`). Falta una foto real de un restaurante.
 - [ ] **Proceso (BORRADOR):** los 8 textos de las tarjetas del bento, en `servicios.html` (`data-draft`).
-- [x] **Fotos de las tarjetas del proceso:** reales (Cachondeo Group): "Postproducción" usa `cachondeo-08` y "Entrega a medida", `cachondeo-02`.
+- [x] **Fotos de las tarjetas del proceso:** reales (Cachondeo Group). "Postproducción" es un antes / después real: `assets/servicios/post/post-antes.webp` (RAW) y `post-despues.webp` (DISCO GRADE), con sus versiones `-1000`. "Entrega a medida": `cachondeo-02`.
+- [ ] **Titulares de los heroes de Portfolio, Nosotros y Contacto:** de momento llevan su texto de antes como titular (pendiente de AB / AC). Servicios ya tiene el suyo.
 - [ ] **Para quién (BORRADOR):** los 5 sectores y sus frases (`sectors`).
 
 ## Hero de las páginas interiores (js/page-hero.js, js/config.js → pageHeroes)

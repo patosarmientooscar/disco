@@ -130,16 +130,16 @@
 
   <main id="contenido" class="ip">
     <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): vídeo a pantalla
-         completa, el título enorme y, delante, el destello 3D de la home (js/hero-star.js). Una sección normal de
-         100svh: el scroll no la cambia -->
+         completa, el destello 3D de la home en el centro y, abajo, la etiqueta de la página y el titular (js/hero-star.js). Una sección normal de
+         100svh, sin pin: al bajar, el destello se suelta y sale en diagonal con su estela -->
     <section class="pgh" data-page-hero="contacto" aria-labelledby="ph-title">
       <div class="pgh__stage">
         <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/servicios/hero/bg-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
         <i class="pgh__grade" aria-hidden="true"></i>
-        <h1 class="pgh__title" id="ph-title">Contacto<b>.</b></h1>
         <div class="pgh__foot">
           <div>
-            <p class="pgh__lede" data-ph-after>¿Rodamos juntos? Cuéntanos tu idea y te respondemos rápido.</p>
+            <h1 class="pgh__tag" id="ph-title"><span class="pgh__tag-star" aria-hidden="true"><svg viewBox="1194 585 84 119" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>Contacto</h1>
+            <p class="pgh__head" data-ph-head>¿Rodamos juntos? Cuéntanos tu idea y te respondemos rápido.</p>
             <div class="pgh__ctas" data-ph-after>
               <a class="pgh__btn" href="#escribenos" data-ph-to>Escríbenos <b aria-hidden="true">→</b></a>
               <span class="pgh__mail"><a class="pgh__link" href="mailto:equipo@discoproduccion.com" data-ph-email>equipo@discoproduccion.com</a><button class="pgh__copy" type="button" data-ph-copy>Copiar</button><span class="pgh__ok" data-ph-copied role="status" aria-live="polite"></span></span>

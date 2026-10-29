@@ -60,6 +60,66 @@ export function sharedModel(renderer) {
   });
 }
 
+// Páginas interiores: UN solo renderer por página. El destello del hero (js/hero-star.js) y el del recorrido
+// (js/page-star.js) pintan en el mismo canvas fijo a pantalla completa (.ps-canvas, css/page-hero.css), con la misma
+// cámara y cada uno su escena; nunca a la vez. draw() apunta quién pintó lo último (también en el canvas:
+// data-star = hero | page, para las pruebas); blank() solo borra lo suyo.
+// Sin WebGL: null (el hero sigue con su vídeo y en el footer cae la estrella del logo).
+const GL_DPR = { desk: 1.75, mob: 1.25 };
+let gl;
+export function sharedGL() {
+  if (gl !== undefined) return gl;
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+  } catch {
+    gl = null;
+    return gl;
+  }
+  const mobile = () => matchMedia('(max-width: 767px)').matches;
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const canvas = renderer.domElement;
+  canvas.className = 'ps-canvas';
+  canvas.setAttribute('aria-hidden', 'true');
+  document.body.append(canvas);
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
+  const view = { halfW: 1, halfH: 1, w: 1, h: 1, mobile: false };
+  const subs = [];
+  const resize = () => {
+    const w = innerWidth;
+    const h = innerHeight;
+    camera.aspect = w / h;
+    camera.position.set(0, 0, w >= h ? CAMERA_Z : Math.max(CAMERA_Z, (5.2 * h) / w));
+    camera.updateProjectionMatrix();
+    view.mobile = mobile();
+    renderer.setPixelRatio(Math.min(devicePixelRatio, view.mobile ? GL_DPR.mob : GL_DPR.desk));
+    renderer.setSize(w, h);
+    view.halfH = camera.position.z * Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+    view.halfW = view.halfH * camera.aspect;
+    view.w = w;
+    view.h = h;
+    subs.forEach((f) => f());
+  };
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('pagehide', () => renderer.dispose());
+  let owner = null;
+  gl = {
+    renderer,
+    canvas,
+    camera,
+    view,
+    onResize(fn) { subs.push(fn); },
+    draw(scene, who) { renderer.render(scene, camera); if (owner !== who) canvas.dataset.star = who; owner = who; },
+    blank(who) { if (owner === who) { renderer.clear(); owner = null; canvas.dataset.star = ''; } },
+    get owner() { return owner; },
+  };
+  return gl;
+}
+
 // Estudio oscuro con softboxes (lo que hace que parezca plata pulida). La escena sola (para añadirle cosas, como
 // el vídeo del hero) o ya convertida en mapa de entorno (studio)
 export function softboxScene() {

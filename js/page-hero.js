@@ -1,14 +1,15 @@
 import { config } from './config.js';
 
 // Hero de las páginas interiores (Servicios, Portfolio, Nosotros, Contacto; css/page-hero.css). Cada página solo
-// declara su contenido en <section class="pgh" data-page-hero="clave"> (título, texto, botones y una línea de meta);
-// el vídeo de cada una está en js/config.js → pageHeroes. Una sección normal: el scroll no la cambia (sube con la
-// página). Aquí: el vídeo (1280 en < 900 px o con ahorro de datos) con su timecode real, el grano, el parallax con
-// el ratón y la entrada (flash, destello, letras, texto). El destello 3D (js/hero-star.js) se carga aparte: sin
-// WebGL el hero funciona igual. Todo en el loop único (gsap.ticker) y solo con el hero en pantalla (fuera de ella,
+// declara su contenido en <section class="pgh" data-page-hero="clave"> (la etiqueta de la página, que es su h1; el
+// titular; botones y una línea de meta); el vídeo de cada una está en js/config.js → pageHeroes. Una sección normal,
+// sin pin. Aquí: el vídeo (1280 en < 900 px o con ahorro de datos) con su timecode real, el grano, el parallax con
+// el ratón y la entrada (flash, destello, la estrellita de la etiqueta girando y el titular línea a línea). El
+// destello 3D (js/hero-star.js, protagonista en el centro; al bajar, sale en diagonal) se carga aparte: sin WebGL
+// el hero funciona igual. Todo en el loop único (gsap.ticker) y solo con el hero en pantalla (fuera de ella,
 // el vídeo se pausa). Otro módulo puede parar el vídeo con el evento "disco:hero-hold" (detail: true / false).
 const PARALLAX = { x: 18, y: 12, lerp: 0.06 };   // px: el vídeo, al revés que el cursor
-const ENTER = { flash: 0.56, y: 60, edge: 0.8, duration: 1.1, stagger: 0.035, after: 0.75 };
+const ENTER = { flash: 0.56, tag: 0.15, head: 0.3, duration: 1.1, stagger: 0.08, after: 0.75 };
 const GRAIN = { w: 240, h: 140, fps: 12 };
 const HINT = 3000;                               // ms sin tocar el destello: aparece "Arrastra el destello"
 const NARROW = '(max-width: 899px)';
@@ -22,7 +23,9 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   const stage = root.querySelector('.pgh__stage');
   const look = root.querySelector('.pgh__look');
   const media = root.querySelector('.pgh__media');
-  const title = root.querySelector('.pgh__title');
+  const tag = root.querySelector('.pgh__tag');
+  const tagStar = tag.querySelector('.pgh__tag-star');
+  const head = root.querySelector('[data-ph-head]');
   const foot = root.querySelector('.pgh__foot');
   const after = [...root.querySelectorAll('[data-ph-after]')];
   const tc = root.querySelector('[data-ph-tc]');
@@ -31,26 +34,28 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   // estado que lee el destello: cursor (-1..1), en pantalla, entrada hecha
   const state = { mx: 0, my: 0, tx: 0, ty: 0, inView: true, entered: false, held: false };
 
-  // ---------- título: cada letra en su <span> (el h1 conserva el texto) y del tamaño que cabe en una línea ----------
-  const text = title.textContent.replace(/\s+/g, ' ').trim();
-  title.setAttribute('aria-label', text);
-  const dot = title.querySelector('b');
-  const word = (dot ? text.slice(0, -dot.textContent.length) : text).trim();
-  title.innerHTML = [...word].map((c) => `<span class="pgh__l" aria-hidden="true">${c === ' ' ? '&nbsp;' : c}</span>`).join('')
-    + (dot ? `<b class="pgh__l" aria-hidden="true">${dot.textContent}</b>` : '');
-  title.classList.add('is-split');
-  const letters = [...title.querySelectorAll('.pgh__l')];
-  const mid = (letters.length - 1) / 2;
-  const dir = letters.map((_, i) => (mid ? (i - mid) / mid : 0)); // -1 (izquierda) … 1 (derecha)
-  const fit = () => {
-    title.style.removeProperty('--ph-size');
-    const room = stage.clientWidth - 2 * (parseFloat(getComputedStyle(foot).left) || 20);
-    const w = title.scrollWidth;
-    if (w > room) title.style.setProperty('--ph-size', `${(parseFloat(getComputedStyle(title).fontSize) * room) / w}px`);
+  // ---------- titular: en líneas (cada una en su máscara, para subir línea a línea) ----------
+  const headText = head.textContent.replace(/\s+/g, ' ').trim();
+  let lines = [];
+  let headW = 0;
+  const split = () => {
+    headW = head.clientWidth;
+    head.innerHTML = headText.split(' ').map((w) => `<span class="pgh__w">${w}</span>`).join(' ');
+    const rows = [];
+    head.querySelectorAll('.pgh__w').forEach((w) => {
+      const last = rows[rows.length - 1];
+      if (last && Math.abs(last.top - w.offsetTop) < 4) last.words.push(w.textContent);
+      else rows.push({ top: w.offsetTop, words: [w.textContent] });
+    });
+    head.innerHTML = rows.map((r) => `<span class="pgh__line"><span class="pgh__line-in">${r.words.join(' ')}</span></span>`).join('');
+    head.classList.add('is-split');
+    lines = [...head.querySelectorAll('.pgh__line-in')];
   };
-  fit();
-  if (document.fonts) document.fonts.ready.then(fit);
-  window.addEventListener('resize', fit);
+  split();
+  let entering = !still;
+  const resplit = () => { if (!entering && head.clientWidth !== headW) split(); };
+  if (document.fonts) document.fonts.ready.then(() => { if (!entering) split(); });
+  window.addEventListener('resize', resplit);
 
   // ---------- enlaces del hero: bajan con Lenis; copiar el email ----------
   root.querySelectorAll('[data-ph-to]').forEach((a) => a.addEventListener('click', (e) => {
@@ -137,7 +142,7 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   let interacted = false;
   const hideHint = () => gsap.to(hint, { opacity: 0, duration: 0.3, overwrite: true });
   const star = import('./hero-star.js')
-    .then((m) => m.createHeroStar({ gsap, stage, video, state, loop, reduced, onInteract: () => { interacted = true; hideHint(); } }))
+    .then((m) => m.createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, onInteract: () => { interacted = true; hideHint(); } }))
     .catch(() => null);
 
   if (still) {
@@ -146,16 +151,22 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
     return { state, star };
   }
 
-  // ---------- entrada: flash, destello, letras (más desde los extremos) y después texto y botones ----------
-  gsap.set(letters, { y: (i) => ENTER.y * (1 - ENTER.edge + ENTER.edge * Math.abs(dir[i])), opacity: 0 });
+  // ---------- entrada: flash, destello girando hasta quedar de frente, la estrellita de la etiqueta gira 180° y el
+  // titular sube línea a línea; después, texto y botones ----------
+  gsap.set(tag, { opacity: 0 });
+  gsap.set(tagStar, { rotation: -180, scale: 0.6, transformOrigin: '50% 50%' });
+  gsap.set(lines, { yPercent: 105 });
   gsap.set(after, { opacity: 0, y: 14 });
   const fonts = document.fonts ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
   Promise.all([arrived, fonts]).then(() => {
-    fit();
+    split();
+    gsap.set(lines, { yPercent: 105 });
     gsap.fromTo(flash, { opacity: 0 }, { keyframes: { opacity: [0, 0.85, 0] }, duration: ENTER.flash, ease: 'none' });
     star.then((s) => s?.enter());
-    gsap.timeline({ onComplete: () => { state.entered = true; } })
-      .to(letters, { y: 0, opacity: 1, duration: ENTER.duration, ease: 'expo.out', stagger: { each: ENTER.stagger, from: 'edges' } }, 0.08)
+    gsap.timeline({ onComplete: () => { state.entered = true; entering = false; resplit(); } })
+      .to(tag, { opacity: 1, duration: 0.6, ease: 'power2.out' }, ENTER.tag)
+      .to(tagStar, { rotation: 0, scale: 1, duration: 1.1, ease: 'expo.out' }, ENTER.tag)
+      .to(lines, { yPercent: 0, duration: ENTER.duration, ease: 'expo.out', stagger: ENTER.stagger }, ENTER.head)
       .to(after, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', stagger: 0.08 }, ENTER.after);
     // la pista, solo en escritorio y si no se ha tocado el destello
     if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
