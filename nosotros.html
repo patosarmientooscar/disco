@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-  <link rel="preload" as="image" href="assets/paginas/nosotros-poster.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/team/luna-lopez-1280.webp" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/placeholder.css">
@@ -80,23 +80,43 @@
   </header>
 
   <main id="contenido" class="ip">
-    <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): vídeo a pantalla
-         completa, el destello 3D de la home en el centro y, abajo, la etiqueta de la página y el titular (js/hero-star.js). Una sección normal de
-         100svh, sin pin: al bajar, el destello se suelta y sale en diagonal con su estela -->
-    <section class="pgh" data-page-hero="nosotros" aria-labelledby="ph-title">
-      <div class="pgh__stage">
-        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/paginas/nosotros-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
-        <i class="pgh__grade" aria-hidden="true"></i>
-        <div class="pgh__foot">
-          <div>
-            <h1 class="pgh__tag" id="ph-title"><span class="pgh__tag-star" aria-hidden="true"><svg viewBox="1194 585 84 119" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>Nosotros</h1>
-            <p class="pgh__head" data-ph-head>Luna y Bruno, detrás de la cámara. Una productora pequeña, rápida y cercana.</p>
-            <div class="pgh__ctas" data-ph-after>
-              <a class="pgh__btn" href="#equipo" data-ph-to>Conócenos <b aria-hidden="true">→</b></a>
-              <a class="pgh__link" href="#como-trabajamos" data-ph-to>Cómo trabajamos</a>
-            </div>
+    <!-- A) hero "Contraplano" (css/about.css, js/contraplano.js): Luna y Bruno, uno frente al otro, y entre ellos el
+         destello 3D. El cursor hace el cambio de foco (sin ratón, el foco alterna solo). Al bajar (sin pin), los dos
+         retratos se juntan con el destello en la unión y un flash. Roles y frases: BORRADOR.
+         (LEGACY: el hero con vídeo, en legacy/nosotros-hero-video/) -->
+    <section class="cp" aria-labelledby="cp-title" data-cp data-star-hero>
+      <div class="cp__stage" data-cp-stage>
+        <div class="cp__atmo" aria-hidden="true"><video data-cp-video muted loop playsinline preload="metadata" poster="assets/paginas/nosotros-poster.webp"></video></div>
+        <h1 class="cp__tag" id="cp-title"><span class="cp__tag-star" aria-hidden="true"><svg viewBox="1194 585 84 119" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>Nosotros</h1>
+        <figure class="cp__p cp__p--luna" data-cp-person>
+          <div class="cp__frame" data-cp-frame>
+            <img class="cp__img cp__img--soft" src="assets/team/luna-lopez-720.webp" width="720" height="900" alt="" aria-hidden="true" decoding="async">
+            <img class="cp__img cp__img--sharp" src="assets/team/luna-lopez-1280.webp" srcset="assets/team/luna-lopez-720.webp 720w, assets/team/luna-lopez-1280.webp 1280w" sizes="(min-width: 768px) 38vw, 64vw" width="1280" height="1600" alt="Retrato de Luna López, cofundadora de disco" fetchpriority="high" decoding="async">
+            <i class="cp__af" data-cp-af aria-hidden="true"><i></i><i></i><i></i><i></i></i>
           </div>
-          <p class="pgh__meta" data-ph-after><span data-ph-tc>TC 00:00:00:00</span><span>LUNA LÓPEZ · BRUNO MARÍN</span><span>MADRID · 40.4168° N</span></p>
+          <figcaption class="cp__card" data-cp-card>
+            <span class="cp__name">Luna López</span>
+            <span class="cp__role" data-draft>COFUNDADORA · DIRECCIÓN Y FOTO</span>
+            <q class="cp__quote" data-draft>[BORRADOR: una frase de Luna, escrita por ella.]</q>
+          </figcaption>
+          <button class="cp__hit" type="button" aria-label="Enfocar a Luna López" data-cp-hit></button>
+        </figure>
+        <figure class="cp__p cp__p--bruno" data-cp-person>
+          <div class="cp__frame" data-cp-frame>
+            <img class="cp__img cp__img--soft" src="assets/team/bruno-marin-720.webp" width="720" height="900" alt="" aria-hidden="true" decoding="async">
+            <img class="cp__img cp__img--sharp" src="assets/team/bruno-marin-1280.webp" srcset="assets/team/bruno-marin-720.webp 720w, assets/team/bruno-marin-1280.webp 1280w" sizes="(min-width: 768px) 38vw, 64vw" width="1280" height="1600" alt="Retrato de Bruno Marín, cofundador de disco" fetchpriority="high" decoding="async">
+            <i class="cp__af" data-cp-af aria-hidden="true"><i></i><i></i><i></i><i></i></i>
+          </div>
+          <figcaption class="cp__card" data-cp-card>
+            <span class="cp__name">Bruno Marín</span>
+            <span class="cp__role" data-draft>COFUNDADOR · VÍDEO Y EDICIÓN</span>
+            <q class="cp__quote" data-draft>[BORRADOR: una frase de Bruno, escrita por él.]</q>
+          </figcaption>
+          <button class="cp__hit" type="button" aria-label="Enfocar a Bruno Marín" data-cp-hit></button>
+        </figure>
+        <div class="cp__foot">
+          <p class="cp__head" data-cp-rise>Somos disco<b class="cp__dot">.</b></p>
+          <p class="cp__sub" data-draft data-cp-rise>Dos personas, una cámara y muchas ganas de contar lo que pasa.</p>
         </div>
       </div>
     </section>

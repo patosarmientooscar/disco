@@ -13,7 +13,10 @@ export const config = {
   city: 'Madrid',
   // (el footer del editor, en legacy/footer-editor/, sacaba de aquí estos datos; lo que esté vacío sale como [HUECO])
   phone: '',            // [TU TELÉFONO] visible, p. ej. '+34 600 000 000'
-  responseTime: '',     // [TIEMPO DE RESPUESTA], p. ej. 'menos de 24 h'
+  responseTime: '',     // [TIEMPO DE RESPUESTA], p. ej. 'menos de 24 h'  (contacto: "te respondemos en …"; vacío = "muy pronto")
+  // Formulario de contacto (js/contact.js): EmailJS envía el correo desde el navegador, sin abrir el programa de
+  // correo. Vacíos = el formulario avisa "Formulario en configuración…". Pasos para rellenarlos: docs/emailjs/LEEME.md
+  emailjs: { publicKey: '', serviceId: '', templateId: '', autoReplyTemplateId: '' },
   // qué datos son reales: con false, ese botón o dato NO se pinta (nada de enlaces a 34600000000)
   ready: { whatsapp: false, phone: false },
   // prueba social de la home (js/home-close.js): solo datos REALES. Con los dos arrays vacíos la sección no existe.
@@ -41,8 +44,8 @@ export const config = {
   pageHeroes: {
     servicios: { video: 'assets/paginas/servicios-bg.mp4', videoSm: 'assets/paginas/servicios-bg-1280.mp4', poster: 'assets/paginas/servicios-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
     portfolio: { video: 'assets/portfolio/hero/bola.mp4', videoSm: 'assets/portfolio/hero/bola-1280.mp4', poster: 'assets/portfolio/hero/bola-poster.webp', pos: '50% 50%', start: 0, fps: 24, star: false }, // la bola: sin destello (js/portfolio-hero.js)
-    nosotros: { video: 'assets/paginas/nosotros-bg.mp4', videoSm: 'assets/paginas/nosotros-bg-1280.mp4', poster: 'assets/paginas/nosotros-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
-    contacto: { video: 'assets/servicios/hero/bg.mp4', videoSm: 'assets/servicios/hero/bg-1280.mp4', poster: 'assets/servicios/hero/bg-poster.webp', pos: '60% 45%', start: 0, fps: 24 },
+    nosotros: { // el contraplano (js/contraplano.js) solo usa videoSm, como atmósfera
+      video: 'assets/paginas/nosotros-bg.mp4', videoSm: 'assets/paginas/nosotros-bg-1280.mp4', poster: 'assets/paginas/nosotros-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
   },
 
   // (LEGACY PRE-HERO: la configuración de la secuencia de frames de la cámara está en la historia de git.)

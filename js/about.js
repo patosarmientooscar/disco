@@ -1,9 +1,12 @@
-// Nosotros: manifiesto que se ilumina palabra a palabra con el scroll, fotos de B/N a color (hover; en
+import { initContraplano } from './contraplano.js';
+
+// Nosotros: el hero "Contraplano" (js/contraplano.js), manifiesto que se ilumina palabra a palabra con el scroll, fotos de B/N a color (hover; en
 // móvil al entrar en pantalla), "cómo trabajamos" con un cabezal que recorre la línea (pin de 200vh en
 // escritorio) y la franja del estudio con parallax suave. Movimiento reducido: todo visible y quieto.
 const PIN = 2; // × alto de pantalla
 
-export function init({ gsap, ScrollTrigger, reduced }) {
+export function init({ gsap, ScrollTrigger, loop, reduced }) {
+  initContraplano({ gsap, loop, reduced });
   const main = document.querySelector('main.ip');
   const manifesto = document.querySelector('[data-manifesto]');
   // palabras del manifiesto: el texto entero para lectores de pantalla, las palabras animadas ocultas para ellos

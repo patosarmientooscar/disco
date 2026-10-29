@@ -1,0 +1,65 @@
+<!-- Plantilla de EmailJS: "Nuevo contacto web" (la que le llega a disco).
+     En EmailJS → Email Templates → Create → pestaña "Code"/HTML: pega esto.
+     Subject:  Nuevo contacto · {{negocio}} · {{nombre}}
+     To Email: equipo@discoproduccion.com
+     Reply To: {{email}}
+     From Name: Web disco. -->
+<!doctype html>
+<html lang="es">
+<body style="margin:0;padding:0;background:#0b0909;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b0909;padding:32px 12px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#141111;border:1px solid #272120;border-radius:18px;overflow:hidden;font-family:Helvetica,Arial,sans-serif;color:#f4f2ef;">
+
+  <tr><td style="padding:28px 32px 8px;">
+    <p style="margin:0;font:600 22px/1 Helvetica,Arial,sans-serif;letter-spacing:-.5px;">disco<span style="color:#F35411;">.</span></p>
+  </td></tr>
+
+  <tr><td style="padding:12px 32px 4px;">
+    <p style="margin:0;font:500 11px/1.4 'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;color:#F35411;">&#9679; Nuevo contacto desde la web</p>
+    <h1 style="margin:10px 0 0;font:600 30px/1.1 Helvetica,Arial,sans-serif;letter-spacing:-.8px;color:#f4f2ef;">{{nombre}} · {{negocio}}</h1>
+    <p style="margin:8px 0 0;font:400 14px/1.5 Helvetica,Arial,sans-serif;color:#a39994;">{{fecha}} (hora de Madrid)</p>
+  </td></tr>
+
+  <!-- Botones de acción rápida -->
+  <tr><td style="padding:22px 32px 6px;">
+    <a href="mailto:{{email}}?subject=Tu%20proyecto%20con%20disco" style="display:inline-block;background:#F35411;color:#0b0909;text-decoration:none;font:600 14px/1 Helvetica,Arial,sans-serif;padding:13px 20px;border-radius:999px;margin:0 8px 8px 0;">Responder por email</a>
+    <a href="{{whatsapp_url}}" style="display:inline-block;background:#1f2a22;color:#cfeedd;text-decoration:none;font:600 14px/1 Helvetica,Arial,sans-serif;padding:13px 20px;border-radius:999px;margin:0 8px 8px 0;">WhatsApp</a>
+    <a href="tel:{{telefono}}" style="display:inline-block;background:#272120;color:#f4f2ef;text-decoration:none;font:600 14px/1 Helvetica,Arial,sans-serif;padding:13px 20px;border-radius:999px;margin:0 0 8px 0;">Llamar</a>
+  </td></tr>
+
+  <!-- Datos -->
+  <tr><td style="padding:14px 32px 4px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #272120;">
+      <tr><td style="padding:14px 0;border-bottom:1px solid #272120;font:500 11px/1.4 'Courier New',monospace;letter-spacing:1.5px;text-transform:uppercase;color:#8a807c;width:34%;">Nombre</td><td style="padding:14px 0;border-bottom:1px solid #272120;font:400 16px/1.4 Helvetica,Arial,sans-serif;color:#f4f2ef;">{{nombre}}</td></tr>
+      <tr><td style="padding:14px 0;border-bottom:1px solid #272120;font:500 11px/1.4 'Courier New',monospace;letter-spacing:1.5px;text-transform:uppercase;color:#8a807c;">Negocio</td><td style="padding:14px 0;border-bottom:1px solid #272120;font:400 16px/1.4 Helvetica,Arial,sans-serif;color:#f4f2ef;">{{negocio}}</td></tr>
+      <tr><td style="padding:14px 0;border-bottom:1px solid #272120;font:500 11px/1.4 'Courier New',monospace;letter-spacing:1.5px;text-transform:uppercase;color:#8a807c;">Email</td><td style="padding:14px 0;border-bottom:1px solid #272120;font:400 16px/1.4 Helvetica,Arial,sans-serif;"><a href="mailto:{{email}}" style="color:#F35411;text-decoration:none;">{{email}}</a></td></tr>
+      <tr><td style="padding:14px 0;border-bottom:1px solid #272120;font:500 11px/1.4 'Courier New',monospace;letter-spacing:1.5px;text-transform:uppercase;color:#8a807c;">Teléfono</td><td style="padding:14px 0;border-bottom:1px solid #272120;font:400 16px/1.4 Helvetica,Arial,sans-serif;"><a href="tel:{{telefono}}" style="color:#f4f2ef;text-decoration:none;">{{telefono}}</a></td></tr>
+    </table>
+  </td></tr>
+
+  <!-- Mensaje -->
+  <tr><td style="padding:18px 32px 4px;">
+    <p style="margin:0 0 8px;font:500 11px/1.4 'Courier New',monospace;letter-spacing:1.5px;text-transform:uppercase;color:#8a807c;">Lo que nos cuenta</p>
+    <div style="background:#0b0909;border-left:3px solid #F35411;border-radius:8px;padding:16px 18px;font:400 16px/1.6 Helvetica,Arial,sans-serif;color:#f4f2ef;white-space:pre-wrap;">{{mensaje}}</div>
+  </td></tr>
+
+  <!-- Contexto -->
+  <tr><td style="padding:22px 32px 26px;">
+    <p style="margin:0 0 8px;font:500 11px/1.4 'Courier New',monospace;letter-spacing:1.5px;text-transform:uppercase;color:#8a807c;">Contexto de la visita</p>
+    <p style="margin:0;font:400 13px/1.7 Helvetica,Arial,sans-serif;color:#a39994;">
+      Página desde la que escribe: {{pagina}}<br>
+      Proyecto que estaba viendo: {{referencia}}<br>
+      Cómo llegó: {{origen}}<br>
+      Dispositivo: {{dispositivo}} · Idioma: {{idioma}}
+    </p>
+  </td></tr>
+
+  <tr><td style="padding:16px 32px 22px;border-top:1px solid #272120;font:400 12px/1.5 Helvetica,Arial,sans-serif;color:#6f6662;">
+    Enviado automáticamente desde el formulario de disco.es · El cliente ha aceptado la política de privacidad.
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

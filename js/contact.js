@@ -1,179 +1,181 @@
 import { config } from './config.js';
 
-// Contacto: canales directos (copiar email, WhatsApp solo si es real) y el formulario "hoja de rodaje".
-// ENVÍO: aún no hay backend. FORM_ENDPOINT vacío → se abre el correo (mailto) con todo ordenado.
-// TODO: poner aquí el endpoint de Formspree / Web3Forms / Netlify Forms (recibe JSON por POST).
-const FORM_ENDPOINT = '';
-
-const LABELS = {
-  nombre: 'Nombre',
-  negocio: 'Negocio',
-  email: 'Email',
-  telefono: 'Teléfono',
-  necesidad: 'Qué necesita',
-  tipo: 'Tipo de negocio',
-  cuando: 'Para cuándo',
-  presupuesto: 'Presupuesto orientativo',
-  mensaje: 'Mensaje',
-  ref: 'Referencia (portfolio)',
+// Contacto (contacto.html, css/contact.css): sin hero. El titular y los canales (copiar el email, Instagram) y un
+// formulario corto que ENVÍA EL CORREO DIRECTAMENTE con EmailJS (sin abrir el programa de correo): js/config.js →
+// emailjs; la plantilla del correo y los pasos, en docs/emailjs/. Con las claves vacías, el formulario lo dice y da
+// el email. Anti-spam: campo trampa, 3 s mínimos desde que se abre la página y 30 s entre envíos.
+// Animaciones: el titular sube y los campos entran en cascada; mientras se escribe, el REC late más rápido; al
+// enviar, el botón se vuelve una barra fina; al terminar, flash y "Recibido, {nombre}.".
+// (LEGACY: la claqueta y el formulario largo, en legacy/contacto-hoja-rodaje/)
+const MIN_MS = 3000;          // antes de esto, un envío es de un robot
+const LOCK_MS = 30000;        // entre dos envíos
+const TYPING_MS = 1200;       // el REC late rápido hasta 1,2 s después de la última tecla
+const LOCK_KEY = 'disco_contact_sent';
+const MSG = {
+  nombre: 'Escribe tu nombre.',
+  negocio: 'Escribe el nombre de tu negocio.',
+  email: 'Escribe un email válido (nombre@dominio.com).',
+  telefono: 'Escribe un teléfono válido (9 cifras como mínimo).',
+  privacidad: 'Necesitamos que aceptes la política de privacidad.',
 };
+const loaded = performance.now();
 
 export function init({ gsap, lenis, reduced }) {
   const email = config.email;
+  const still = reduced.matches;
+  const sec = document.querySelector('.ct');
   document.querySelectorAll('[data-email]').forEach((a) => { a.href = `mailto:${email}`; a.textContent = email; });
+  const ig = document.querySelector('[data-ig]');
+  if (ig) { ig.href = config.instagram.url; ig.textContent = config.instagram.handle; }
+  if (config.responseTime) document.querySelector('[data-ct-time]').textContent = `Cuéntanos qué necesitas y te respondemos en ${config.responseTime}.`;
 
-  // --- copiar email ---
+  // --- copiar el email ---
   const copied = document.querySelector('[data-copied]');
   let copyTimer = 0;
   document.querySelector('[data-copy]')?.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(email);
-      copied.textContent = 'Copiado';
-    } catch {
-      copied.textContent = 'No se pudo copiar';
-    }
+    try { await navigator.clipboard.writeText(email); copied.textContent = 'Copiado'; } catch { copied.textContent = 'No se pudo copiar'; }
     clearTimeout(copyTimer);
     copyTimer = setTimeout(() => { copied.textContent = ''; }, 1500);
   });
 
-  // --- canales que dependen de datos reales ---
-  const wa = config.ready.whatsapp;
-  const waUrl = (text) => `https://wa.me/${config.whatsapp.phone}?text=${encodeURIComponent(text)}`;
-  if (wa) {
-    document.querySelector('[data-whatsapp]').hidden = false;
-    document.querySelector('[data-wa-link]').href = waUrl(config.whatsapp.message);
+  // --- entrada: el titular sube y los campos, en cascada ---
+  const fields = [...document.querySelectorAll('[data-cf]')];
+  if (!still) {
+    gsap.from('[data-ct-rise]', { yPercent: 105, duration: 1.2, ease: 'expo.out', delay: 0.1 });
+    gsap.from('[data-ct-in]', { opacity: 0, y: 18, duration: 0.9, ease: 'expo.out', stagger: 0.08, delay: 0.3 });
+    gsap.from(fields, { opacity: 0, y: 22, duration: 0.8, ease: 'expo.out', stagger: 0.06, delay: 0.35 });
   }
-  const ig = document.querySelector('[data-ig]');
-  if (ig) { ig.href = config.instagram.url; ig.textContent = config.instagram.handle; }
-  const response = document.querySelector('[data-response]');
-  if (config.responseTime) { response.hidden = false; response.textContent = `Respondemos en ${config.responseTime}`; }
 
-  // --- formulario ---
+  // --- el formulario ---
   const form = document.querySelector('[data-form]');
-  const slate = document.querySelector('[data-slate]');
+  const send = form.querySelector('[data-send]');
+  const bar = send.querySelector('[data-bar]');
+  const status = form.querySelector('[data-status]');
   const done = document.querySelector('[data-done]');
-  const stick = document.querySelector('[data-stick]');
-  const waSend = document.querySelector('[data-wa-send]');
-  // en móvil la hoja ocupa todo el ancho: el menú pasa a tinta negra encima de ella (en escritorio va a la derecha)
-  if (matchMedia('(max-width: 899px)').matches) slate.setAttribute('data-nav-ink', 'dark');
+  const flash = document.querySelector('[data-ct-flash]');
+  const keys = config.emailjs || {};
+  const ready = !!(keys.publicKey && keys.serviceId && keys.templateId);
+  const fallback = `<a href="mailto:${email}">${email}</a>`;
 
-  // ?ref=slug (desde "Quiero algo así →" del portfolio): se añade al mensaje
-  const ref = new URLSearchParams(location.search).get('ref');
-  if (ref) {
-    const note = document.querySelector('[data-ref]');
-    note.hidden = false;
-    note.textContent = `REF: ${ref} · quieres algo como este trabajo`;
-  }
-
-  const fields = {
-    nombre: { el: form.elements.nombre, check: (v) => (v.trim() ? '' : 'Dinos cómo te llamas.') },
-    negocio: { el: form.elements.negocio, check: (v) => (v.trim() ? '' : 'Dinos el nombre de tu negocio.') },
-    email: {
-      el: form.elements.email,
-      check: (v) => {
-        if (!v.trim()) return 'Necesitamos un email para contestarte.';
-        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Revisa el email: parece que le falta algo (ej. nombre@negocio.com).';
-      },
-    },
-    telefono: { el: form.elements.telefono, check: (v) => (!v.trim() || /^[+\d][\d\s().-]{6,}$/.test(v.trim()) ? '' : 'Revisa el teléfono (solo números, espacios y +).') },
-    privacidad: { el: form.elements.privacidad, check: (_, el) => (el.checked ? '' : 'Marca la casilla para poder enviarlo.') },
-  };
-  const errOf = (el) => document.getElementById(el.getAttribute('aria-describedby'));
-  const validate = (name) => {
-    const { el, check } = fields[name];
-    const msg = check(el.value, el);
-    el.setAttribute('aria-invalid', String(!!msg));
-    errOf(el).textContent = msg;
-    return !msg;
-  };
-  // tras el primer intento, se revisa cada campo al salir de él
-  let tried = false;
-  Object.keys(fields).forEach((name) => {
-    const ev = fields[name].el.type === 'checkbox' ? 'change' : 'blur';
-    fields[name].el.addEventListener(ev, () => { if (tried) validate(name); });
+  // mientras se escribe, el REC late más rápido
+  let typing = 0;
+  form.addEventListener('input', (e) => {
+    sec.classList.add('is-typing');
+    clearTimeout(typing);
+    typing = setTimeout(() => sec.classList.remove('is-typing'), TYPING_MS);
+    const f = e.target.closest('[data-cf]');
+    if (f?.classList.contains('is-bad')) check(e.target);
   });
 
-  const values = () => {
-    const data = new FormData(form);
-    const out = {};
-    Object.keys(LABELS).forEach((k) => {
-      const v = k === 'necesidad' ? data.getAll(k).join(', ') : (data.get(k) || '').toString().trim();
-      if (v) out[k] = v;
-    });
-    if (ref) out.ref = ref;
-    return out;
+  const digits = (v) => v.replace(/\D/g, '');
+  const valid = {
+    nombre: (v) => v.trim().length > 1,
+    negocio: (v) => v.trim().length > 1,
+    email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
+    telefono: (v) => digits(v).length >= 9,
   };
-  const bodyText = (v) => [
-    'Hola, equipo de disco:',
-    '',
-    ...Object.keys(LABELS).filter((k) => v[k] && k !== 'mensaje').map((k) => `${LABELS[k]}: ${v[k]}`),
-    ...(v.mensaje ? ['', 'Mensaje:', v.mensaje] : []),
-  ].join('\n');
-  const subject = (v) => `Presupuesto — ${v.negocio || 'mi negocio'}`;
+  // un campo: su error debajo (o nada)
+  const check = (input) => {
+    const name = input.name;
+    const ok = name === 'privacidad' ? input.checked : valid[name] ? valid[name](input.value) : true;
+    const box = input.closest('[data-cf]');
+    const err = box.querySelector('.cf__err');
+    box.classList.toggle('is-bad', !ok);
+    input.setAttribute('aria-invalid', String(!ok));
+    if (err) err.textContent = ok ? '' : MSG[name];
+    return ok;
+  };
+  form.querySelectorAll('input[required]').forEach((i) => i.addEventListener('blur', () => { if (i.value || i.type === 'checkbox') check(i); }));
 
-  // "o envíalo por WhatsApp" con el mismo texto (solo si el WhatsApp es real)
-  if (wa) {
-    waSend.hidden = false;
-    const sync = () => { waSend.href = waUrl(`${subject(values())}\n\n${bodyText(values())}`); };
-    form.addEventListener('input', sync);
-    sync();
-  }
+  const say = (html, error = false) => { status.innerHTML = html; status.classList.toggle('is-error', error); };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    tried = true;
-    const bad = Object.keys(fields).filter((name) => !validate(name));
-    if (bad.length) {
-      fields[bad[0]].el.focus();
+    const inputs = [...form.querySelectorAll('input[required]')];
+    const bad = inputs.filter((i) => !check(i));
+    if (bad.length) { bad[0].focus(); say(''); return; }
+    // anti-spam: campo trampa, demasiado rápido o reenvío en menos de 30 s (aparenta que sale bien)
+    const data = Object.fromEntries(new FormData(form));
+    const now = Date.now();
+    let last = 0;
+    try { last = Number(localStorage.getItem(LOCK_KEY)) || 0; } catch { /* sin almacenamiento */ }
+    if (data.web) { finish(data); return; }
+    if (performance.now() - loaded < MIN_MS) { say('Un segundo… vuelve a pulsar Enviar.'); return; }
+    if (now - last < LOCK_MS) { say(`Ya nos ha llegado tu mensaje. Si quieres añadir algo, espera unos segundos o escríbenos a ${fallback}.`); return; }
+    // sin claves: el formulario aún no envía
+    if (!ready || !window.emailjs) {
+      say(`Formulario en configuración: escríbenos a ${fallback}.`, true);
       return;
     }
-    // honeypot relleno: un robot. Se le da por bueno sin enviar nada
-    if (form.elements.web.value) { success(''); return; }
-
-    const v = values();
-    if (FORM_ENDPOINT) {
-      const btn = form.querySelector('[type="submit"]');
-      btn.disabled = true;
-      try {
-        const res = await fetch(FORM_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ ...v, _subject: subject(v) }),
-        });
-        if (!res.ok) throw new Error(res.status);
-        success('');
-      } catch {
-        btn.disabled = false;
-        errOf(fields.privacidad.el).textContent = `No se ha podido enviar. Escríbenos a ${email} y te contestamos igual.`;
-      }
-      return;
+    const params = buildParams(data);
+    sending(true);
+    try {
+      await window.emailjs.send(keys.serviceId, keys.templateId, params, { publicKey: keys.publicKey });
+      if (keys.autoReplyTemplateId) window.emailjs.send(keys.serviceId, keys.autoReplyTemplateId, params, { publicKey: keys.publicKey }).catch(() => {});
+      try { localStorage.setItem(LOCK_KEY, String(Date.now())); } catch { /* sin almacenamiento */ }
+      await gsap.to(bar, { scaleX: 1, duration: 0.25, ease: 'power2.out' });
+      finish(data);
+    } catch {
+      sending(false);
+      say(`No se ha podido enviar. Escríbenos a ${fallback} y te respondemos igual.`, true);
     }
-    location.href = `mailto:${email}?subject=${encodeURIComponent(subject(v))}&body=${encodeURIComponent(bodyText(v))}`;
-    success('Se ha abierto tu correo con el mensaje ya escrito: solo tienes que darle a enviar.');
   });
 
-  // la claqueta "se cierra": el palo baja y choca (0.25 s) con un pequeño temblor, y sale el mensaje
-  function success(note) {
-    document.querySelector('[data-done-note]').textContent = note;
-    slate.style.minHeight = `${slate.offsetHeight}px`; // la hoja no encoge (la página no salta)
-    const show = () => {
-      form.hidden = true;
-      done.hidden = false;
-      done.focus({ preventScroll: true });
-      // el mensaje, en el centro de la pantalla
-      const box = slate.getBoundingClientRect();
-      lenis.scrollTo(scrollY + box.top + box.height / 2 - innerHeight / 2, { immediate: reduced.matches, duration: 0.9 });
-    };
-    if (reduced.matches) { gsap.set(stick, { rotate: 0 }); show(); return; }
+  let progress = null;
+  function sending(on) {
+    send.classList.toggle('is-sending', on);
+    send.disabled = on;
+    send.setAttribute('aria-busy', String(on));
+    progress?.kill();
+    if (on) {
+      say('Enviando…');
+      progress = gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 0.9, duration: 4, ease: 'power3.out' });
+    } else gsap.set(bar, { scaleX: 0 });
+  }
+  // recibido: flash corto y el mensaje con el destello girando
+  function finish(data) {
+    const name = (data.nombre || '').trim().split(/\s+/)[0] || '';
+    document.querySelector('[data-done-title]').textContent = name ? `Recibido, ${name}.` : 'Recibido.';
+    document.querySelector('[data-done-text]').textContent = data.email ? `Te escribimos muy pronto a ${data.email.trim()}.` : 'Te escribimos muy pronto.';
+    const swap = () => { form.hidden = true; done.hidden = false; done.focus({ preventScroll: true }); };
+    if (still) { swap(); return; }
     gsap.timeline()
-      .to(stick, { rotate: 0, duration: 0.25, ease: 'power3.in' })
-      .to(slate, { keyframes: { x: [0, -5, 4, -2, 0] }, duration: 0.22, ease: 'none' })
-      .to(form, { autoAlpha: 0, duration: 0.25, ease: 'power1.out' }, '<')
-      .add(show)
-      .fromTo(done, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out' });
+      .to(flash, { opacity: 0.9, duration: 0.08, ease: 'none' })
+      .add(swap)
+      .to(flash, { opacity: 0, duration: 0.45, ease: 'power2.out' })
+      .from(done.children, { opacity: 0, y: 16, duration: 0.8, ease: 'expo.out', stagger: 0.08 }, '<');
   }
 
   initFaq({ gsap, reduced });
+}
+
+// los parámetros que recibe la plantilla de EmailJS (docs/emailjs/email-nuevo-contacto.html), con estos nombres
+function buildParams(d) {
+  const q = new URLSearchParams(location.search);
+  const ua = navigator.userAgent;
+  const browser = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Otro navegador';
+  const mobile = matchMedia('(pointer: coarse)').matches || /Mobi|Android|iPhone/i.test(ua);
+  const utm = [q.get('utm_source') && `utm_source=${q.get('utm_source')}`, q.get('utm_campaign') && `utm_campaign=${q.get('utm_campaign')}`].filter(Boolean).join(' · ');
+  const origen = [document.referrer, utm].filter(Boolean).join(' · ') || 'Directo';
+  // teléfono para WhatsApp: solo cifras, sin 00 delante y con el 34 si no trae prefijo
+  let tel = (d.telefono || '').replace(/\D/g, '').replace(/^00/, '');
+  if (tel.length === 9) tel = `34${tel}`;
+  const nombre = (d.nombre || '').trim();
+  const hola = `Hola ${nombre.split(/\s+/)[0] || ''}, somos disco. Gracias por escribirnos…`;
+  return {
+    nombre,
+    negocio: (d.negocio || '').trim(),
+    email: (d.email || '').trim(),
+    telefono: (d.telefono || '').trim(),
+    mensaje: (d.mensaje || '').trim() || '—',
+    fecha: new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', dateStyle: 'full', timeStyle: 'short' }).format(new Date()),
+    pagina: location.href,
+    referencia: q.get('ref') || '—',
+    origen,
+    dispositivo: `${mobile ? 'Móvil' : 'Ordenador'} · ${browser}`,
+    idioma: navigator.language || '—',
+    whatsapp_url: `https://wa.me/${tel}?text=${encodeURIComponent(hola)}`,
+  };
 }
 
 // acordeón: <details> nativo; con movimiento, la altura se anima (abre y cierra suave)
