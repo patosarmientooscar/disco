@@ -1,18 +1,13 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { finStop } from './fin.js';
+import { MODEL_HEIGHT, ENV_INTENSITY, FOV, CAMERA_Z, loadModel, studio, mixEnv, drift } from './star-core.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
 // debajo del texto y del menú (z-index, ver css/star.css). Render dentro del loop único (gsap.ticker).
-// Render y entorno: copia del visor aprobado por Oscar.
-const MODEL = 'assets/3d/disco-star.glb';
-const MODEL_HEIGHT = 2.84;          // unidades del modelo (ancho 2.0, grosor 0.50); v1–v3 en legacy/assets/3d/
+// Render y entorno: copia del visor aprobado por Oscar (el modelo, los materiales, los softboxes y la deriva, en
+// js/star-core.js, común con las páginas interiores).
 const MAX_DPR = 2;
-const ENV_INTENSITY = 1.15;         // brillo de los reflejos (el visor usaba 1.4; Oscar lo quiere un poco menos brillante)
-const FOV = 28;
-const CAMERA_Z = 7.6;               // en vertical: max(7.6, 5.2 / aspect)
 const HERO_SIZE = 0.45;             // alto del destello en el hero (fracción de la pantalla): el protagonista
 const HERO_SIZE_MOBILE = 0.34;
 const MOBILE = '(max-width: 639px)';
@@ -38,9 +33,8 @@ const HERO_BOB = 0.04;                        // amplitud de la flotación en el
 const GROW = 1.15;
 // recorrido "libre": deriva orgánica (3 senos lentos de ~7, 11 y 17 s; ±0.035 de pantalla y ±0.06 rad de
 // balanceo), inclinación al moverse en horizontal (banking) y algo más de retraso con el scroll rápido.
-// La deriva se suma DESPUÉS del filtro (no es parte del objetivo: no se pelea con el lerp).
+// La deriva (DRIFT, en js/star-core.js) se suma DESPUÉS del filtro (no es parte del objetivo: no se pelea con el lerp).
 // Nada de esto en el hero ni en el estudio (ahí va quieto / de frente)
-const DRIFT = { amp: 0.035, rot: 0.06, periods: [7, 11, 17] };
 const BANK = { gain: 0.35, max: 0.25, lerp: 0.08 };
 const LAG = 0.015;                 // k / (1 + |velocidad de Lenis| × LAG)
 // vuelo del estudio al anillo de "¿Por qué nosotros?": bezier cúbica que sube (+0.12) y se abre en arco, y
@@ -56,8 +50,6 @@ const VELOCITY_MUTE = 600;                    // ms tras cargar en los que se ig
 const FRONT_ZONE = 0.35;           // modo frontal: pesa 1 arriba del todo y 0 a 0.35 × alto del hero
 const FRONT_LERP = 0.06;           // al volver al hero se recoloca de frente con suavidad (~0.8 s)
 const FRONT_BRAKE = 0.85;          // con el modo frontal dominando, frena el giro extra
-// prueba: el lateral con la misma textura que las caras (false = lateral liso, como viene en el GLB)
-const SIDE_TEXTURE = true;
 const HERO_SPIN = 0.3;             // rad/s: en el hero gira muy despacio sobre su eje Y, sin parar (~21 s por vuelta)
 const TAU = Math.PI * 2;
 // estudio 360° (js/studio.js): quieto en el centro todo el pin, como la modelo de la sesión
@@ -115,34 +107,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   star.visible = false;
   scene.add(star);
 
-  // --- modelo: los materiales vienen configurados en el GLB (color, rugosidad y texturas); se
-  //   convierten a MeshPhysicalMaterial para añadir el clearcoat del visor aprobado:
-  //   face (pulido circular + destellos), side (lisa), engrave (oscura y mate: el grabado) y mark (la estrellita)
-  const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  const loaded = loader.loadAsync(MODEL).then((gltf) => {
-    const maxAniso = renderer.capabilities.getMaxAnisotropy();
-    gltf.scene.traverse((o) => {
-      if (!o.isMesh) return;
-      const old = o.material;
-      const { normalMap, roughnessMap } = old;
-      [normalMap, roughnessMap].forEach((t) => { if (t) { t.anisotropy = maxAniso; t.needsUpdate = true; } });
-      if (normalMap) normalMap.colorSpace = THREE.NoColorSpace;
-      const engrave = old.name === 'disco-star-engrave';
-      o.material = new THREE.MeshPhysicalMaterial({
-        name: old.name,
-        color: old.color.clone(),
-        roughness: old.roughness,
-        roughnessMap,
-        normalMap,
-        normalScale: old.normalScale.clone(),
-        metalness: 1,
-        envMapIntensity: ENV_INTENSITY,
-        clearcoat: engrave ? 0 : 1,
-        clearcoatRoughness: 0.03,
-      });
-      old.dispose();
-    });
-    if (SIDE_TEXTURE) texturizeSide(gltf.scene);
+  // --- modelo (js/star-core.js: MeshPhysicalMaterial con el clearcoat del visor y el lateral texturizado) ---
+  const loaded = loadModel(renderer).then((gltf) => {
     gltf.scene.traverse((o) => { if (o.isMesh) { materials.push(o.material); mixEnv(o.material, envU); } });
     star.add(gltf.scene);
     renderer.compile(scene, camera); // shaders listos antes de la entrada (sin tirón)
@@ -605,42 +571,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   };
 }
 
-// Fundido de dos mapas de reflejos (PMREM, mismo tamaño): el de la escena (envMap) y el del estudio (envMap2,
-// con su giro envRot2), mezclados con envMix en la irradiancia y en la radiancia (también la del clearcoat)
-function mixEnv(material, uniforms) {
-  material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms);
-    const chunk = THREE.ShaderChunk.envmap_physical_pars_fragment
-      .replace('#ifdef USE_ENVMAP', `#ifdef USE_ENVMAP
-	uniform sampler2D envMap2;
-	uniform float envMix;
-	uniform mat3 envRot2;
-	vec4 mixEnv( const in vec3 dir, const in float roughness ) {
-		vec4 a = textureCubeUV( envMap, envMapRotation * dir, roughness );
-		return envMix > 0.0 ? mix( a, textureCubeUV( envMap2, envRot2 * dir, roughness ), envMix ) : a;
-	}`)
-      .replace('textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 )', 'mixEnv( worldNormal, 1.0 )')
-      .replace('textureCubeUV( envMap, envMapRotation * reflectVec, roughness )', 'mixEnv( reflectVec, roughness )');
-    shader.fragmentShader = shader.fragmentShader.replace('#include <envmap_physical_pars_fragment>', chunk);
-  };
-  material.customProgramCacheKey = () => 'disco-star-envmix';
-}
-
 // top de el respecto a stop (o a la página si stop es null), sin transformaciones
 function offsetTo(el, stop) {
   let y = 0;
   for (let n = el; n && n !== stop; n = n.offsetParent) y += n.offsetTop;
   return y;
-}
-
-// Deriva orgánica: 3 senos lentos en x e y (periodos ~7, 11 y 17 s) y balanceo; amplitud total ±DRIFT
-function drift(t) {
-  const [a, b, c] = DRIFT.periods.map((T) => (t * Math.PI * 2) / T);
-  return {
-    x: (Math.sin(a) * 0.5 + Math.sin(b + 1.3) * 0.3 + Math.sin(c + 2.1) * 0.2) * DRIFT.amp,
-    y: (Math.sin(b + 0.7) * 0.5 + Math.sin(a + 2.4) * 0.3 + Math.sin(c + 4.0) * 0.2) * DRIFT.amp,
-    r: (Math.sin(c + 0.5) * 0.6 + Math.sin(a * 0.9 + 1.1) * 0.4) * DRIFT.rot,
-  };
 }
 
 // Vuelo del estudio al anillo: bezier cúbica (sube y se abre en arco; entra desde arriba a la izquierda), sine.inOut
@@ -718,81 +653,6 @@ function teamPoints(mobile) {
     { at: Math.max(1, p.y + p.h / 2 - innerHeight / 2), x: mobile ? 0.55 : right, y: mobile ? 0.55 : 0.1, s: 0.35 },
     { at, x: (gap / innerWidth) * 2 - 1, y: 0, s: Math.min(0.3, fits) },
   ];
-}
-
-// Estudio oscuro con softboxes → mapa de entorno (lo que hace que parezca plata pulida)
-function studio(renderer) {
-  const env = new THREE.Scene();
-  const disposables = [];
-  const add = (geometry, material) => {
-    disposables.push(geometry, material);
-    const mesh = new THREE.Mesh(geometry, material);
-    env.add(mesh);
-    return mesh;
-  };
-  add(new THREE.SphereGeometry(20, 32, 16), new THREE.MeshBasicMaterial({ color: 0x0b0b0d, side: THREE.BackSide }));
-  const panel = (w, h, [x, y, z], color, intensity) => {
-    const m = add(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({
-      color: new THREE.Color(color).multiplyScalar(intensity),
-      side: THREE.DoubleSide,
-    }));
-    m.position.set(x, y, z);
-    m.lookAt(0, 0, 0);
-  };
-  panel(10, 3, [0, 9, 2], 0xffffff, 6);      // softbox superior
-  panel(2, 12, [-9, 0, 3], 0xffffff, 4);     // tira izquierda
-  panel(2, 12, [9, 1, -2], 0xf2f4ff, 3.5);   // tira derecha fría
-  panel(8, 2, [0, -8, 4], 0xffffff, 1.2);    // rebote del suelo
-  panel(6, 6, [0, 2, -10], 0xff3a1a, 1.6);   // rebote rojo por detrás (casa con la foto del hero)
-  panel(3, 3, [6, -3, 8], 0xffffff, 2.5);    // kicker para los brillos
-  panel(16, 7, [-3, 4, 13], 0xffffff, 1.1);  // panel frontal grande (detrás de la cámara): sin él las caras planas se ven negras de frente
-
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const texture = pmrem.fromScene(env, 0.02).texture;
-  pmrem.dispose();
-  disposables.forEach((d) => d.dispose());
-  return texture;
-}
-
-// El lateral no trae coordenadas de textura: se le generan con una proyección plana según hacia
-// dónde mira cada vértice (lateral "en X" → (z, y); "en Y" → (x, z)), con la misma densidad que la
-// cara, y recibe el material de la cara (normalMap + roughnessMap) con el color del lateral.
-function texturizeSide(root) {
-  let face = null;
-  let side = null;
-  root.traverse((o) => {
-    if (!o.isMesh) return;
-    if (o.material.name === 'disco-star-face') face = o;
-    if (o.material.name === 'disco-star-side') side = o;
-  });
-  if (!face || !side || !face.geometry.attributes.uv) return;
-
-  // densidad de la cara: unidades de uv por unidad de modelo (en x)
-  const fp = face.geometry.attributes.position;
-  const fuv = face.geometry.attributes.uv;
-  let minX = Infinity, maxX = -Infinity, minU = Infinity, maxU = -Infinity;
-  for (let i = 0; i < fp.count; i++) {
-    minX = Math.min(minX, fp.getX(i)); maxX = Math.max(maxX, fp.getX(i));
-    minU = Math.min(minU, fuv.getX(i)); maxU = Math.max(maxU, fuv.getX(i));
-  }
-  const density = (maxU - minU) / (maxX - minX || 1);
-
-  const pos = side.geometry.attributes.position;
-  const nrm = side.geometry.attributes.normal;
-  const uv = new Float32Array(pos.count * 2);
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    const alongX = Math.abs(nrm.getX(i)) > Math.abs(nrm.getY(i));
-    uv[i * 2] = 0.5 + (alongX ? z + y * 0.37 : x) * density;     // 0.37: desfase para que las dos proyecciones no repitan el mismo trozo
-    uv[i * 2 + 1] = 0.5 + (alongX ? y : z + x * 0.37) * density;
-  }
-  side.geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-
-  const m = face.material.clone();
-  m.name = 'disco-star-side';
-  m.color.copy(side.material.color);
-  side.material.dispose();
-  side.material = m;
 }
 
 // Punto del recorrido del estudio para su progreso p (entre claves, suave)

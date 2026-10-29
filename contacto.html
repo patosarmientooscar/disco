@@ -36,11 +36,13 @@
   <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 
+  <link rel="preload" as="image" href="assets/paginas/contacto-poster.webp" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/placeholder.css">
   <link rel="stylesheet" href="css/interior.css">
   <link rel="stylesheet" href="css/contact.css">
+  <link rel="stylesheet" href="css/page-hero.css">
   <link rel="stylesheet" href="css/nav.css">
   <link rel="stylesheet" href="css/fin.css">
   <link rel="stylesheet" href="css/transition.css">
@@ -127,15 +129,29 @@
   </header>
 
   <main id="contenido" class="ip">
-    <!-- A) cabecera -->
-    <header class="ih ip-wrap">
-      <p class="ip-eyebrow">CONTACTO — <b>05</b></p>
-      <h1 class="ih__title" data-words>¿Rodamos<br>juntos<em>?</em></h1>
-      <p class="ih__lead">Cuéntanos qué tienes en mente y te preparamos una propuesta sin compromiso.</p>
-    </header>
+    <!-- A) hero (css/page-hero.css, js/page-hero.js; el vídeo, en js/config.js → pageHeroes): vídeo a pantalla
+         completa, el título enorme y, delante, el destello 3D de la home (js/hero-star.js). 240vh con el escenario fijo
+         para la salida con el scroll -->
+    <section class="pgh" data-page-hero="contacto" aria-labelledby="ph-title">
+      <div class="pgh__stage">
+        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/paginas/contacto-poster.webp" alt="" fetchpriority="high" decoding="async"></div></div>
+        <i class="pgh__grade" aria-hidden="true"></i>
+        <h1 class="pgh__title" id="ph-title">Contacto<b>.</b></h1>
+        <div class="pgh__foot">
+          <div>
+            <p class="pgh__lede" data-ph-after>¿Rodamos juntos? Cuéntanos tu idea y te respondemos rápido.</p>
+            <div class="pgh__ctas" data-ph-after>
+              <a class="pgh__btn" href="#escribenos" data-ph-to>Escríbenos <b aria-hidden="true">→</b></a>
+              <span class="pgh__mail"><a class="pgh__link" href="mailto:equipo@discoproduccion.com" data-ph-email>equipo@discoproduccion.com</a><button class="pgh__copy" type="button" data-ph-copy>Copiar</button><span class="pgh__ok" data-ph-copied role="status" aria-live="polite"></span></span>
+            </div>
+          </div>
+          <p class="pgh__meta" data-ph-after><span data-ph-tc>TC 00:00:00:00</span><span>PRESUPUESTO SIN COMPROMISO</span><span>MADRID · 40.4168° N</span></p>
+        </div>
+      </div>
+    </section>
 
     <!-- B) canales directos + hoja de rodaje (js/contact.js) -->
-    <section class="ct ip-wrap" aria-label="Escríbenos">
+    <section class="ct ip-wrap" id="escribenos" aria-label="Escríbenos">
       <div class="ct__channels">
         <h2 class="ct__h">Directo, sin formularios</h2>
         <div class="ct__mail">
@@ -287,6 +303,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
+  </script>
   <script type="module" src="js/page.js"></script>
 </body>
 </html>

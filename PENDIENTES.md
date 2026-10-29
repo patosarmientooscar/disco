@@ -30,13 +30,18 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 
 Los sectores están en `js/servicios-data.js`. Los textos de "Tres oficios" y del proceso (bento) están en `servicios.html`.
 
-- [ ] **Hero en capas:** si cambian las fotos (fondo, persona o luces), hay que volver a generar el fondo sin el chico (`bg-limpio`). Los pasos están en `assets/servicios/hero/LEEME.md`. Además, el título está colocado para que el chico tape ~1,5 letras de "PANTALLA."; con otra foto habría que medirlo otra vez.
+- [ ] **Hero de Servicios:** el vídeo de fondo es `assets/servicios/hero/bg.mp4` (y `bg-1280.mp4` en móvil), con `bg-poster.webp`, su primer fotograma. Si cambia el vídeo, hay que sacar también el póster.
 
 - [ ] **Si cambia el vídeo de "Tres oficios":** son `assets/servicios/oficios.webm`, `oficios.mp4` y `oficios-720.mp4`, y `oficios-first.webp` es su fotograma 0 exacto (la foto de los tres paneles). Si se cambia el vídeo, hay que sacar también su primer fotograma con el mismo encuadre; si no, se notará el salto al pasar de la foto al vídeo.
 - [ ] **Fotos por sector (`sectors[].photo`):** "Marcas, moda y producto" no tiene foto (no sale ninguna al pasar el ratón). Las demás son provisionales.
 - [ ] **Proceso (BORRADOR):** los 8 textos de las tarjetas del bento, en `servicios.html` (`data-draft`).
 - [ ] **Fotos de las tarjetas del proceso:** "Postproducción" (antes/después) usa `assets/hero/05.webp` y "Entrega a medida" usa `assets/hero/03.webp`, las dos provisionales. Mejor una foto real de un rodaje.
 - [ ] **Para quién (BORRADOR):** los 5 sectores y sus frases (`sectors`).
+
+## Hero de las páginas interiores (js/page-hero.js, js/config.js → pageHeroes)
+
+- [ ] **Vídeos de Portfolio, Nosotros y Contacto:** de momento los tres usan el vídeo de la bailarina de "Tres oficios" (`assets/servicios/oficios-720.mp4`), cada uno con otro encuadre y otro segundo de inicio. Cuando estén los vídeos reales, cambia en `pageHeroes` el `video` (1920 px), el `videoSm` (1280 px), el `poster` (su fotograma en el segundo `start`) y el `pos` (encuadre). Los pósters provisionales están en `assets/paginas/`.
+- [ ] **Reflejos del destello:** la plata refleja el vídeo de cada hero. Con un vídeo muy naranja (como el de la bailarina) el destello se ve casi entero naranja. Con los vídeos reales, revisar que siga leyéndose como plata.
 
 ## Contacto (contacto.html, js/contact.js)
 

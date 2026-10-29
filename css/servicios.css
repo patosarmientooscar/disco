@@ -1,7 +1,7 @@
-/* ---------- servicios v2 (js/servicios.js, js/sv-hero.js, js/oficios.js, js/bento.js) ----------
+/* ---------- servicios v2 (js/servicios.js, js/oficios.js, js/bento.js; el hero, en css/page-hero.css) ----------
    Fondo negro (#0b0909); cada sección, z-index 1. Sin rótulos ni números: los títulos se sostienen solos; la mono,
    solo para datos técnicos reales (timecode, REC, exposición).
-   LEGACY: legacy/servicios-v2-hero/ (la cabecera anterior y la luz roja), legacy/servicios-v2/ ("Dispara" y la hoja de montaje), legacy/servicios-v2-cuarto-oscuro/ (cubeta,
+   LEGACY: legacy/servicios-hero-capas/ (el hero en capas y en vídeo), legacy/servicios-v2-hero-fotos/, legacy/servicios-v2-hero/ (la cabecera anterior y la luz roja), legacy/servicios-v2/ ("Dispara" y la hoja de montaje), legacy/servicios-v2-cuarto-oscuro/ (cubeta,
    cordel, grano) y legacy/servicios-v1/. */
 .sv {
   --dim: #8a807c;
@@ -10,6 +10,17 @@
 }
 .sv > section,
 .sv > header { position: relative; z-index: 1; }
+/* el recorrido del destello (js/page-star.js, canvas fijo de z-index 1): "Tres oficios" lo tapa (fondo opaco); en el
+   proceso, para quién y el cierre pasa por encima del fondo de la sección y por debajo de su contenido */
+.sv > .oficios { z-index: 2; }
+.sv > .sv-proc,
+.sv > .sv-for,
+.sv > .sv-close { z-index: auto; }
+.sv-proc > .sv-wrap,
+.sv-for > .sv-wrap,
+.sv-close__in { z-index: 2; }
+.sv-proc > .sv-wrap,
+.sv-for > .sv-wrap { position: relative; }
 .sv-wrap {
   width: 100%;
   max-width: 1600px;
@@ -26,127 +37,6 @@
   will-change: transform;
 }
 .sv-mask > span { display: inline-block; }
-/* ---------- A) hero en vídeo con el título entre capas (js/sv-hero.js, js/sv-video.js) ----------
-   De atrás hacia delante: fondo en vídeo (con el velo inferior) · título · el chico con sus estelas (el mismo vídeo
-   recortado) · viñeta · grano · subtítulo y botones · el negro de salida. Los pósters y los dos canvas comparten
-   encuadre: object-fit y object-position (--hero-pos), que el shader copia; cada capa va en su wrapper
-   sobredimensionado (inset −3 %) para que el parallax nunca enseñe bordes. El velo inferior va detrás del título
-   (encima lo dejaría gris). */
-.sv-hero {
-  --hero-pos: 62% 50%;
-  --hero-x: clamp(20px, 4vw, 72px);
-  --hero-bottom: 20svh; /* medido: así el chico tapa ~1,5 letras de "PANTALLA." (piernas sobre "LL") */
-  position: relative;
-  height: 100vh;
-  height: 100svh;
-  min-height: 640px;
-  overflow: hidden;
-  background: var(--ink);
-  perspective: 1600px;
-}
-.sv-hero__scene { position: absolute; inset: 0; will-change: transform; }
-.sv-hero__layer { position: absolute; inset: -3%; will-change: transform; }
-.sv-hero__layer picture,
-.sv-hero__layer img { display: block; width: 100%; height: 100%; }
-/* el <video> solo alimenta la textura de los canvas: no se ve (encima de él, el póster y luego el canvas) */
-.sv-hero__layer video { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
-.sv-hero__layer picture { position: relative; }
-.sv-hero__gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-.sv-hero__layer img { object-fit: cover; object-position: var(--hero-pos); }
-/* velo inferior para leer el título (va con el fondo) y, detrás del título, una sombra suave que apaga la estela del
-   propio fondo pegada a las letras (contraste) */
-.sv-hero__layer[data-hero-layer="bg"]::after {
-  --title-shade: radial-gradient(ellipse 44% 27% at 40% 64%, rgb(11 9 9 / 0.72) 45%, rgb(11 9 9 / 0) 100%);
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--title-shade), linear-gradient(to top, rgb(11 9 9 / 0.75) 0%, rgb(11 9 9 / 0) 45%);
-}
-.sv-hero__layer--title { inset: 0; }
-.sv-hero__layer[data-hero-layer="persona"] { transform-origin: 66% 82%; }
-.sv-hero__title {
-  position: absolute;
-  left: var(--hero-x);
-  bottom: var(--hero-bottom);
-  margin: 0;
-  font: 600 clamp(56px, 8.6vw, 168px) / 0.9 var(--font-display);
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  color: var(--paper);
-  white-space: nowrap;
-  /* sombra difusa: oscurece lo que pasa justo detrás de las letras (estelas), sin verse como contorno */
-  text-shadow: 0 0 0.3em rgb(11 9 9 / 0.55), 0 0 0.08em rgb(11 9 9 / 0.35);
-}
-.sv-hero__veil {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: radial-gradient(ellipse 125% 110% at 55% 45%, rgb(11 9 9 / 0) 55%, rgb(11 9 9 / 0.6) 100%);
-  pointer-events: none;
-}
-.sv-hero__grain {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.05;
-  pointer-events: none;
-}
-.sv-hero__ui {
-  position: absolute;
-  left: var(--hero-x);
-  right: var(--hero-x);
-  top: calc(100% - var(--hero-bottom) + 14px);
-  z-index: 2;
-}
-.sv-hero__sub {
-  max-width: 46ch;
-  margin: 0;
-  font: 400 clamp(16px, 1.3vw, 20px) / 1.45 var(--font-display);
-  color: rgb(244 242 239 / 0.85);
-}
-.sv-hero__cta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px 32px;
-  margin-top: 28px;
-}
-.sv-hero .sv-btn:hover b { translate: 4px 0; }
-/* el último tramo funde a negro: al salir, el borde de abajo no corta con la sección siguiente */
-.sv-hero::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  z-index: 1;
-  height: 12%;
-  background: linear-gradient(rgb(11 9 9 / 0), var(--ink));
-  pointer-events: none;
-}
-.sv-hero__out { position: absolute; inset: 0; z-index: 3; background: var(--ink); opacity: 0; pointer-events: none; }
-
-/* estado de antes de la entrada del título, ya en el CSS (si no, mientras cargan los scripts se vería puesto y luego
-   volvería a bajar). El fondo y el chico no entran: están desde el primer pintado */
-@media (prefers-reduced-motion: no-preference) {
-  .js .sv-hero [data-hero-after] { opacity: 0; }
-  .js .sv-hero [data-hero-line] { transform: translateY(105%); }
-}
-/* pantallas más cuadradas: la foto sobra por los lados; se corre para que el chico no tape más de ~1,5 letras */
-@media (max-aspect-ratio: 3 / 2) and (min-width: 768px) {
-  .sv-hero { --hero-pos: 35% 50%; }
-}
-/* móvil: el chico ocupa todo el ancho (con la cámara entera). Entre capas, su torso taparía "DE LA IDEA": aquí el
-   título va encima de él (prioridad: leerlo), ajustado al ancho */
-@media (max-width: 767px) {
-  .sv-hero { --hero-pos: 79% 50%; --hero-bottom: 33svh; }
-  .sv-hero__layer--title { z-index: 1; }
-  .sv-hero__layer[data-hero-layer="bg"]::after { --title-shade: radial-gradient(ellipse 62% 12% at 45% 63%, rgb(11 9 9 / 0.75) 45%, rgb(11 9 9 / 0) 100%); }
-  .sv-hero__title { font-size: min(clamp(44px, 12vw, 64px), calc((100vw - 2 * var(--hero-x)) / 8.4)); }
-  .sv-hero__cta { flex-direction: column; align-items: stretch; gap: 8px; max-width: 340px; }
-  .sv-hero__cta .sv-btn { justify-content: center; }
-  .sv-hero__cta .sv-more { align-self: center; }
-}
-
 /* enlace de texto: subrayado que se recoge y vuelve al pasar */
 .sv-more {
   display: inline-flex;

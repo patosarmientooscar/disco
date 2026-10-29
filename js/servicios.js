@@ -1,20 +1,19 @@
 import { config } from './config.js';
 import { sectors } from './servicios-data.js';
-import { initHero } from './sv-hero.js';
 import { initOficios } from './oficios.js';
 import { initBento } from './bento.js';
 
-// Servicios v2 (css/servicios.css): fondo negro; el hero en capas (js/sv-hero.js); los tres oficios en paneles
-// (js/oficios.js); el proceso en bento (js/bento.js); para quién; y el cierre naranja, que entra con un degradado.
+// Servicios v2 (css/servicios.css): fondo negro; el hero común de las páginas (js/page-hero.js, lo monta js/page.js);
+// los tres oficios en paneles (js/oficios.js); el proceso en bento (js/bento.js); para quién; y el cierre naranja,
+// que entra con un degradado. El destello vuelve por detrás de los tres oficios y recorre la página (js/page-star.js).
 // Todo en el loop único (gsap.ticker) y solo con su sección cerca. Movimiento reducido: todo visible y quieto.
-// (LEGACY: la cabecera anterior y la luz roja, en legacy/servicios-v2-hero/; "Dispara" y la hoja de montaje, en
+// (LEGACY: el hero en capas y en vídeo, en legacy/servicios-hero-capas/; la cabecera anterior y la luz roja, en legacy/servicios-v2-hero/; "Dispara" y la hoja de montaje, en
 // legacy/servicios-v2/; la cubeta, el cordel y el grano, en legacy/servicios-v2-cuarto-oscuro/)
 const FOLLOW = { lerp: 0.12, tilt: 0.06, max: 8 };
 
 export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Promise.resolve() }) {
   const still = reduced.matches;
   const desktop = matchMedia('(min-width: 900px)');
-  initHero({ gsap, ScrollTrigger, lenis, loop, still, arrived });
   initManifest(gsap, still);
   initOficios({ gsap, ScrollTrigger, loop, still });
   initBento({ gsap, ScrollTrigger, loop, still });

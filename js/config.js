@@ -35,6 +35,16 @@ export const config = {
     minSeconds: 2.6,
   },
 
+  // Hero de las páginas interiores (js/page-hero.js): el vídeo de fondo de cada una. video: el de 1920; videoSm: el
+  // de < 900 px o con ahorro de datos; poster: su fotograma en `start` (s); pos: encuadre (object-position).
+  // Portfolio, Nosotros y Contacto usan DE MOMENTO el vídeo de la bailarina de "Tres oficios" (PENDIENTES.md).
+  pageHeroes: {
+    servicios: { video: 'assets/servicios/hero/bg.mp4', videoSm: 'assets/servicios/hero/bg-1280.mp4', poster: 'assets/servicios/hero/bg-poster.webp', pos: '50% 34%', start: 0 },
+    portfolio: { video: 'assets/servicios/oficios-720.mp4', videoSm: 'assets/servicios/oficios-720.mp4', poster: 'assets/paginas/portfolio-poster.webp', pos: '50% 30%', start: 0.8 },
+    nosotros: { video: 'assets/servicios/oficios-720.mp4', videoSm: 'assets/servicios/oficios-720.mp4', poster: 'assets/paginas/nosotros-poster.webp', pos: '28% 40%', start: 2.2 },
+    contacto: { video: 'assets/servicios/oficios-720.mp4', videoSm: 'assets/servicios/oficios-720.mp4', poster: 'assets/paginas/contacto-poster.webp', pos: '72% 45%', start: 3.6 },
+  },
+
   // (LEGACY PRE-HERO: la configuración de la secuencia de frames de la cámara está en la historia de git.)
 };
 
