@@ -65,11 +65,13 @@
     // al refrescar, la home empieza arriba (el destello entra en el hero); con #ancla, js/main.js lo respeta
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto.
-    // La intro larga (agua + luz roja + flash) solo la primera vez por sesión; si falla el storage, se muestra.
+    // La intro larga (agua + luz roja + flash) solo en escritorio y la primera vez por sesión; si falla el storage, se
+    // muestra. En móvil (< 768 px) la home entra directa al hero, como en la segunda visita.
     try {
       if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); }
       if (sessionStorage.getItem('disco_intro_done')) document.documentElement.classList.add('intro-skip');
     } catch (e) {}
+    if (matchMedia('(max-width: 767px)').matches) document.documentElement.classList.add('intro-skip');
     // Abierto con doble clic (file://): el navegador bloquea los módulos JS y la web no arranca.
     if (location.protocol === 'file:') {
       document.addEventListener('DOMContentLoaded', function () {

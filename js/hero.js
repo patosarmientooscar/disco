@@ -232,9 +232,11 @@ export function initHero({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const lines = hero.querySelectorAll('[data-hero-line]');
   const scroll = hero.querySelector('[data-hero-scroll]');
 
-  // el fluido: con GPU de verdad (js/gpu.js) y, en móvil, no en los de gama baja
+  // el fluido: con GPU de verdad (js/gpu.js) y con ratón (en táctil la foto se queda quieta: no se monta); en móvil,
+  // nunca en los de gama baja
   const weak = matchMedia('(max-width: 767px)').matches && lowEnd();
-  if (!reduced.matches && !weak && gpuOK()) setupFluid({ hero, img, loop });
+  const mouse = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!reduced.matches && !weak && mouse && gpuOK()) setupFluid({ hero, img, loop });
   splitLetters(lines); // una <span> por letra (aria-hidden ya en la línea); el h1 conserva su aria-label
   fitTitle(title, lines);
   if (!reduced.matches) initExposure({ gsap, lenis, loop, hero, title, tail: hero.querySelector('[data-hero-tail]') });

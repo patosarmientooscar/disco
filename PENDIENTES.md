@@ -105,14 +105,14 @@ Lighthouse 12, móvil (4G simulado, CPU ×4), con un servidor como el de producc
 
 | Página | Antes | Después | LCP | TBT | CLS |
 | --- | --- | --- | --- | --- | --- |
-| index | 0 / 96 / 100 / 100 | 0 / 100 / 100 / 100 | sin medir (ver abajo) | — | 0 |
-| servicios | 38 / 96 / 100 / 100 | 55–80 / 100 / 100 / 100 | 7,4 → 3,5–4,1 s | 6.800 → 350–1.710 ms | 0 |
-| portfolio | 44 / 100 / 100 / 100 | 88–90 / 100 / 100 / 100 | 7,5 → 3,3 s | 1.590 → 80–150 ms | 0 |
-| proyecto | 61 / 100 / 100 / 100 | 77–78 / 100 / 100 / 100 | 7,3 → 5,0 s | 460 → 190 ms | 0,264 → 0,001 |
+| index | 0 / 96 / 100 / 100 | 53–70 / 100 / 100 / 100 | sin medir → 4,0–4,3 s | — → 520–2.220 ms | 0 |
+| servicios | 38 / 96 / 100 / 100 | 55–80 / 100 / 100 / 100 | 7,4 → 3,5–3,6 s | 6.800 → 350–1.710 ms | 0 |
+| portfolio | 44 / 100 / 100 / 100 | 68–90 / 100 / 100 / 100 | 7,5 → 3,3–3,6 s | 1.590 → 80–910 ms | 0 |
+| proyecto | 61 / 100 / 100 / 100 | 67–78 / 100 / 100 / 100 | 7,3 → 3,7 s | 460 → 190–950 ms | 0,264 → 0 |
 | nosotros | 62 / 96 / 100 / 100 | 96–97 / 100 / 100 / 100 | 3,0 → 2,0 s | 2.000 → 130 ms | 0 |
 | contacto | 56 / 100 / 100 / 100 | 97–98 / 100 / 100 / 100 | 2,9 → 2,0 s | 900 → 60–130 ms | 0,265 → 0 |
 
-(Los rangos son de varias pasadas: Lighthouse varía bastante en páginas con 3D.)
+(Los rangos son de varias pasadas: Lighthouse varía bastante en páginas con 3D; casi todo el TBT que queda es el arranque del destello 3D.)
 
 **Qué se ha hecho**
 - Fuentes en la propia web (`assets/fonts`), con precarga de los dos pesos de Clash del primer pantallazo y fallbacks con las métricas ajustadas (el CLS de contacto venía de ahí).
@@ -122,14 +122,16 @@ Lighthouse 12, móvil (4G simulado, CPU ×4), con un servidor como el de producc
 - EmailJS solo se descarga al tocar el formulario. El vídeo del hero de servicios se pone a cargar después del load.
 - Sin `requestAnimationFrame` sueltos (todo en `gsap.ticker`). Con atrás/adelante (bfcache) la página vuelve tal cual (antes se liberaba la GPU al salir).
 - Proyecto: una pantalla reservada antes de pintar la ficha (el footer ya no salta). Panorama del estudio para móvil: 904 → 384 KB (el de 4096, en `legacy/assets/studio/`).
+- Decisiones de Oscar (AD): la intro de la home, solo en escritorio (en móvil la home entra directa al hero); el subtítulo, los botones y la meta de los heroes interiores entran a 0,35 s (antes 0,75); el móvil del reel de proyecto sube sin fundido y su póster se precarga (`proyecto.html`: mapa `covers`, uno por proyecto con página; al añadir un proyecto, añadirlo ahí).
+- En la home sin intro (móvil o segunda visita), el destello 3D se carga como en las interiores (tras el load); el fluido del hero solo se monta con ratón. El vídeo del hero de servicios y el reel de la portada de proyecto empiezan ya cargada la página (el póster, desde el principio).
 - Contraste: las palabras "apagadas" de los manifiestos y de "Cómo trabajamos" pasan a ≥ 3:1 (texto grande, WCAG AA).
 - `_headers` (Netlify / Cloudflare Pages) y `.htaccess` (Apache): `assets/` con caché de 1 año immutable; HTML, CSS y JS se revalidan; compresión.
 
 **Comprobado** (Playwright): todas las páginas en 1440, 1024 y 390, con movimiento reducido, sin WebGL, con los vídeos bloqueados, con CPU ×4, redimensionando a mitad de la entrada, atrás/adelante, cambiando de página rápido, con scroll muy rápido y girando el móvil: consola sin errores propios, sin overflow horizontal y nunca dos destellos. Ningún enlace roto (458 referencias revisadas) ni `href="#"` sueltos.
 
 **Lo que no llega al objetivo (≥ 90) y por qué**
-- **index:** en la primera visita manda la intro (≥ 2,6 s, luz roja y flash) y el titular del hero no aparece hasta después; con 4G simulado eso son ~9 s y Lighthouse corta antes de verlo ("NO_LCP" → 0). Opciones: acortar la intro, saltarla en conexiones lentas o enseñarla solo en escritorio. Decisión de Oscar.
-- **servicios / proyecto:** el LCP es el texto del hero, que entra con su animación (Chrome no cuenta como LCP las imágenes que ocupan toda la pantalla, así que el póster no vale). En servicios, además, el primer cálculo de la página (muy larga) y el arranque del 3D pesan en el CPU ×4. Para bajar de 2,5 s habría que adelantar la entrada del subtítulo y los botones (hoy, 0,75 s después del titular).
+- **index, servicios, proyecto (y a veces portfolio):** el LCP es el texto o el reel del hero, que el JS pinta y anima (Chrome no cuenta como LCP las imágenes que ocupan toda la pantalla, así que el póster de fondo no vale); con 4G simulado y CPU ×4 eso queda en 3,5–4,3 s. El TBT que queda es casi todo el arranque del destello 3D (three, el modelo y sus reflejos). Para pasar de 90 haría falta quitar el 3D en móvil o pintar los heroes sin JS; no se ha hecho porque cambia el diseño aprobado.
+- **Escritorio, primera visita a la home:** sigue la intro completa (≥ 2,6 s), así que en una medición de escritorio cuenta en el LCP.
 
 **Pendiente de hosting**
 - [ ] **Hosting:** aún no está decidido. GitHub Pages ignora `_headers` y `.htaccess` (pone su propia caché de 10 min y comprime él). En Netlify / Cloudflare Pages se usa `_headers`; en Apache, `.htaccess`. Con la caché immutable, si se sustituye un archivo de `assets/` hay que cambiarle el nombre.

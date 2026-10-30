@@ -1,4 +1,5 @@
 import { works } from './portfolio-data.js';
+import { afterLoad } from './gpu.js';
 
 // Página de proyecto (proyecto.html#slug; css/proyecto.css). UNA plantilla: lee el slug de la URL y pinta el
 // proyecto con sus datos (js/portfolio-data.js → works[].project). De arriba abajo:
@@ -44,7 +45,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
     <section class="pj-cover" id="portada" aria-labelledby="pj-title">
       <div class="pj-cover__bg" data-pj-zoom><img src="${esc(w.coverLarge || cover.src)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || cover.src)} 2000w" sizes="100vw" width="${cover.w}" height="${cover.h}" alt="${esc(cover.alt)}" fetchpriority="high" decoding="async"></div>
       <i class="pj-cover__shade" aria-hidden="true"></i>
-      <div class="pj-cover__phone" data-pj-enter>
+      <div class="pj-cover__phone" data-pj-slide>
         <div class="pj-phone"><video src="${esc(p.reels[0].src)}" poster="${esc(p.reels[0].poster)}" muted loop playsinline preload="metadata" aria-label="${esc(p.reels[0].alt)}" data-pj-cover-video></video></div>
         <button class="pj-sound" type="button" aria-pressed="false" aria-label="Sonido del reel" data-pj-cover-sound>${SOUND}</button>
       </div>
@@ -134,6 +135,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
 function initCover({ gsap, ScrollTrigger, main, still, arrived }) {
   const rise = main.querySelectorAll('[data-pj-rise]');
   const enter = main.querySelectorAll('[data-pj-enter]');
+  const slide = main.querySelectorAll('[data-pj-slide]'); // el móvil del reel: sube sin fundido (se ve desde el principio)
   if (still) return;
   gsap.fromTo(main.querySelector('[data-pj-zoom]'), { scale: 1 }, {
     scale: ZOOM,
@@ -142,9 +144,11 @@ function initCover({ gsap, ScrollTrigger, main, still, arrived }) {
   });
   gsap.set(rise, { yPercent: 105 });
   gsap.set(enter, { opacity: 0, y: 24 });
+  gsap.set(slide, { y: 24 });
   arrived.then(() => {
     gsap.to(rise, { yPercent: 0, duration: 1.2, ease: 'expo.out', delay: 0.1 });
     gsap.to(enter, { opacity: 1, y: 0, duration: 1, ease: 'expo.out', stagger: 0.1, delay: 0.25 });
+    gsap.to(slide, { y: 0, duration: 1, ease: 'expo.out', delay: 0.25 });
   });
 }
 
@@ -184,7 +188,12 @@ function initSound({ main, still }) {
   // la duración real de cada reel
   reels.forEach((r, i) => r.v.addEventListener('loadedmetadata', () => { main.querySelector(`[data-pj-dur="${i}"]`).textContent = mmss(r.v.duration); }, { once: true }));
   // solo en pantalla (movimiento reducido: no arrancan solos)
-  new IntersectionObserver(([e]) => { if (e.isIntersecting) { if (!still || !coverV.muted) coverV.play().catch(() => {}); } else coverV.pause(); }, { threshold: 0.35 }).observe(coverV);
+  // el reel de la portada arranca ya cargada la página (js/gpu.js → afterLoad; su póster se ve desde el principio)
+  let loaded = false;
+  let coverOn = false;
+  const coverPlay = () => { if (coverOn && loaded) { if (!still || !coverV.muted) coverV.play().catch(() => {}); } else coverV.pause(); };
+  afterLoad().then(() => { loaded = true; coverPlay(); });
+  new IntersectionObserver(([e]) => { coverOn = e.isIntersecting; coverPlay(); }, { threshold: 0.35 }).observe(coverV);
   new IntersectionObserver(([e]) => { inView = e.isIntersecting; runReels(); }, { threshold: 0.3 }).observe(section.querySelector('.pj-reels__row'));
   return { stop: () => all.forEach((o) => o.v.pause()) };
 }

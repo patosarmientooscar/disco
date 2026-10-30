@@ -10,7 +10,7 @@ import { gpuOK, afterLoad } from './gpu.js';
 // el hero funciona igual. Todo en el loop único (gsap.ticker) y solo con el hero en pantalla (fuera de ella,
 // el vídeo se pausa). Otro módulo puede parar el vídeo con el evento "disco:hero-hold" (detail: true / false).
 const PARALLAX = { x: 18, y: 12, lerp: 0.06 };   // px: el vídeo, al revés que el cursor
-const ENTER = { flash: 0.56, tag: 0.15, head: 0.3, duration: 1.1, stagger: 0.08, after: 0.75 };
+const ENTER = { flash: 0.56, tag: 0.15, head: 0.3, duration: 1.1, stagger: 0.08, after: 0.35 }; // after: subtítulo, botones y meta (antes .75)
 const READY_MS = 3000;                           // el vídeo arranca con canplaythrough o a los 3 s (lo primero)
 const HINT = 3000;                               // ms sin tocar el destello: aparece "Arrastra el destello"
 const NARROW = '(max-width: 899px)';
@@ -87,7 +87,7 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   if (cfg.star !== false) stage.append(hint);
 
   // ---------- vídeo (con movimiento reducido, solo el póster). El póster se ve al instante; el vídeo pide solo los
-  // metadatos y, tras el load, se pone a cargar; arranca cuando puede reproducir sin cortes
+  // metadatos y, ya cargada la página, se pone a cargar; arranca cuando puede reproducir sin cortes
   // (canplaythrough o 3 s) con un fundido de 0.4 s desde el póster (css). La fuente, por ancho y por conexión ----------
   let video = null;
   let canPlay = false;
@@ -107,14 +107,13 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
     look.append(video);
     const go = () => { if (canPlay) return; canPlay = true; play(); };
     video.addEventListener('canplaythrough', go, { once: true });
-    // a cargar de verdad, después del load (no compite con el póster ni con el primer pintado)
+    // a cargar de verdad después del load, a la primera interacción o a los 2 s (js/gpu.js): no compite con la carga
     const buffer = () => {
       if (!video.isConnected) return;
       video.preload = 'auto';
       setTimeout(go, READY_MS);
     };
-    if (document.readyState === 'complete') buffer();
-    else window.addEventListener('load', buffer, { once: true });
+    afterLoad().then(buffer);
   }
   // en bucle mientras el hero se ve (y nadie lo ha parado); fuera de pantalla o con la pestaña oculta, en pausa
   const play = () => {

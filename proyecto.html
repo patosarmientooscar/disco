@@ -46,7 +46,6 @@
     @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
   </style>
 
-  <link rel="preload" as="image" href="assets/portfolio/cachondeo/cachondeo-01.webp" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/interior.css">
@@ -76,6 +75,18 @@
   <link rel="modulepreload" href="js/page-hero.js">
   <link rel="modulepreload" href="js/proyecto.js">
   <link rel="modulepreload" href="js/portfolio-data.js">
+  <script>
+    // el póster del reel de la portada, pedido desde el principio (la ficha la pinta js/proyecto.js): uno por proyecto
+    // con página, el de js/portfolio-data.js → project.reels[0].poster. Al añadir un proyecto, añadirlo aquí.
+    (function () {
+      var covers = { 'cachondeo-group': 'assets/portfolio/cachondeo/reel-recap-poster.webp' };
+      var src = covers[location.hash.slice(1)];
+      if (!src) return;
+      var l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'image'; l.href = src; l.setAttribute('fetchpriority', 'high');
+      document.head.appendChild(l);
+    })();
+  </script>
 </head>
 <body data-page="proyecto">
   <a class="skip" href="#contenido">Saltar al contenido</a>

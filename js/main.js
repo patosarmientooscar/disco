@@ -9,7 +9,7 @@ import { initRec } from './rec.js';
 import { initWhy } from './why.js';
 import { initFin } from './fin.js';
 import { initHomeClose } from './home-close.js';
-import { gpuOK } from './gpu.js';
+import { gpuOK, afterLoad } from './gpu.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
 // Al cargar o refrescar, arriba del todo (antes de Lenis y de los ScrollTriggers): si el navegador
@@ -29,8 +29,11 @@ const hero = initHero({ gsap, ScrollTrigger, lenis, reduced, loop });
 
 // Destello 3D (Three.js). import() dinámico: si el CDN de three falla, la web sigue igual sin él; sin GPU de verdad
 // (js/gpu.js) ni se descarga. Su GLB cuenta en el progreso del loading.
+// Sin intro (móvil, o ya vista): se carga después del load, a la primera interacción o a los 2 s (no compite con el
+// hero); con la intro, desde el principio (cuenta en su progreso).
+const noIntro = document.documentElement.classList.contains('intro-skip');
 const star = gpuOK()
-  ? import('./star.js').then((m) => m.initStar({ gsap, ScrollTrigger, lenis, reduced, loop })).catch(() => null)
+  ? (noIntro ? afterLoad() : Promise.resolve()).then(() => import('./star.js')).then((m) => m.initStar({ gsap, ScrollTrigger, lenis, reduced, loop })).catch(() => null)
   : Promise.resolve(null);
 // en el loading cuenta como mucho STAR_WAIT: con mala conexión la intro no espera al 3D (entra con su fundido
 // cuando llega)
