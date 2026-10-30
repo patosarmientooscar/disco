@@ -26,6 +26,13 @@ import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studi
 // ARRASTRE: en las paradas donde está quieto (manifiesto, "En cada producción.", "Para quién", cierre) se coge con
 // el ratón y se gira con inercia (como en el hero, js/hero-star.js); mientras se arrastra, el recorrido por scroll se
 // pausa (se queda donde está) y al soltar vuelve con suavidad y se recoloca de frente.
+// Nosotros, el destello RECORRE TODA LA PÁGINA (como en la home): empieza en el hero, grande a la derecha del logo
+// (el hueco .nh__star; gira lento de frente, se inclina con el ratón y se arrastra; sus reflejos llevan los planos
+// naranja y blanco de la aurora); al bajar se suelta, gira 1,25 vueltas y baja en curva hacia la izquierda encogiendo;
+// acompaña el manifiesto a su derecha; se coloca ENTRE las fotos de Luna y Bruno (en vivo, inclinándose hacia la que
+// tiene el ratón encima); recorre los pasos de "Cómo trabajamos" (sobre la regla, de paso en paso, y el paso se
+// ilumina: .is-lit); en el estudio, a la derecha girando más rápido; en el cierre, centrado arriba con la onda; y
+// cae en el footer. Arrastrable en las paradas quietas.
 // Resto de páginas: solo el footer. Movimiento reducido: no hay recorrido (el footer ya está encajado).
 const UNIT = 0.45;                 // "escala 1" = 45 % del alto de pantalla (como en la home)
 const MOBILE_K = 0.75;             // en móvil, escalas un 25 % menores
@@ -70,6 +77,14 @@ const TAU = Math.PI * 2;
 const MANI = { s: 0.26, gap: 48, stick: 0.42, spin: 0.5, enter: 1.1, leave: 0.45, hotTurn: Math.PI, hotDur: 0.9, glow: 0.7, glowDur: 0.9, heroOff: 0.15, follow: 10 };
 const TILT = { x: 0.22, y: 0.35, z: 0.06, lerp: 0.06 };
 const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07 };
+// nosotros: paradas quietas (× alto de pantalla), escalas, el pin de "Cómo trabajamos" (js/about.js), el giro rápido
+// del estudio (rad/s), el vaivén de frente en reposo, la inclinación hacia la foto con el ratón y la entrada
+const ABOUT = {
+  heroHold: 0.04, mani: 0.3, maniHold: 0.2, team: 0.22, teamHold: 0.25, step: 0.16, stepArc: 0.07, studio: 0.3,
+  studioHold: 0.15, studioSpin: 2.4, close: 0.36, pin: 2, hold: 0.12,
+  idle: { amp: 0.32, speed: 0.45 }, lean: { y: 0.5, z: 0.18, lerp: 0.08 },
+  enter: { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180), fade: 0.6 },
+};
 
 export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   if (reduced.matches) return null;
@@ -104,6 +119,11 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const bento = document.querySelector('[data-bento]');
   const list = document.querySelector('[data-sectors]');
   const manifest = gate ? document.querySelector('[data-manifest]') : null;
+  // nosotros: el hero (y el hueco del destello), las fotos del equipo y "Cómo trabajamos"
+  const about = document.querySelector('[data-nh]');
+  const slot = about?.querySelector('[data-nh-star]');
+  const team = about ? document.querySelector('[data-team]') : null;
+  const how = about ? document.querySelector('[data-how]') : null;
 
   // ---------- reflejos: el estudio y, mezclado encima (envMix), el plano naranja o la foto de un sector ----------
   const U = { envMap2: { value: studioTex }, envMix: { value: 0 }, envRot2: { value: new THREE.Matrix3() } };
@@ -117,7 +137,8 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     return tex;
   };
   // un plano naranja grande delante (detrás de la cámara: lo reflejan las caras de frente) y otro abajo
-  const orangeTex = gate ? bake((env) => {
+  // (nosotros: se hornea más tarde, cuando el navegador está libre: solo hace falta en "Cómo trabajamos")
+  const bakeOrange = () => bake((env) => {
     const mat = () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0xF35411).multiplyScalar(2.2), side: THREE.DoubleSide });
     const a = env.add(new THREE.PlaneGeometry(18, 9), mat());
     a.position.set(0, 1, 12);
@@ -125,7 +146,23 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     const b = env.add(new THREE.PlaneGeometry(14, 6), mat());
     b.position.set(0, -9, 4);
     b.lookAt(0, 0, 0);
+  });
+  let orangeTex = gate ? bakeOrange() : null;
+  if (about) {
+    const later = () => { if (!orangeTex) orangeTex = bakeOrange(); };
+    setTimeout(() => ('requestIdleCallback' in window ? requestIdleCallback(later, { timeout: 4000 }) : later()), 5000);
+  }
+  // nosotros, en el hero: como la aurora, un plano naranja ancho arriba y otro blanco, más fino, por encima (la
+  // plata brilla en naranja por arriba)
+  const auroraTex = about ? bake((env) => {
+    const o = env.add(new THREE.PlaneGeometry(24, 7), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xF35411).multiplyScalar(2.4), side: THREE.DoubleSide }));
+    o.position.set(0, 7, 7);
+    o.lookAt(0, 0, 0);
+    const w = env.add(new THREE.PlaneGeometry(20, 2.5), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xf4f2ef).multiplyScalar(2.6), side: THREE.DoubleSide }));
+    w.position.set(0, 10.5, 3);
+    w.lookAt(0, 0, 0);
   }) : null;
+  if (auroraTex) scene.environment = auroraTex;
   // las fotos de los sectores (se preparan la primera vez que hacen falta)
   const sectorTex = [];
   let sectorPhotos = [];
@@ -174,6 +211,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   ring.className = 'ps-ring';
   ring.setAttribute('aria-hidden', 'true');
   if (gate) document.body.append(glow, ring);
+  else if (about) document.body.append(ring);
 
   // ---------- tamaño ----------
   let dirty = true;
@@ -188,11 +226,16 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   let tour = null;   // { cards, ats }
   let mate = null;   // { start, end }
   let maniGeo = null; // { top, h, right }
+  let teamG = null;  // nosotros: { start, end } entre las fotos
+  let pinned = false; // nosotros: "Cómo trabajamos" fijado (escritorio)
+  let aboutH = 0;
   const build = () => {
     const max = Math.max(1, ScrollTrigger.maxScroll(window));
     const end = footerStop(max);
-    stops = gate ? servicesStops(max, end) : [{ x: 0, y: -1.8, s: end.s, at: Math.max(1, end.at - innerHeight), off: true }, end];
+    stops = gate ? servicesStops(max, end) : about ? aboutStops(max, end) : [{ x: 0, y: -1.8, s: end.s, at: Math.max(1, end.at - innerHeight), off: true }, end];
     stops.sort((a, b) => a.at - b.at);
+    // una parada quieta (until > at) son dos puntos iguales: entre ellos, la curva se queda en su sitio
+    stops = stops.flatMap((p) => (p.until > p.at ? [p, { ...p, at: p.until, twin: true }] : [p]));
     // el manifiesto, en coordenadas de la página (sin lecturas en cada fotograma)
     maniGeo = manifest ? { top: docTop(manifest), h: manifest.offsetHeight, right: docLeft(manifest) + wordsWidth(manifest) } : null;
     dirty = true;
@@ -244,7 +287,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
           const ideal = docTop(c) + c.offsetHeight / 2 - 0.5 * H;
           ats.push(i ? Math.max(ats[i - 1] + TOUR.gap * H, ideal) : Math.max(aAt + 0.45 * H, ideal));
         });
-        tour = { cards, ats };
+        tour = { cards, ats, s: TOUR.s, arc: TOUR.arc, pos: (c) => cornerNow(c) };
         out.push({ ...cornerAt(cards[0], ats[0]), at: ats[0] }, { ...cornerAt(cards[cards.length - 1], ats[ats.length - 1]), at: ats[ats.length - 1] });
       }
     }
@@ -262,6 +305,133 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     // en orden y sin puntos que se pisen
     return out.filter((p, i) => i === 0 || p.at > out[i - 1].at + 2 || p.footer);
   };
+  // ---------- nosotros ----------
+  // rect de un elemento para un scroll `at` (sin transformaciones), o relativo a su pin (fijado arriba)
+  const rectAt = (el, at) => {
+    const top = docTop(el) - at;
+    const left = docLeft(el);
+    return { left, top, right: left + el.offsetWidth, bottom: top + el.offsetHeight, width: el.offsetWidth, height: el.offsetHeight };
+  };
+  const live = (el) => el.getBoundingClientRect();
+  // entre las dos fotos (escritorio: en el hueco, a media altura de las dos; móvil: entre la ficha de Luna y la foto
+  // de Bruno)
+  const teamPoint = (get) => {
+    const ph = team.querySelectorAll('.ab-person__photo');
+    const a = get(ph[0]);
+    const b = get(ph[1]);
+    if (a.right < b.left - 8) return { x: (a.right + b.left) / 2, y: (a.top + a.bottom + b.top + b.bottom) / 4 };
+    const card = get(team.querySelector('[data-person]'));
+    return { x: innerWidth / 2, y: (card.bottom + b.top) / 2 };
+  };
+  // un paso: escritorio (fijado), sobre la regla al principio de su columna; si no, a la derecha de su número
+  const stepPoint = (card, get) => {
+    const r = get(card);
+    if (pinned) {
+      const rr = get(how.querySelector('.ab-how__ruler'));
+      return { x: r.left + 26, y: rr.top + rr.height / 2 };
+    }
+    return { x: r.right - (WIDTH * ABOUT.step * unit() * innerHeight) / 2 - 4, y: r.top + 34 };
+  };
+  const aboutStops = (max, end) => {
+    const H = innerHeight;
+    const W = innerWidth;
+    const hx = (s) => (WIDTH * s * unit() * H) / 2;
+    const ndc = (p) => ({ x: nx(p.x), y: 1 - (2 * p.y) / H });
+    const out = [];
+    tour = null;
+    mate = null;
+    teamG = null;
+    pinned = matchMedia('(min-width: 900px)').matches;
+    aboutH = about.offsetHeight;
+    // A: el hero, en su hueco a la derecha del logo (en scroll 0)
+    const r = slot.getBoundingClientRect();
+    const sy = window.scrollY;
+    out.push({ x: nx(r.left + r.width / 2), y: 1 - (2 * (r.top + sy + r.height / 2)) / H, s: r.height / (unit() * H), at: 0, until: ABOUT.heroHold * H, hold: true, turn: 0 });
+    // B: se suelta y baja en curva hacia la izquierda encogiendo, sin tapar el logo (escritorio)
+    if (!view.mobile) out.push({ x: 0.3, y: -0.34, s: 0.55, at: 0.38 * aboutH, turn: 1.25 });
+    // C: acompaña la lectura del manifiesto, a su derecha (si no cabe, encima, a la derecha)
+    const m = document.querySelector('[data-manifesto]');
+    if (m) {
+      const at = Math.max(0.62 * aboutH, docTop(m) + m.offsetHeight / 2 - 0.5 * H);
+      const s = ABOUT.mani;
+      let x = nx(docLeft(m) + wordsWidth(m) + 48 + hx(s));
+      let y = ny(m, at);
+      if (x + (2 * hx(s)) / W > 0.98) {
+        x = nx(W - 20 - hx(s));
+        y += (m.offsetHeight / 2 + (s * unit() * H) / 2 + 18) / (H / 2);
+      }
+      out.push({ x, y, s, at, until: at + ABOUT.maniHold * H, hold: true, turn: 2 });
+    }
+    // D: entre las fotos de Luna y Bruno (en vivo: teamPoint en cada fotograma)
+    if (team) {
+      const at = docTop(team) + team.offsetHeight / 2 - 0.5 * H;
+      out.push({ ...ndc(teamPoint((el) => rectAt(el, at))), s: ABOUT.team, at: at - ABOUT.teamHold * H, until: at + ABOUT.teamHold * H, hold: true, turn: 2 });
+      teamG = { start: at - 0.5 * H, end: at + 0.5 * H };
+    }
+    // E: "Cómo trabajamos", de paso en paso (en el pin, repartidos por su recorrido; sin pin, cada uno al centro)
+    if (how) {
+      const cards = [...how.querySelectorAll('[data-how-step]')];
+      const pin = how.querySelector('[data-how-pin]');
+      const ats = [];
+      if (pinned) {
+        const start = docTop(how);
+        cards.forEach((c, i) => ats.push(start + (ABOUT.pin * H * (i + 0.5)) / cards.length));
+      } else {
+        cards.forEach((c, i) => {
+          const ideal = docTop(c) + c.offsetHeight / 2 - 0.5 * H;
+          ats.push(i ? Math.max(ats[i - 1] + TOUR.gap * H, ideal) : ideal);
+        });
+      }
+      // la pose de cada parada para su scroll: fijado, relativa al pin (arriba del todo); si no, en la página
+      const at0 = (i) => (el) => {
+        if (!pinned) return rectAt(el, ats[i]);
+        const a = el.getBoundingClientRect();
+        const p = pin.getBoundingClientRect();
+        return { left: a.left, right: a.right, top: a.top - p.top, bottom: a.bottom - p.top, height: a.height };
+      };
+      const n = cards.length;
+      tour = { cards, ats, s: ABOUT.step, arc: ABOUT.stepArc, pos: (c) => stepPoint(c, live) };
+      out.push({ ...ndc(stepPoint(cards[0], at0(0))), s: ABOUT.step, at: ats[0], turn: 3 }, { ...ndc(stepPoint(cards[n - 1], at0(n - 1))), s: ABOUT.step, at: ats[n - 1], turn: 3 });
+    }
+    // F: el estudio, a la derecha (sobre la foto), girando más rápido
+    const st = document.querySelector('.ab-studio__img');
+    if (st) {
+      const at = docTop(st) + st.offsetHeight / 2 - 0.5 * H;
+      out.push({ x: nx(W - Math.max(0.12 * W, 24 + hx(ABOUT.studio))), y: ny(st, at), s: ABOUT.studio, at: at - ABOUT.studioHold * H, until: at + ABOUT.studioHold * H, hold: true, front: false, spin: true, turn: 3.5 });
+    }
+    // G: el cierre naranja, centrado arriba (con la onda de luz al entrar)
+    const close = document.querySelector('.ip-close__inner');
+    if (close) out.push({ x: 0, y: 0.56, s: ABOUT.close, at: Math.min(max - 2, docTop(close) - 0.3 * H), close: true, hold: true, turn: 4 });
+    out.push({ ...end, turn: 5 });
+    // en orden, sin pisarse: una parada quieta termina antes de la siguiente
+    out.sort((a, b) => a.at - b.at);
+    const ok = out.filter((p, i) => i === 0 || p.at > out[i - 1].at + 2 || p.footer);
+    ok.forEach((p, i) => { if (p.until && ok[i + 1]) p.until = Math.min(p.until, ok[i + 1].at - 2); });
+    return ok;
+  };
+  // vueltas a lo largo del recorrido (nosotros: las de cada parada, con suavidad entre ellas)
+  const turnAt = (px) => {
+    const n = stops.length;
+    if (px <= stops[0].at) return stops[0].turn || 0;
+    let i = 0;
+    while (i < n - 2 && px > stops[i + 1].at) i++;
+    const a = stops[i];
+    const b = stops[i + 1];
+    const f = THREE.MathUtils.smoothstep(px, a.at, Math.max(a.at + 1, b.at));
+    return (a.turn || 0) + ((b.turn || 0) - (a.turn || 0)) * f;
+  };
+  // cuánto está en una parada quieta (1 dentro, baja a 0 en ABOUT.hold pantallas)
+  const holdOf = (px, pick) => {
+    let w = 0;
+    for (const p of stops) {
+      if (p.twin || !pick(p)) continue;
+      const u = p.until || p.at;
+      const d = px < p.at ? p.at - px : px > u ? px - u : 0;
+      w = Math.max(w, 1 - THREE.MathUtils.smoothstep(d, 0, ABOUT.hold * innerHeight));
+    }
+    return w;
+  };
+
   build();
   ScrollTrigger.addEventListener('refresh', build);
   if (document.fonts) document.fonts.ready.then(build);
@@ -275,6 +445,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     while (i < n - 2 && px > stops[i + 1].at) i++;
     const a = stops[i];
     const b = stops[i + 1];
+    if (b.twin) { tmp.x = a.x; tmp.y = a.y; tmp.s = a.s; tmp.off = false; return tmp; } // parada quieta
     const f = THREE.MathUtils.clamp((px - a.at) / Math.max(1, b.at - a.at), 0, 1);
     const p0 = stops[Math.max(0, i - 1)];
     const p3 = stops[Math.min(n - 1, i + 2)];
@@ -312,12 +483,12 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     const k = Math.min(n - 2, Math.floor(u));
     const f = THREE.MathUtils.clamp(u - k, 0, 1);
     const e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2; // power2.inOut
-    const a = cornerNow(tour.cards[k]);
-    const b = cornerNow(tour.cards[k + 1]);
-    const arc = Math.sin(Math.PI * f) * TOUR.arc * innerHeight;
+    const a = tour.pos(tour.cards[k]);
+    const b = tour.pos(tour.cards[k + 1]);
+    const arc = Math.sin(Math.PI * f) * tour.arc * innerHeight;
     tp.x = nx(a.x + (b.x - a.x) * e);
     tp.y = 1 - (2 * (a.y + (b.y - a.y) * e - arc)) / innerHeight;
-    tp.s = TOUR.s;
+    tp.s = tour.s;
     tp.rx = Math.sin(Math.PI * f) * TOUR.tilt; // como una moneda: de canto en lo alto, de frente al aterrizar
     return tp;
   };
@@ -375,6 +546,12 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   let tw = 0;          // peso del bento (0..1, suavizado)
   let mw = 0;          // peso del compañero de "Para quién"
   let uS = 0;          // progreso del bento, suavizado
+  let tmw = 0;         // nosotros: peso de la parada entre las fotos
+  let lean = 0;        // nosotros: hacia la foto con el ratón encima (−1 Luna, 1 Bruno)
+  let side = 0;
+  let osc = 0;         // nosotros: vaivén de frente en las paradas
+  let spinAcc = 0;     // nosotros: el giro rápido del estudio
+  const intro = { p: about ? 0 : 1 };
   let lifted = false;
   const seal = { spin: 0, armed: true };
   const show = (on) => {
@@ -445,6 +622,12 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     scr.y = ((1 - star.position.y / view.halfH) / 2) * innerHeight;
     scr.h = ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * innerHeight;
   };
+
+  // nosotros: hacia qué foto se inclina (la que tiene el ratón encima)
+  team?.querySelectorAll('[data-person]').forEach((p, i) => {
+    p.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') side = i ? 1 : -1; });
+    p.addEventListener('pointerleave', () => { side = 0; });
+  });
 
   // ---------- servicios: el manifiesto ----------
   const mani = { k: 0, on: false, tw: null, x: 0, y: 0, init: false, base: 0 };
@@ -600,7 +783,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       mani.init = false;
     }
     // con el hero en pantalla (su destello está ahí) este no se ve nunca, aunque se suba muy rápido
-    if (heroBottom > 0) {
+    if (heroBottom > 0 && !about) {
       drag.can = false;
       if (gate && (jump.open || jump.j > 0)) { jump.tl?.kill(); jump.j = 0; jump.open = false; gsap.set(glow, { opacity: 0 }); }
       if (drawn) { show(false); star.visible = false; }
@@ -654,18 +837,33 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
         t = { x: t.x + (q.x - t.x) * mw, y: t.y + (q.y - t.y) * mw, s: t.s + (q.s - t.s) * mw, off: false };
       } else { mp.init = false; }
     }
-    // reflejos: en "Para quién", la foto del sector de la fila (fundido; sin fila, el estudio); fuera, el estudio
+    // nosotros: entre las dos fotos, en vivo (van con el scroll)
+    if (teamG) {
+      const inTeam = px > teamG.start && px < teamG.end;
+      tmw += ((inTeam ? 1 : 0) - tmw) * (1 - Math.exp(-4 * dt));
+      if (tmw > 0.001) {
+        const q = teamPoint(live);
+        const qx = nx(q.x);
+        const qy = 1 - (2 * q.y) / H;
+        t = { x: t.x + (qx - t.x) * tmw, y: t.y + (qy - t.y) * tmw, s: t.s + (ABOUT.team - t.s) * tmw, off: false };
+      }
+    }
+    // reflejos: en "Para quién", la foto del sector de la fila (fundido; sin fila, el estudio); en el hero de
+    // nosotros, la aurora; fuera, el estudio
+    const want = auroraTex && px < 0.55 * aboutH ? auroraTex : studioTex;
     if (mw > 0.5) crossTo(mp.row >= 0 ? sectorEnv(mp.row) : studioTex);
-    else if (scene.environment !== studioTex && !env.tw?.isActive()) crossTo(studioTex);
+    else if (scene.environment !== want && !env.tw?.isActive()) crossTo(want);
     // en el bento, encima del estudio, el plano naranja (se intensifica en cada aterrizaje)
     if (orangeTex && scene.environment === studioTex && !env.tw?.isActive() && (tw > 0.001 || env.mix > 0)) {
       env.b = orangeTex;
       env.mix = (ORANGE.base + orange.level) * tw;
       applyMix();
     }
-    const guide = Math.max(tw, mw);
+    const guide = Math.max(tw, mw, tmw);
+    // nosotros: en una parada quieta de frente (vaivén, ratón, arrastre)
+    const hw = about ? holdOf(px, (p) => p.hold && p.front !== false) : 0;
     // arrastre: en las paradas (no en el bento); mientras se arrastra, la pose se queda donde está
-    drag.can = tw < 0.5 && j >= 0.999;
+    drag.can = about ? tw < 0.5 && Math.max(hw, tmw) > 0.85 && intro.p > 0.9 : tw < 0.5 && j >= 0.999;
     dragStep(ratio);
     if (drag.on) {
       drag.frozen ||= { x: cur.x, y: cur.y, s: cur.s };
@@ -686,8 +884,9 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     const progress = THREE.MathUtils.clamp((px - first) / Math.max(1, last - first), 0, 1);
     angularVel = THREE.MathUtils.clamp((angularVel + velocity * SPIN.gain * ratio) * Math.pow(SPIN.friction, ratio), -SPIN.max, SPIN.max);
     rotYExtra += angularVel * ratio;
-    const freeY = progress * TURNS * TAU + rotYExtra;
-    const wf = Math.max(gate ? 1 - THREE.MathUtils.smoothstep(px, first, first + FRONT * H) : 0, THREE.MathUtils.smoothstep(px, last - FOOTER_FRONT * H, last), guide);
+    if (about) spinAcc += ABOUT.studioSpin * dt * holdOf(px, (p) => p.spin);
+    const freeY = (about ? turnAt(px) * TAU + spinAcc : progress * TURNS * TAU) + rotYExtra;
+    const wf = Math.max(gate ? 1 - THREE.MathUtils.smoothstep(px, first, first + FRONT * H) : 0, THREE.MathUtils.smoothstep(px, last - FOOTER_FRONT * H, last), guide, hw);
     const frontY = freeY + (THREE.MathUtils.euclideanModulo(-freeY + Math.PI, TAU) - Math.PI); // la vuelta de frente más cercana
     const ry = freeY + (frontY - freeY) * wf;
     const free = 1 - wf;
@@ -731,6 +930,20 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       else if (!seal.armed && px < closeStop.at - 0.6 * H) seal.armed = true;
     }
     ryAll += seal.spin + drag.spin;
+    let rxAdd = 0;
+    let rzAdd = 0;
+    if (about) {
+      const ta = 1 - Math.pow(1 - TILT.lerp, ratio);
+      mouse.x += (mouse.tx - mouse.x) * ta;
+      mouse.y += (mouse.ty - mouse.y) * ta;
+      lean += (side - lean) * (1 - Math.pow(1 - ABOUT.lean.lerp, ratio));
+      const still = hw * (1 - tmw);
+      osc += ABOUT.idle.speed * dt * still;
+      ryAll += Math.sin(osc) * ABOUT.idle.amp * still + mouse.x * TILT.y * hw + lean * ABOUT.lean.y * tmw + (1 - intro.p) * ABOUT.enter.turn;
+      rxAdd = mouse.y * TILT.x * hw;
+      rzAdd = -mouse.x * TILT.z * hw - lean * ABOUT.lean.z * tmw;
+      s *= ABOUT.enter.scale + (1 - ABOUT.enter.scale) * intro.p;
+    }
     // escondido (tramo entre dos puntos fuera de pantalla) o fuera de la pantalla: no se pinta
     const hh = (s * unit()) + 0.05;
     const onScreen = !t.off && y - hh < 1.05 && y + hh > -1.05;
@@ -746,7 +959,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     star.visible = true;
     star.position.set(x * view.halfW, y * view.halfH, 0);
     star.scale.setScalar(Math.max(0.0001, worldScale(s)));
-    star.rotation.set(cur.rx * Math.min(1, j), ryAll, cur.rz * Math.min(1, j));
+    star.rotation.set(cur.rx * Math.min(1, j) + rxAdd, ryAll, cur.rz * Math.min(1, j) + rzAdd);
     gl.draw(scene, 'page');
     gl.measure(dt);
     drawn = true;
@@ -765,9 +978,18 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     }
   });
 
+  if (about) {
+    about.classList.add('is-3d');
+    if (lenis.scroll < innerHeight) {
+      gsap.fromTo(canvas, { opacity: 0 }, { opacity: 1, duration: ABOUT.enter.fade, ease: 'power1.out', clearProps: 'opacity' });
+      gsap.to(intro, { p: 1, duration: ABOUT.enter.duration, ease: 'expo.out' });
+    } else intro.p = 1;
+  }
+
   window.addEventListener('pagehide', (e) => {
     if (e.persisted) return; // bfcache: al volver, todo sigue
     pmrem.dispose();
+    auroraTex?.dispose();
     studioTex.dispose();
     orangeTex?.dispose();
     sectorTex.forEach((t) => t?.dispose());

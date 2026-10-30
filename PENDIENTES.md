@@ -91,6 +91,8 @@ Todo se rellena en `js/portfolio-data.js`, que trae un ejemplo comentado. Las ca
 - [ ] **Instagram personal** de Luna y de Bruno, si existe. Si no, no se pone nada.
 - [ ] **"Cómo trabajamos" (BORRADOR):** las 4 frases de los pasos.
 - [ ] **El estudio:** `[DIRECCIÓN O ZONA]`. Si no hay estudio fijo, borra la sección `.ab-studio` de nosotros.html.
+- [ ] **Escuadras de autofoco (hover de las fotos):** están colocadas sobre la cara de las fotos actuales (`.ab-person__af` en css/about.css). Cuando llegue la foto real de Bruno, revisar su posición.
+- [ ] **Rendimiento (AE, 30-10-2026):** el hero nuevo (aurora + destello grande con recorrido por toda la página) da en Lighthouse móvil 63–66, frente a 72–74 de la versión anterior medida el mismo día en esta máquina. Accesibilidad, buenas prácticas y SEO siguen en 100. La aurora ya no pesa: compila en paralelo y entra cuando la página está libre. Lo que queda es el arranque del 3D, ahora grande y visible desde el primer pantallazo. Para recuperar esos puntos habría que no cargar el destello en móvil hasta el primer scroll, y el hero de móvil lo enseña arriba a la derecha.
 
 ## Otros
 

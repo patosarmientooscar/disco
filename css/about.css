@@ -13,8 +13,39 @@
 
 /* Luna y Bruno */
 .ab-lead { max-width: 30ch; margin: calc(-1 * clamp(8px, 2vh, 24px)) 0 clamp(32px, 6vh, 56px); font: 400 clamp(19px, 1.7vw, 26px) / 1.35 var(--font-display); color: rgb(244 242 239 / 0.86); }
-.ab-team { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 72px); }
-.ab-person__photo { aspect-ratio: 4 / 5; overflow: hidden; border-radius: 3px; background: #141111; }
+/* fichas pequeñas y editoriales: máx. 340 px, centradas, con el hueco del destello entre ellas (js/page-star.js);
+   la de Bruno, 64 px más abajo */
+.ab-team { display: flex; justify-content: center; align-items: flex-start; gap: clamp(48px, 8vw, 140px); }
+.ab-person { flex: 0 1 340px; min-width: 0; }
+.ab-person + .ab-person { margin-top: 64px; }
+.ab-person__photo { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 4px; background: #141111; box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.7); }
+.ab-person__photo::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(244 242 239 / 0.1); pointer-events: none; }
+/* escuadras de autofoco: al pasar el ratón se cierran sobre la cara */
+.ab-person__af {
+  --c: rgb(244 242 239 / 0.9);
+  --l: 16px;
+  --t: 1.5px;
+  position: absolute;
+  z-index: 1;
+  left: 27%;
+  top: 13%;
+  width: 46%;
+  height: 37%;
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 0 0 / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 100% 0 / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 0 100% / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 0 100% / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 100% 100% / var(--t) var(--l);
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: scale(1.45);
+  transition: opacity 0.25s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.ab-person:hover .ab-person__af { opacity: 1; transform: none; }
+/* la cara de cada retrato */
+.ab-person:first-child .ab-person__af { left: 36%; top: 15%; width: 36%; height: 36%; }
+.ab-person + .ab-person .ab-person__af { left: 24%; top: 36%; width: 38%; height: 32%; }
 .ab-person__photo img {
   width: 100%;
   height: 100%;
@@ -24,9 +55,9 @@
 }
 .ab-person:hover .ab-person__photo img,
 .ab-person.is-color .ab-person__photo img { filter: none; transform: scale(1.02); }
-.ab-person__name { margin: 24px 0 8px; font: 600 40px / 1 var(--font-display); letter-spacing: -0.02em; }
-.ab-person__role { margin: 0 0 16px; font: 500 12px / 1.4 var(--font-mono); letter-spacing: 0.1em; color: var(--orange); }
-.ab-person__bio { max-width: 42ch; margin: 0 0 14px; font: 400 18px / 1.5 var(--font-display); color: #d9d2cd; }
+.ab-person__name { margin: 22px 0 8px; font: 600 26px / 1.05 var(--font-display); letter-spacing: -0.015em; }
+.ab-person__role { margin: 0 0 12px; font: 500 11px / 1.45 var(--font-mono); letter-spacing: 0.1em; color: var(--orange); }
+.ab-person__bio { max-width: 30ch; margin: 0 0 12px; font: 400 15px / 1.5 var(--font-display); color: #d9d2cd; }
 .ab-person__kit { margin: 0; font: 400 11px / 1.4 var(--font-mono); letter-spacing: 0.08em; color: var(--muted); }
 .ab-person__ig { display: inline-block; margin-top: 12px; color: var(--paper); font: 400 15px / 1 var(--font-display); }
 
@@ -71,6 +102,10 @@
 }
 .ab-how__steps li { opacity: 0.35; transition: opacity 0.4s ease; }
 .ab-how__steps li.is-on { opacity: 1; }
+/* el paso donde está el destello (js/page-star.js) se ilumina */
+.ab-how__steps h3 { transition: color 0.35s ease, text-shadow 0.35s ease; }
+.ab-how__steps li.is-lit { opacity: 1; }
+.ab-how__steps li.is-lit h3 { color: #fff; text-shadow: 0 0 22px rgb(243 84 17 / 0.55); }
 .ab-how__steps h3 { margin: 0 0 10px; font: 500 clamp(22px, 2vw, 30px) / 1.1 var(--font-display); }
 .ab-how__steps p { margin: 0; max-width: 30ch; font: 400 17px / 1.5 var(--font-display); color: #d9d2cd; }
 
@@ -86,7 +121,9 @@
 }
 /* sin pin (móvil y movimiento reducido): lista vertical, todos encendidos */
 @media (max-width: 899px) {
-  .ab-team { grid-template-columns: 1fr; }
+  .ab-team { flex-direction: column; align-items: center; gap: 104px; } /* entre las dos, el destello */
+  .ab-person { flex: none; width: 78vw; }
+  .ab-person + .ab-person { margin-top: 0; }
   .ab-how__ruler { display: none; }
   .ab-how__steps { grid-template-columns: 1fr; }
   .ab-how__steps li { opacity: 1; padding-top: 20px; border-top: 1px solid var(--line); }
@@ -94,55 +131,80 @@
 .ip-static .ab-how__ruler { display: none; }
 .ip-static .ab-how__steps li { opacity: 1; }
 
-/* ---------- A) hero "Somos disco." (js/nosotros-hero.js) ----------
-   Pequeño (72svh), fondo #0b0909, sin foto ni vídeo. "Somos" (Clash 500) y el logotipo "disco" en SVG (el path de la
-   nav sin la estrella; alto = 0.92 × la altura de mayúscula, en la línea base) con el punto naranja. A la derecha del
-   texto, el hueco del destello (.nh__star): el 3D pinta ahí, en el canvas fijo de la página (el hero no crea contexto
-   de apilamiento); dentro, la estrellita 2D de reserva (sin WebGL, o hasta que llega el 3D). En móvil, encima del
-   texto, a la derecha. */
-.nh { position: relative; background: var(--ink); color: var(--paper); touch-action: pan-y; }
-.nh.is-grab { cursor: grab; }
-.nh.is-dragging { cursor: grabbing; }
-.nh__in {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: 1fr auto auto;
-  align-items: center;
-  column-gap: clamp(32px, 4vw, 72px);
-  min-height: 72vh;
-  min-height: 72svh;
-  padding-top: 120px;
-  padding-bottom: clamp(48px, 9vh, 96px);
+/* ---------- A) hero "Somos disco." (js/nosotros-hero.js, js/aurora.js) ----------
+   Fondo #0b0909 con la AURORA en el 62 % superior (canvas WebGL, js/aurora.js), fundida a negro con una máscara: el
+   color solo vive arriba (luz de escenario que entra por arriba) y el texto queda sobre negro. Sin WebGL, el degradado
+   CSS del contenedor. A la izquierda "Somos" y el logo de disco tal cual (con su estrella; el borde de la "d" alineado
+   con la "S": viewBox ajustado a las letras). A la derecha el hueco del destello 3D (.nh__star: lo lee
+   js/page-star.js, que pinta en el canvas fijo de la página; el hero no crea contexto de apilamiento); dentro, la
+   estrellita 2D de reserva (sin WebGL, o hasta que llega el 3D). Móvil: el destello arriba a la derecha, el texto
+   abajo. */
+.nh { position: relative; min-height: 100vh; min-height: 100svh; background: var(--ink); color: var(--paper); overflow: hidden; }
+.nh__aurora {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 62%;
+  background:
+    radial-gradient(120% 70% at 30% 0%, rgb(243 84 17 / 0.55), transparent 60%),
+    radial-gradient(80% 40% at 70% 0%, rgb(244 242 239 / 0.25), transparent 60%),
+    #0b0909;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%);
+  pointer-events: none;
 }
-.nh__tag {
-  grid-column: 1 / -1;
-  grid-row: 2;
+.aurora { position: absolute; inset: 0; display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 0.6s ease; }
+.aurora.is-on { opacity: 1; }
+.nh__in {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 clamp(20px, 4vh, 40px);
-  font: 500 15px / 1 var(--font-display);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  min-height: inherit;
+  padding: 96px clamp(20px, 6vw, 110px) clamp(48px, 8vh, 96px);
 }
-.nh__tag svg { display: block; width: auto; height: 12px; color: var(--orange); }
-.nh__block { grid-column: 1; grid-row: 3; width: fit-content; max-width: 100%; }
-.nh__title { margin: 0; font: 500 clamp(44px, 10.6vw, 196px) / 0.9 var(--font-display); letter-spacing: -0.04em; white-space: nowrap; }
-.nh__mask { display: inline-block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; vertical-align: bottom; }
+.nh__block { --logo-w: clamp(280px, 46vw, 820px); max-width: 100%; margin-top: 12vh; }
+.nh__title { display: flex; flex-direction: column; align-items: flex-start; margin: 0; }
+.nh__mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  /* "Somos" a 0.18 × el alto del logo (275/936 de su ancho) por encima */
+  margin-bottom: calc(var(--logo-w) * 0.2938 * 0.18 - 0.1em);
+  font: 500 clamp(22px, 2.2vw, 36px) / 1 var(--font-display);
+  letter-spacing: -0.01em;
+}
 .nh__mask > span { display: inline-block; }
-.nh__logo { display: inline-block; width: auto; height: 0.616em; height: 0.92cap; margin-left: 0.02em; overflow: visible; vertical-align: baseline; color: var(--paper); }
-.nh__logo path { stroke: currentColor; stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-opacity: 0; }
-.nh__period { font-weight: inherit; color: var(--orange); margin-left: 0.02em; }
-.nh__sub { max-width: 38ch; margin: clamp(22px, 3.5vh, 36px) 0 0; font: 400 clamp(18px, 1.6vw, 24px) / 1.4 var(--font-display); color: rgb(244 242 239 / 0.86); text-wrap: pretty; }
-.nh__proof { margin: 18px 0 0; font: 400 11px / 1.5 var(--font-mono); letter-spacing: 0.08em; color: #8a807c; }
-/* el hueco del destello: a la derecha del bloque de texto, centrado con él */
-.nh__star { grid-column: 2; grid-row: 3; justify-self: start; display: grid; place-items: center; width: calc(min(24vh, 15vw) * 0.704); height: min(24vh, 15vw); }
+.nh__logo { display: block; width: var(--logo-w); height: auto; overflow: visible; color: var(--paper); }
+.nh__letter,
+.nh__lstar { stroke: currentColor; stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-opacity: 0; }
+.nh__lstar { transform-box: fill-box; transform-origin: 50% 50%; }
+/* el destello de la estrella del logo: cada pocos segundos, muy suave */
+.nh__lglow { opacity: 0; pointer-events: none; }
+.nh__logo.is-glint .nh__lstar { animation: nh-star 6s ease-in-out infinite; }
+.nh__logo.is-glint .nh__lglow { animation: nh-glow 6s ease-in-out infinite; }
+@keyframes nh-star { 0%, 74%, 100% { opacity: 0.85; } 84% { opacity: 1; } }
+@keyframes nh-glow { 0%, 72%, 100% { opacity: 0; } 84% { opacity: 0.5; } }
+.nh__sub { max-width: 44ch; margin: 24px 0 0; font: 400 clamp(16px, 1.25vw, 20px) / 1.45 var(--font-display); color: rgb(244 242 239 / 0.85); text-wrap: pretty; }
+.nh__proof { margin: 14px 0 0; font: 400 11px / 1.5 var(--font-mono); letter-spacing: 0.08em; color: #8a807c; }
+.nh__cta { margin-top: 28px; }
+/* el hueco del destello: centro en x 74 %, y 52 %; alto 52 % de la pantalla (menos si no cabe a lo ancho) */
+.nh__star {
+  position: absolute;
+  left: 74%;
+  top: 52%;
+  display: grid;
+  place-items: center;
+  height: min(52vh, 40vw);
+  height: min(52svh, 40vw);
+  aspect-ratio: 0.704;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 .nh__star svg { display: block; width: auto; height: 62%; color: var(--orange); transition: opacity 0.4s ease; }
 .nh.is-3d .nh__star svg { opacity: 0; }
 @media (max-width: 767px) {
-  .nh__in { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto; min-height: 62svh; padding-top: 104px; }
-  .nh__title { font-size: 15vw; }
-  .nh__tag { grid-row: 3; }
-  .nh__block { grid-row: 4; }
-  .nh__star { grid-column: 1; grid-row: 2; justify-self: end; align-self: end; width: calc(13vh * 0.704); height: 13vh; margin-bottom: -8px; }
+  .nh__in { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 24px; padding: 88px 20px 44px; }
+  .nh__star { position: relative; left: auto; top: auto; order: -1; align-self: flex-end; height: 30svh; transform: none; }
+  .nh__block { margin-top: 0; }
 }
