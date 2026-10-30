@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
-  <script src="js/file-guard.js" defer></script>
+  <script src="js/file-guard.js?v=85b1f5e-695579" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Política de privacidad — disco.</title>
   <meta name="description" content="Cómo trata disco. tus datos cuando nos escribes o usas el formulario de contacto, y cómo ejercer tus derechos.">
@@ -47,17 +47,68 @@
     @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
   </style>
 
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/interior.css">
-  <link rel="stylesheet" href="css/legal.css">
-  <link rel="stylesheet" href="css/nav.css">
-  <link rel="stylesheet" href="css/fin.css">
-  <link rel="stylesheet" href="css/transition.css">
+  <link rel="stylesheet" href="css/tokens.css?v=85b1f5e-695579">
+  <link rel="stylesheet" href="css/base.css?v=85b1f5e-695579">
+  <link rel="stylesheet" href="css/interior.css?v=85b1f5e-695579">
+  <link rel="stylesheet" href="css/legal.css?v=85b1f5e-695579">
+  <link rel="stylesheet" href="css/nav.css?v=85b1f5e-695579">
+  <link rel="stylesheet" href="css/fin.css?v=85b1f5e-695579">
+  <link rel="stylesheet" href="css/transition.css?v=85b1f5e-695579">
   <script>
     document.documentElement.classList.add('js');
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
     try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
+  </script>
+  <!-- versiones (tools/version.mjs): three y cada módulo de js/ con ?v=, también en sus import entre ellos -->
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/",
+      "./js/about.js": "./js/about.js?v=85b1f5e-695579",
+      "./js/aurora.js": "./js/aurora.js?v=85b1f5e-695579",
+      "./js/bento.js": "./js/bento.js?v=85b1f5e-695579",
+      "./js/config.js": "./js/config.js?v=85b1f5e-695579",
+      "./js/contact.js": "./js/contact.js?v=85b1f5e-695579",
+      "./js/core.js": "./js/core.js?v=85b1f5e-695579",
+      "./js/file-guard.js": "./js/file-guard.js?v=85b1f5e-695579",
+      "./js/fin-physics.js": "./js/fin-physics.js?v=85b1f5e-695579",
+      "./js/fin.js": "./js/fin.js?v=85b1f5e-695579",
+      "./js/gpu.js": "./js/gpu.js?v=85b1f5e-695579",
+      "./js/hero-exposure.js": "./js/hero-exposure.js?v=85b1f5e-695579",
+      "./js/hero-star.js": "./js/hero-star.js?v=85b1f5e-695579",
+      "./js/hero.js": "./js/hero.js?v=85b1f5e-695579",
+      "./js/home-close.js": "./js/home-close.js?v=85b1f5e-695579",
+      "./js/interior.js": "./js/interior.js?v=85b1f5e-695579",
+      "./js/intro-loader.js": "./js/intro-loader.js?v=85b1f5e-695579",
+      "./js/intro-shot.js": "./js/intro-shot.js?v=85b1f5e-695579",
+      "./js/main.js": "./js/main.js?v=85b1f5e-695579",
+      "./js/manifesto.js": "./js/manifesto.js?v=85b1f5e-695579",
+      "./js/nav.js": "./js/nav.js?v=85b1f5e-695579",
+      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=85b1f5e-695579",
+      "./js/oficios.js": "./js/oficios.js?v=85b1f5e-695579",
+      "./js/page-hero.js": "./js/page-hero.js?v=85b1f5e-695579",
+      "./js/page-star.js": "./js/page-star.js?v=85b1f5e-695579",
+      "./js/page.js": "./js/page.js?v=85b1f5e-695579",
+      "./js/placeholder.js": "./js/placeholder.js?v=85b1f5e-695579",
+      "./js/portfolio-data.js": "./js/portfolio-data.js?v=85b1f5e-695579",
+      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=85b1f5e-695579",
+      "./js/portfolio.js": "./js/portfolio.js?v=85b1f5e-695579",
+      "./js/proyecto.js": "./js/proyecto.js?v=85b1f5e-695579",
+      "./js/rec.js": "./js/rec.js?v=85b1f5e-695579",
+      "./js/scroll-fx.js": "./js/scroll-fx.js?v=85b1f5e-695579",
+      "./js/servicios-data.js": "./js/servicios-data.js?v=85b1f5e-695579",
+      "./js/servicios.js": "./js/servicios.js?v=85b1f5e-695579",
+      "./js/star-core.js": "./js/star-core.js?v=85b1f5e-695579",
+      "./js/star.js": "./js/star.js?v=85b1f5e-695579",
+      "./js/studio-cross.js": "./js/studio-cross.js?v=85b1f5e-695579",
+      "./js/studio-ui.js": "./js/studio-ui.js?v=85b1f5e-695579",
+      "./js/studio.js": "./js/studio.js?v=85b1f5e-695579",
+      "./js/team.js": "./js/team.js?v=85b1f5e-695579",
+      "./js/transition.js": "./js/transition.js?v=85b1f5e-695579",
+      "./js/wa-float.js": "./js/wa-float.js?v=85b1f5e-695579",
+      "./js/water.js": "./js/water.js?v=85b1f5e-695579",
+      "./js/why.js": "./js/why.js?v=85b1f5e-695579"
+    } }
   </script>
 </head>
 <body>
@@ -136,6 +187,6 @@
   <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
   <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
-  <script type="module" src="js/page.js"></script>
+  <script type="module" src="js/page.js?v=85b1f5e-695579"></script>
 </body>
 </html>

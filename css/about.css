@@ -146,9 +146,11 @@
   right: 0;
   top: 0;
   height: 62%;
+  /* el degradado de reserva (siempre debajo; parecido al shader de js/aurora.js) */
   background:
-    radial-gradient(120% 70% at 30% 0%, rgb(243 84 17 / 0.55), transparent 60%),
-    radial-gradient(80% 40% at 70% 0%, rgb(244 242 239 / 0.25), transparent 60%),
+    radial-gradient(130% 105% at 30% -5%, rgb(243 84 17 / 0.85), rgb(243 84 17 / 0.45) 40%, transparent 70%),
+    radial-gradient(90% 45% at 75% -5%, rgb(244 242 239 / 0.35), transparent 60%),
+    radial-gradient(70% 55% at 55% 30%, rgb(140 30 8 / 0.5), transparent 70%),
     #0b0909;
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%);
@@ -178,7 +180,7 @@
 .nh__logo { display: block; width: var(--logo-w); height: auto; overflow: visible; color: var(--paper); }
 .nh__letter,
 .nh__lstar { stroke: currentColor; stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-opacity: 0; }
-.nh__lstar { transform-box: fill-box; transform-origin: 50% 50%; }
+.nh__lstar { transform-box: fill-box; transform-origin: 50% 50%; opacity: 0.85; } /* algo más tenue que las letras */
 /* el destello de la estrella del logo: cada pocos segundos, muy suave */
 .nh__lglow { opacity: 0; pointer-events: none; }
 .nh__logo.is-glint .nh__lstar { animation: nh-star 6s ease-in-out infinite; }

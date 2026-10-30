@@ -136,6 +136,8 @@ Lighthouse 12, móvil (4G simulado, CPU ×4), con un servidor como el de producc
 - **Escritorio, primera visita a la home:** sigue la intro completa (≥ 2,6 s), así que en una medición de escritorio cuenta en el LCP.
 
 **Pendiente de hosting**
+- [ ] **Antes de publicar, siempre: `node tools/version.mjs`** (AF, 30-10-2026). Pone `?v=<commit>` (más un hash del contenido si hay cambios sin commit) en cada `css/*.css` y `js/*.js` de todas las páginas y en el import map del `<head>`, que versiona también los import entre módulos. Sin esto, tras publicar en GitHub Pages un navegador podía juntar el HTML nuevo con un CSS o JS viejo durante 10 min: la página se veía rota. Se puede ejecutar las veces que haga falta. Orden: cambios → `node tools/version.mjs` → commit → push.
+- [ ] **Diagnóstico del navegador:** abre cualquier página con `?debug` (p. ej. `nosotros.html?debug`) y la consola dice el renderer de WebGL y si se encienden el 3D (`gpuOK`) y la aurora (`webglOK`), con el motivo. Para ver la web sin 3D: `localStorage.disco_gl = 'off'`; para forzarlo: `'force'`; para volver a lo normal: `localStorage.removeItem('disco_gl')`.
 - [ ] **Hosting:** aún no está decidido. GitHub Pages ignora `_headers` y `.htaccess` (pone su propia caché de 10 min y comprime él). En Netlify / Cloudflare Pages se usa `_headers`; en Apache, `.htaccess`. Con la caché immutable, si se sustituye un archivo de `assets/` hay que cambiarle el nombre.
 - [ ] **EmailJS:** las claves siguen vacías (ver la sección de Contacto).
 - [ ] **Foto real de Bruno** y textos en BORRADOR (`data-draft`): siguen pendientes (ver Nosotros).

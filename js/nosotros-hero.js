@@ -38,7 +38,7 @@ export function initNosotrosHero({ gsap, lenis, loop, reduced }) {
       .to(letters, { fillOpacity: 1, duration: DRAW.fill, ease: 'power1.out', stagger: DRAW.stagger * 0.5 }, '-=0.25')
       .to(letters, { strokeOpacity: 0, duration: 0.3 }, '-=0.2')
       // la estrella, la última: gira 90° y suelta un mini destello
-      .fromTo(lstar, { rotation: -90, scale: 0.3, opacity: 0 }, { rotation: 0, scale: 1, opacity: 1, duration: 0.7, ease: 'back.out(1.8)' }, '-=0.35')
+      .fromTo(lstar, { rotation: -90, scale: 0.3, opacity: 0 }, { rotation: 0, scale: 1, opacity: 0.85, duration: 0.7, ease: 'back.out(1.8)' }, '-=0.35')
       .fromTo(lglow, { opacity: 0 }, { keyframes: { opacity: [0, 0.75, 0] }, duration: 0.8, ease: 'none', clearProps: 'opacity' }, '<0.25')
       // texto y CTA, mientras se dibuja (no al final: el texto es el LCP)
       .from(parts, { opacity: 0, y: 16, duration: 0.9, ease: 'expo.out', stagger: 0.09 }, 0.25);

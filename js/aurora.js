@@ -1,13 +1,17 @@
 // Aurora (nosotros.html, el hero; css/about.css): un velo de luz de escenario con los colores de disco que entra
 // por arriba. Traducción a vanilla de shader-aurora-veil (React) con su misma técnica: WebGL1 sin three, un solo
 // triángulo a pantalla completa, un draw por fotograma (en el gsap.ticker de la web, no un rAF propio), solo con el
-// hero en pantalla, DPR y píxeles limitados, y pérdida de contexto gestionada. Sin WebGL: el degradado CSS de su
-// contenedor (.nh__aurora). Movimiento reducido: un solo fotograma (t = 18). Gama baja (deviceMemory ≤ 4): 0.75 de
-// resolución y 30 fps.
+// hero en pantalla, DPR y píxeles limitados, y pérdida de contexto gestionada.
+// El degradado CSS de su contenedor (.nh__aurora) se ve SIEMPRE, debajo: el canvas solo aparece (fundido de 0.6 s)
+// cuando ha pintado bien su primer fotograma; si no hay WebGL por hardware (js/gpu.js → webglOK), si falla o si tarda
+// más de 1.5 s, se queda el CSS. Nunca tapa en negro. Movimiento reducido: un solo fotograma (t = 18). Gama baja
+// (deviceMemory ≤ 4): 0.75 de resolución y 30 fps.
+import { webglOK } from './gpu.js';
 const MAX_DPR = 1.35;
 const MAX_PIXELS = 620000;
 const POINTER_LERP = 0.05;
 const STILL_T = 18;
+const GIVE_UP = 1500; // ms sin primer fotograma: se queda el degradado CSS
 
 const VERT = 'attribute vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.0,1.0);}';
 const FRAG = `precision mediump float;
@@ -61,7 +65,7 @@ void main() {
 }`;
 
 export function initAurora({ canvas, stage, loop, reduced }) {
-  if (!canvas) return null;
+  if (!canvas || !webglOK()) return null;
   const low = (navigator.deviceMemory || 8) <= 4;
   const still = reduced.matches;
   const opts = { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: 'low-power', preserveDrawingBuffer: false };
@@ -148,7 +152,7 @@ export function initAurora({ canvas, stage, loop, reduced }) {
     if (lost || !inView || document.hidden) return;
     if (!linked) {
       if (par && !gl.getProgramParameter(prog, par.COMPLETION_STATUS_KHR)) return; // aún compilando
-      try { setup(); resize(); } catch { off(); return; } // el degradado CSS se queda
+      try { setup(); resize(); } catch { stop(); return; } // el degradado CSS se queda
     }
     if (still && !dirty) return;
     const now = performance.now();
@@ -164,11 +168,28 @@ export function initAurora({ canvas, stage, loop, reduced }) {
     gl.uniform1f(U.u_scroll, scroll);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     dirty = false;
-    if (!shown) { shown = true; canvas.classList.add('is-on'); } // fundido de 0.6 s (css/about.css)
+    if (!shown) {
+      if (gl.getError() !== gl.NO_ERROR) { stop(); return; } // no ha pintado bien: el CSS
+      shown = true;
+      clearTimeout(giveUp);
+      canvas.classList.add('is-on'); // fundido de 0.6 s (css/about.css)
+    }
   };
   const off = loop.add(frame);
+  // se rinde: fuera del loop, sin contexto y el canvas escondido (debajo, el degradado CSS)
+  const stop = () => {
+    off();
+    ro.disconnect();
+    io.disconnect();
+    canvas.classList.remove('is-on');
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+  };
+  // (con la pestaña en segundo plano no hay fotogramas: se espera a que vuelva)
+  let giveUp = 0;
+  const arm = () => { giveUp = setTimeout(() => { if (shown) return; if (document.hidden) document.addEventListener('visibilitychange', arm, { once: true }); else stop(); }, GIVE_UP); };
+  arm();
 
-  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); lost = true; });
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); lost = true; canvas.classList.remove('is-on'); shown = false; });
   canvas.addEventListener('webglcontextrestored', () => {
     compile();
     lost = false;
