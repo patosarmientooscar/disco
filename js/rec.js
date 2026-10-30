@@ -1,4 +1,5 @@
-import { irisAt, IRIS_GLSL } from './iris.js';
+import { CROSS, crossAt } from './studio-cross.js';
+import { gpuOK } from './gpu.js';
 
 // "Dale al REC." → estudio (home, css/rec.css). La frase se queda fija en el centro durante el tramo (130vh; 100vh
 // en móvil) y el piloto REC se convierte en la luz que descubre el estudio:
@@ -7,11 +8,13 @@ import { irisAt, IRIS_GLSL } from './iris.js';
 //                 y se doblan, con aberración cromática suave en los bordes (no en móvil) y grano
 //   u_p .75 → 1   todo el plano llega al naranja del papel del set (el estudio, js/studio.js)
 // La frase pasa de papel a negro cuando el fondo se aclara y al final se desenfoca y sube. Después, mientras el
-// estudio sube desde abajo, se abre el iris (js/iris.js): dentro, el panorama (canvas del destello); fuera, las
-// palas, que pinta este plano. El cursor mueve un poco las manchas; la velocidad del scroll aviva la fuga.
+// estudio sube desde abajo, el panorama aparece encima con un fundido (canvas del destello, js/studio.js) y este
+// plano baja su opacidad: los colores casan, se ve como una sola luz que se convierte en el estudio
+// (js/studio-cross.js; LEGACY: el iris de seis palas, en legacy/js/iris.js). El cursor mueve un poco las manchas;
+// la velocidad del scroll aviva la fuga.
 // El plano OGL solo existe cerca del tramo (se crea al acercarse y se destruye al salir). Movimiento reducido:
 // sin plano ni pin, un degradado fijo (CSS).
-const OGL = 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/src/index.js';
+const OGL = 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm';
 // paleta: negro → brasa → rojo → naranja de marca → casi luz (el final cae entre el naranja y la luz: el set)
 const PALETTE = ['#0b0909', '#3a0f06', '#a3300c', '#F35411', '#ffb27f'];
 const P_EASE = 8;          // 1/s: suavizado del progreso (Lenis ya suaviza el scroll; esto quita el último escalón)
@@ -32,7 +35,6 @@ uniform vec2 uRec;       // centro del piloto REC (px del canvas, origen abajo)
 uniform vec2 uMouse;     // -0.5..0.5, suavizado
 uniform float uBoost;    // 0..1: velocidad del scroll
 uniform float uCA;       // 1 = aberración cromática (escritorio)
-uniform vec4 uIris;      // centro, apotema, giro (px del canvas); z < 0 = sin iris
 ${PALETTE.map((h, i) => `const vec3 PAL${i} = vec3(${[1, 3, 5].map((k) => (parseInt(h.slice(k, k + 2), 16) / 255).toFixed(4)).join(', ')});`).join('\n')}
 
 // ruido simplex 2D (Ashima Arts / Stefan Gustavson, MIT)
@@ -67,7 +69,6 @@ vec3 pal(float t) {
   c = mix(c, PAL3, clamp(t - 2.0, 0.0, 1.0));
   return mix(c, PAL4, clamp(t - 3.0, 0.0, 1.0));
 }
-${IRIS_GLSL}
 
 // luz en un punto (uv centrado, en unidades del lado corto): halo del REC + fuga de luz
 float light(vec2 uv, vec2 rp, vec2 warp, float n1, float ax) {
@@ -114,16 +115,6 @@ void main() {
   float target = 0.77 + 0.07 * (blobs - 0.5);
   f = mix(f, vec3(target), fin);
   vec3 col = vec3(pal(f.r).r, pal(f.g).g, pal(f.b).b);
-  // iris: fuera de la apertura, las palas (más oscuras junto al borde, con las juntas en espiral)
-  if (uIris.z >= 0.0) {
-    float open = irisMask(frag, uIris.xy, uIris.z, uIris.w);
-    vec2 q = frag - uIris.xy;
-    float dist = length(q) - uIris.z;
-    float ang = atan(q.y, q.x) - uIris.w + dist / side * 1.6;
-    float seam = smoothstep(0.035, 0.0, abs(fract(ang / 1.0471976) - 0.5) - 0.465);
-    float ring = exp(-max(dist, 0.0) / (side * 0.05));
-    col *= (1.0 - open) * (1.0 - 0.22 * ring - 0.1 * seam) + open;
-  }
   // grano de película
   col += (hash(frag + fract(t * 7.0) * 113.0) - 0.5) * ${GRAIN.toFixed(2)};
   gl_FragColor = vec4(col, 1.0);
@@ -180,7 +171,7 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
 
   const create = async () => {
     alive = true;
-    if (gl || making) return;
+    if (gl || making || !gpuOK()) return; // sin GPU de verdad (js/gpu.js): el fondo, sin el plano
     making = true;
     let O;
     try { O = await import(OGL); } catch { making = false; return; }
@@ -201,7 +192,6 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
         uMouse: { value: [0, 0] },
         uBoost: { value: 0 },
         uCA: { value: 1 },
-        uIris: { value: [0, 0, -1, 0] },
       },
     });
     const mesh = new O.Mesh(renderer.gl, { geometry: new O.Triangle(renderer.gl), program });
@@ -222,7 +212,7 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     gl.renderer.gl.getExtension('WEBGL_lose_context')?.loseContext();
     gl = null;
   };
-  // existe desde que el tramo está a media pantalla hasta que el estudio ya lo tapa entero (iris abierto)
+  // existe desde que el tramo está a media pantalla hasta que el estudio ya lo tapa entero (fundido hecho)
   ScrollTrigger.create({
     trigger: rec,
     start: 'top 150%',
@@ -262,10 +252,13 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     u.uMouse.value = [state.mx, state.my];
     u.uBoost.value = state.boost;
     u.uCA.value = mobile.matches ? 0 : 1;
-    // iris: mientras el estudio sube desde abajo (mismo cálculo que js/studio.js)
+    // mientras el estudio aparece encima (mismo cálculo que js/studio.js), el degradado se apaga al final
     const sTop = studio ? studio.getBoundingClientRect().top : innerHeight;
-    const ir = irisAt(sTop);
-    u.uIris.value = sTop > 0 && sTop < innerHeight ? [ir.cx * dpr, H - ir.cy * dpr, ir.r * dpr, ir.rot] : [0, 0, sTop <= 0 ? 1e5 : -1, 0];
+    const e = sTop >= innerHeight ? 0 : crossAt(Math.max(0, sTop));
+    const k = Math.min(1, Math.max(0, (e - CROSS.recFrom) / (1 - CROSS.recFrom)));
+    const o = (1 - k * k * (3 - 2 * k)).toFixed(3);
+    if (gl.canvas.style.opacity !== o) gl.canvas.style.opacity = o;
+    if (o === '0.000') return;
     renderer.render({ scene: gl.mesh });
   });
 }

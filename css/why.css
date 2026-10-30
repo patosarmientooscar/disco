@@ -147,3 +147,34 @@
 .why.is-static .why__spark { transform: none; }
 .why.is-static .why__meta { position: static; margin-top: 14px; opacity: 1; }
 .why.is-static .why__ring { display: none; }
+
+/* ---------- móvil (< 768 px): todo a la vez (js/why.js → .is-quick). Sin pin, sin enfoque, sin bokeh ni anillo:
+   lista compacta, cada razón con su estrellita, su título y su frase; separadas por una línea fina ---------- */
+.why.is-quick { height: auto; }
+.why.is-quick .why__back { display: none; }
+.why.is-quick .why__pin {
+  position: relative;
+  height: auto;
+  margin: 0;
+  padding: 104px var(--why-x) 88px;
+  overflow: visible;
+}
+.why.is-quick .why__title { position: static; margin-bottom: 28px; }
+.why.is-quick .why__list {
+  position: static;
+  width: auto;
+  font: 600 clamp(26px, 8vw, 34px) / 1.05 var(--font-display);
+  letter-spacing: -0.02em;
+  will-change: auto;
+}
+.why.is-quick .why__item {
+  margin: 0;
+  padding: 20px 0;
+  border-top: 1px solid rgb(11 9 9 / 0.14);
+  will-change: auto;
+}
+.why.is-quick .why__item:last-child { border-bottom: 1px solid rgb(11 9 9 / 0.14); }
+.why.is-quick .why__spark { transform: none; width: 0.5em; height: 0.5em; margin: 0 0.3em 0.1em 0; }
+.why.is-quick .why__meta { position: static; margin-top: 10px; opacity: 1; gap: 0; }
+.why.is-quick .why__n { display: none; }
+.why.is-quick .why__text { max-width: none; font-size: 16px; }

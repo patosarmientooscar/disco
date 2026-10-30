@@ -4,6 +4,9 @@
 // columna sube para que la activa quede siempre en el centro. Detrás, un bokeh cálido (canvas 2D a media
 // resolución) que respira en cada cambio de foco; a la derecha, el anillo de diafragma gira y marca el
 // progreso. Todo en el loop único (gsap.ticker), solo con la sección en pantalla.
+// MÓVIL (< 768 px): todo a la vez y rápido. Sin pin, sin enfoque una a una, sin bokeh ni anillo: las 4 razones en
+// una lista compacta (título, frase y la estrellita delante), y al entrar la sección aparecen juntas (0.6 s, y 16 → 0,
+// stagger .05). Nada depende del scroll. Al girar el móvil (cruza los 768 px) se cambia de modo (gsap.matchMedia).
 // La hoja de contactos anterior está en legacy/js/why-contactos.js.
 const SCRUB = 1.5;
 const SMOOTH = 0.06;          // suavizado extra del progreso (por frame a 60 fps)
@@ -19,125 +22,159 @@ const STOP_STEP = 20;         // grados entre cifras (8 cifras: 140° en total)
 const RING_KEYS = [[-1, 0], [0, 1], [1, 3], [2, 4.5], [3, 6.5], [4, 7]];
 const META_GAP = 14;          // px entre la palabra y su frase
 
-export function initWhy({ gsap, ScrollTrigger, reduced, loop }) {
+export function initWhy({ gsap, ScrollTrigger, reduced, loop, exitFade }) {
   const section = document.getElementById('porque');
   if (!section) return;
   const list = section.querySelector('[data-why-list]');
   const items = [...section.querySelectorAll('[data-why-item]')];
   const metas = items.map((it) => it.querySelector('.why__meta'));
   const sparks = items.map((it) => it.querySelector('.why__spark'));
-  const small = () => innerWidth < 768;
-  const bokeh = createBokeh(section.querySelector('[data-why-bokeh]'), small() ? 12 : 26);
+  const bokeh = createBokeh(section.querySelector('[data-why-bokeh]'), 26);
   const ring = createRing(section.querySelector('[data-why-ring]'));
 
-  // --- movimiento reducido: lista nítida, bokeh quieto ---
-  if (reduced.matches) {
-    section.classList.add('is-static');
-    const still = () => { bokeh.resize(); bokeh.draw(0, 1, null); };
-    still();
-    window.addEventListener('resize', still);
-    return;
+  const mm = gsap.matchMedia();
+  // --- móvil: la lista compacta, todas a la vez ---
+  mm.add('(max-width: 767px)', () => {
+    section.classList.add('is-quick');
+    if (reduced.matches) return () => section.classList.remove('is-quick');
+    gsap.set(items, { opacity: 0, y: 16 });
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      gsap.to(items, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.05 });
+    }, { rootMargin: '0px 0px -15% 0px' });
+    io.observe(section);
+    return () => { io.disconnect(); section.classList.remove('is-quick'); };
+  });
+  // --- escritorio: el enfoque de cámara ---
+  mm.add('(min-width: 768px)', () => {
+    // movimiento reducido: lista nítida, bokeh quieto
+    if (reduced.matches) {
+      section.classList.add('is-static');
+      const still = () => { bokeh.resize(); bokeh.draw(0, 1, null); };
+      still();
+      window.addEventListener('resize', still);
+      return () => { window.removeEventListener('resize', still); section.classList.remove('is-static'); };
+    }
+    exitFade?.();
+    return focus();
+  });
+
+  function focus() {
+    // --- medidas sin transformaciones: posición natural de cada razón y alto de la frase de la activa ---
+    let tops = [];
+    let heights = [];
+    let metaH = 0;
+    const measure = () => {
+      tops = items.map((it) => it.offsetTop);
+      heights = items.map((it) => it.offsetHeight);
+      metaH = Math.max(...metas.map((m) => m.offsetHeight)) + META_GAP * 2;
+      bokeh.resize();
+      applied = '';
+    };
+
+    const state = { p: 0 };
+    gsap.to(state, {
+      p: 1,
+      ease: 'none',
+      scrollTrigger: { id: 'why', trigger: section, start: 'top top', end: 'bottom bottom', scrub: SCRUB, invalidateOnRefresh: true },
+    });
+    ScrollTrigger.addEventListener('refresh', measure);
+    window.addEventListener('resize', measure);
+
+    // respiración del foco (todo el bokeh crece un 6% y vuelve) y rebote de autofocus de la activa
+    const breath = { v: 1 };
+    const bounce = items.map(() => ({ b: 0 }));
+    let active = -1;
+    let arrived = false;
+    const activate = (i) => {
+      const prev = active;
+      active = i;
+      arrived = false;
+      if (prev >= 0) {
+        gsap.to(metas[prev], { opacity: 0, y: -8, duration: 0.3, ease: 'power2.in', overwrite: 'auto' });
+        gsap.to(sparks[prev], { scale: 0, rotate: 90, duration: 0.3, ease: 'power2.in', overwrite: 'auto' });
+      }
+      gsap.fromTo(metas[i], { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', overwrite: 'auto' });
+      gsap.fromTo(sparks[i], { scale: 0, rotate: -120 }, { scale: 1, rotate: 0, duration: 0.6, ease: 'expo.out', overwrite: 'auto' });
+      gsap.fromTo(breath, { v: 1 }, { v: 1.06, duration: 0.3, ease: 'sine.inOut', yoyo: true, repeat: 1, overwrite: true });
+    };
+
+    // mezcla de los tres estados de foco según la distancia (0 = activa, 1 = vecina, ≥ 2 = lejana)
+    const focusAt = (d) => {
+      const k = Math.min(d, 2);
+      const a = FOCUS[Math.floor(k)];
+      const b = FOCUS[Math.min(2, Math.floor(k) + 1)];
+      const t = k - Math.floor(k);
+      return { blur: a.blur + (b.blur - a.blur) * t, opacity: a.opacity + (b.opacity - a.opacity) * t, scale: a.scale + (b.scale - a.scale) * t };
+    };
+
+    let p = 0;
+    let visible = false;
+    let applied = '';
+    const offLoop = loop.add((time, ratio) => {
+      if (!visible || !tops.length) return;
+      const prevP = p;
+      p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
+      if (Math.abs(state.p - p) < 1e-5) p = state.p;
+      const n = items.length;
+      const f = gsap.utils.clamp(0, 1, (p - EDGE) / (1 - EDGE * 2)) * (n - 1); // foco continuo: 0 … 3
+
+      const i = Math.round(f);
+      if (i !== active) activate(i);
+      if (!arrived && Math.abs(f - i) < 0.03) {
+        arrived = true;
+        gsap.timeline().to(bounce[i], { b: 1.5, duration: 0.12, ease: 'power1.out' }).to(bounce[i], { b: 0, duration: 0.23, ease: 'power1.in' });
+      }
+
+      // las de después de la activa bajan para dejar sitio a su frase
+      const push = items.map((_, k) => metaH * gsap.utils.clamp(0, 1, k - f));
+      const center = (k) => tops[k] + push[k] + heights[k] / 2;
+      const lo = Math.floor(f);
+      const hi = Math.min(n - 1, lo + 1);
+      const c = center(lo) + (center(hi) - center(lo)) * (f - lo);
+      const listY = innerHeight / 2 - c;
+
+      const key = `${f.toFixed(4)}|${bounce.map((o) => o.b.toFixed(2)).join()}|${breath.v.toFixed(3)}|${listY.toFixed(1)}`;
+      if (key !== applied) {
+        applied = key;
+        list.style.transform = `translate3d(0, ${listY}px, 0)`;
+        items.forEach((it, k) => {
+          const st = focusAt(Math.abs(k - f));
+          const blur = st.blur + bounce[k].b;
+          it.style.transform = `translate3d(0, ${push[k]}px, 0) scale(${st.scale})`;
+          it.style.opacity = st.opacity;
+          it.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+        });
+        // banda de la razón activa (en pantalla): el bokeh se apaga ahí para no restar contraste
+        const top = innerHeight / 2 - heights[i] / 2 - 24;
+        bokeh.draw(p, breath.v, { top, bottom: top + heights[i] + metaH, right: list.getBoundingClientRect().right });
+        ring.turn(-STOP_STEP * ringStop(fRing(p)));
+      } else if (p !== prevP) {
+        ring.turn(-STOP_STEP * ringStop(fRing(p)));
+      }
+    });
+
+    ring.turn(0);
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: '10% 0px' });
+    io.observe(section);
+    measure();
+    gsap.delayedCall(0, measure); // con las fuentes ya puestas
+    document.fonts?.ready.then(measure);
+    // al pasar a móvil (girar el teléfono): fuera lo del enfoque
+    return () => {
+      io.disconnect();
+      offLoop();
+      ScrollTrigger.removeEventListener('refresh', measure);
+      window.removeEventListener('resize', measure);
+      tops = [];
+      list.style.transform = '';
+      items.forEach((it) => { it.style.transform = ''; it.style.opacity = ''; it.style.filter = ''; });
+      gsap.killTweensOf([...metas, ...sparks]);
+      gsap.set([...metas, ...sparks], { clearProps: 'all' });
+      active = -1;
+    };
   }
-
-  // --- medidas sin transformaciones: posición natural de cada razón y alto de la frase de la activa ---
-  let tops = [];
-  let heights = [];
-  let metaH = 0;
-  const measure = () => {
-    tops = items.map((it) => it.offsetTop);
-    heights = items.map((it) => it.offsetHeight);
-    metaH = Math.max(...metas.map((m) => m.offsetHeight)) + META_GAP * 2;
-    bokeh.resize();
-    applied = '';
-  };
-
-  const state = { p: 0 };
-  gsap.to(state, {
-    p: 1,
-    ease: 'none',
-    scrollTrigger: { id: 'why', trigger: section, start: 'top top', end: 'bottom bottom', scrub: SCRUB, invalidateOnRefresh: true },
-  });
-  ScrollTrigger.addEventListener('refresh', measure);
-  window.addEventListener('resize', measure);
-
-  // respiración del foco (todo el bokeh crece un 6% y vuelve) y rebote de autofocus de la activa
-  const breath = { v: 1 };
-  const bounce = items.map(() => ({ b: 0 }));
-  let active = -1;
-  let arrived = false;
-  const activate = (i) => {
-    const prev = active;
-    active = i;
-    arrived = false;
-    if (prev >= 0) {
-      gsap.to(metas[prev], { opacity: 0, y: -8, duration: 0.3, ease: 'power2.in', overwrite: 'auto' });
-      gsap.to(sparks[prev], { scale: 0, rotate: 90, duration: 0.3, ease: 'power2.in', overwrite: 'auto' });
-    }
-    gsap.fromTo(metas[i], { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', overwrite: 'auto' });
-    gsap.fromTo(sparks[i], { scale: 0, rotate: -120 }, { scale: 1, rotate: 0, duration: 0.6, ease: 'expo.out', overwrite: 'auto' });
-    gsap.fromTo(breath, { v: 1 }, { v: 1.06, duration: 0.3, ease: 'sine.inOut', yoyo: true, repeat: 1, overwrite: true });
-  };
-
-  // mezcla de los tres estados de foco según la distancia (0 = activa, 1 = vecina, ≥ 2 = lejana)
-  const focusAt = (d) => {
-    const k = Math.min(d, 2);
-    const a = FOCUS[Math.floor(k)];
-    const b = FOCUS[Math.min(2, Math.floor(k) + 1)];
-    const t = k - Math.floor(k);
-    return { blur: a.blur + (b.blur - a.blur) * t, opacity: a.opacity + (b.opacity - a.opacity) * t, scale: a.scale + (b.scale - a.scale) * t };
-  };
-
-  let p = 0;
-  let visible = false;
-  let applied = '';
-  loop.add((time, ratio) => {
-    if (!visible || !tops.length) return;
-    const prevP = p;
-    p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
-    if (Math.abs(state.p - p) < 1e-5) p = state.p;
-    const n = items.length;
-    const f = gsap.utils.clamp(0, 1, (p - EDGE) / (1 - EDGE * 2)) * (n - 1); // foco continuo: 0 … 3
-
-    const i = Math.round(f);
-    if (i !== active) activate(i);
-    if (!arrived && Math.abs(f - i) < 0.03) {
-      arrived = true;
-      gsap.timeline().to(bounce[i], { b: 1.5, duration: 0.12, ease: 'power1.out' }).to(bounce[i], { b: 0, duration: 0.23, ease: 'power1.in' });
-    }
-
-    // las de después de la activa bajan para dejar sitio a su frase
-    const push = items.map((_, k) => metaH * gsap.utils.clamp(0, 1, k - f));
-    const center = (k) => tops[k] + push[k] + heights[k] / 2;
-    const lo = Math.floor(f);
-    const hi = Math.min(n - 1, lo + 1);
-    const c = center(lo) + (center(hi) - center(lo)) * (f - lo);
-    const listY = innerHeight / 2 - c;
-
-    const key = `${f.toFixed(4)}|${bounce.map((o) => o.b.toFixed(2)).join()}|${breath.v.toFixed(3)}|${listY.toFixed(1)}`;
-    if (key !== applied) {
-      applied = key;
-      list.style.transform = `translate3d(0, ${listY}px, 0)`;
-      items.forEach((it, k) => {
-        const st = focusAt(Math.abs(k - f));
-        const blur = st.blur + bounce[k].b;
-        it.style.transform = `translate3d(0, ${push[k]}px, 0) scale(${st.scale})`;
-        it.style.opacity = st.opacity;
-        it.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
-      });
-      // banda de la razón activa (en pantalla): el bokeh se apaga ahí para no restar contraste
-      const top = innerHeight / 2 - heights[i] / 2 - 24;
-      bokeh.draw(p, breath.v, { top, bottom: top + heights[i] + metaH, right: list.getBoundingClientRect().right });
-      ring.turn(-STOP_STEP * ringStop(fRing(p)));
-    } else if (p !== prevP) {
-      ring.turn(-STOP_STEP * ringStop(fRing(p)));
-    }
-  });
-
-  ring.turn(0);
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: '10% 0px' }).observe(section);
-  measure();
-  requestAnimationFrame(measure); // con las fuentes ya puestas
-  document.fonts?.ready.then(measure);
 }
 
 // foco extendido para el anillo: de -1 (principio del pin) a 4 (final), 0 … 3 en las razones

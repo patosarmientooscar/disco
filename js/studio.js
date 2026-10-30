@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createStudioUI } from './studio-ui.js';
-import { irisAt, IRIS_GLSL } from './iris.js';
+import { CROSS, crossAt } from './studio-cross.js';
 
 // Estudio de fotografía 360°: un panorama equirectangular en una esfera alrededor de la cámara, dibujado
 // como fondo en el MISMO canvas y renderer que el destello 3D (star.setBackdrop), dentro del loop único.
@@ -10,7 +10,7 @@ import { irisAt, IRIS_GLSL } from './iris.js';
 // estudio (mismo giro en el entorno de reflejos). Encima, "¿Qué hacemos?" (js/studio-ui.js).
 // Sin WebGL o con movimiento reducido: recorte fijo del set de fondo y todo el texto quieto.
 const PANO = 'assets/studio/studio-360.jpg';               // 5792×2896
-const PANO_MOBILE = 'assets/studio/studio-360-mobile.jpg'; // 4096×2048 (móvil y GPUs con límite de 4096)
+const PANO_MOBILE = 'assets/studio/studio-360-mobile.jpg'; // 3584×1792, < 400 KB (móvil y GPUs con límite de 4096; el de 4096, en legacy/assets/studio/)
 const PANO_ENV = 'assets/studio/studio-360-env.jpg';       // 2048×1024: reflejos del destello
 const SCRUB = 1.5;
 const SMOOTH = 0.05;              // suavizado extra del giro (por frame a 60 fps, independiente del frame rate)
@@ -18,8 +18,9 @@ const PITCH = THREE.MathUtils.degToRad(3);
 const FOV = 55;
 const FOV_PORTRAIT = 70;
 const FADE = 0.08;                // fundido de la esfera: primer y último 8% del progreso
-// entrada: el estudio aparece a través de un iris (js/iris.js) que se abre mientras la sección sube desde abajo,
-// encima del degradado naranja de "Dale al REC." (js/rec.js). Sin flash: la luz naranja "era" el estudio
+// entrada: mientras la sección sube desde abajo, el estudio aparece con un fundido (opacidad, desenfoque 12 px → 0
+// y escala 1.04 → 1; js/studio-cross.js) encima del degradado naranja de "Dale al REC." (js/rec.js), que a la vez
+// se apaga. Sin máscaras ni formas: la luz naranja se convierte en el estudio
 const ENV_INTENSITY = 1.4;        // brillo de los reflejos dentro del estudio
 const ENV_SIZE = 1024;            // ancho del equirectangular de reflejos → PMREM de 256, como el de softboxes (fundido)
 // Puestos del estudio: yaw (giro de la esfera, grados) que deja cada objeto en el centro de la pantalla y
@@ -77,27 +78,29 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   geo.scale(-1, 1, 1);
   geo.rotateY(Math.PI);
   const mat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
-  // iris de la entrada: centro (x, y), apotema y giro en px del canvas; z < 0 = sin iris (abierto del todo)
-  const iris = { value: new THREE.Vector4(0, 0, -1, 0) };
+  // fundido de la entrada (opacidad y desenfoque por sesgo de mipmap: barato y sin pasadas extra)
+  const cross = { value: 1 };
+  const blur = { value: 0 };
   // costura: los bordes izquierdo y derecho de la imagen no casan del todo (~10 niveles en el naranja,
   // más en el suelo). En una franja estrecha a cada lado se mezcla con el borde opuesto: en la costura
   // los dos lados dan el mismo color y no se ve la línea
   mat.onBeforeCompile = (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
       #ifdef USE_MAP
-        vec4 texel = texture2D( map, vMapUv );
-        vec4 mirror = texture2D( map, vec2( 1.0 - vMapUv.x, vMapUv.y ) );
+        vec4 texel = texture2D( map, vMapUv, uBlur );
+        vec4 mirror = texture2D( map, vec2( 1.0 - vMapUv.x, vMapUv.y ), uBlur );
         float edge = min( vMapUv.x, 1.0 - vMapUv.x );
         diffuseColor *= mix( 0.5 * ( texel + mirror ), texel, smoothstep( 0.0, ${SEAM.toFixed(4)}, edge ) );
       #endif
-      diffuseColor.a *= uIris.z < 0.0 ? 1.0 : irisMask( gl_FragCoord.xy, uIris.xy, uIris.z, uIris.w );
+      diffuseColor.a *= uCross;
     `);
-    shader.uniforms.uIris = iris;
-    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform vec4 uIris;
-${IRIS_GLSL}
+    shader.uniforms.uCross = cross;
+    shader.uniforms.uBlur = blur;
+    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform float uCross;
+uniform float uBlur;
 void main() {`);
   };
-  mat.customProgramCacheKey = () => 'disco-studio-iris';
+  mat.customProgramCacheKey = () => 'disco-studio-cross';
   const sphere = new THREE.Mesh(geo, mat);
   sphere.renderOrder = -1;
   sphere.visible = false;
@@ -183,7 +186,7 @@ void main() {`);
   const state = { p: 0 };
   let p = 0;
   let active = false;
-  // se enciende el estudio (sin flash: el iris lo descubre) y el piloto de "Dale al REC." se queda fijo
+  // se enciende el estudio (sin flash: aparece con el fundido) y el piloto de "Dale al REC." se queda fijo
   const light = () => {
     section.classList.add('is-lit');
     window.dispatchEvent(new CustomEvent('disco:studio-shot'));
@@ -202,8 +205,8 @@ void main() {`);
       onToggle: (self) => enter(self.isActive),
     },
   });
-  // en cuanto la sección asoma por abajo (el degradado de "Dale al REC." ya es naranja) empieza a abrirse el
-  // iris; el set se ve a través de él y lo llena todo justo cuando empieza el pin
+  // en cuanto la sección asoma por abajo (el degradado de "Dale al REC." ya es naranja) empieza el fundido; el set
+  // está entero justo cuando empieza el pin
   ScrollTrigger.create({
     trigger: section,
     start: 'top bottom',
@@ -229,14 +232,16 @@ void main() {`);
       const prev = p;
       p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
       if (Math.abs(state.p - p) < 1e-5) p = state.p;
-      // antes del pin (encendido y asomando): el set a través del iris, que se abre mientras la sección sube
+      // antes del pin (encendido y asomando): el fundido, mientras la sección sube
       top = section.getBoundingClientRect().top;
-      const ir = irisAt(top);
-      const dpr = renderer.getPixelRatio();
-      const prevR = iris.value.z;
-      iris.value.set(ir.cx * dpr, innerHeight * dpr - ir.cy * dpr, top > 0 ? ir.r * dpr : -1, ir.rot);
-      // reflejos del destello: los del estudio a medida que se abre el iris; dentro del pin, del todo
-      if (envTex) star.setEnvMix(envTex, active ? 1 : (top > 0 ? ir.t : 0), ENV_INTENSITY);
+      const e = top > 0 ? crossAt(top) : 1;
+      const prevC = cross.value;
+      cross.value = e;
+      blur.value = (1 - e) * CROSS.blur;
+      const zoom = CROSS.zoom - (CROSS.zoom - 1) * e;
+      if (zoom !== panoCam.zoom) { panoCam.zoom = zoom; panoCam.updateProjectionMatrix(); }
+      // reflejos del destello: los del estudio a medida que aparece; dentro del pin, del todo
+      if (envTex) star.setEnvMix(envTex, active ? 1 : (top > 0 ? e : 0), ENV_INTENSITY);
       const lit = section.classList.contains('is-lit') && top < innerHeight;
       const fade = (lit && p < FADE ? 1 : THREE.MathUtils.smoothstep(p, 0, FADE)) * (1 - THREE.MathUtils.smoothstep(p, 1 - FADE, 1));
       const show = fade > 0.001 && resident && !!panoTex;
@@ -252,14 +257,14 @@ void main() {`);
         if (v.z > 1) return null; // detrás de la cámara
         return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight };
       }));
-      const changed = p !== prev || sphere.visible !== show || iris.value.z !== prevR;
+      const changed = p !== prev || sphere.visible !== show || cross.value !== prevC;
       sphere.visible = show;
       if (!show) return changed;
       mat.opacity = fade;
       return changed;
     },
     draw(r) {
-      if (!sphere.visible || iris.value.z === 0) return;
+      if (!sphere.visible || cross.value === 0) return;
       r.render(panoScene, panoCam);
     },
   });

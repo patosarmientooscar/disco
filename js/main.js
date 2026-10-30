@@ -9,6 +9,7 @@ import { initRec } from './rec.js';
 import { initWhy } from './why.js';
 import { initFin } from './fin.js';
 import { initHomeClose } from './home-close.js';
+import { gpuOK } from './gpu.js';
 
 // Home. Lenis, ScrollTrigger, el loop único y los CTAs de WhatsApp están en core.js.
 // Al cargar o refrescar, arriba del todo (antes de Lenis y de los ScrollTriggers): si el navegador
@@ -26,12 +27,15 @@ const nav = initNav({ gsap, ScrollTrigger, reduced });
 // (LEGACY HERO: la fila curvada era initHeroContent, en legacy/js/hero-content.js)
 const hero = initHero({ gsap, ScrollTrigger, lenis, reduced, loop });
 
-// Destello 3D (Three.js). import() dinámico: si el CDN de three falla, la web sigue igual sin él.
-// Su GLB cuenta en el progreso del loading.
-const star = import('./star.js')
-  .then((m) => m.initStar({ gsap, ScrollTrigger, lenis, reduced, loop }))
-  .catch(() => null);
-const starLoaded = star.then((s) => s && s.loaded);
+// Destello 3D (Three.js). import() dinámico: si el CDN de three falla, la web sigue igual sin él; sin GPU de verdad
+// (js/gpu.js) ni se descarga. Su GLB cuenta en el progreso del loading.
+const star = gpuOK()
+  ? import('./star.js').then((m) => m.initStar({ gsap, ScrollTrigger, lenis, reduced, loop })).catch(() => null)
+  : Promise.resolve(null);
+// en el loading cuenta como mucho STAR_WAIT: con mala conexión la intro no espera al 3D (entra con su fundido
+// cuando llega)
+const STAR_WAIT = 2600;
+const starLoaded = Promise.race([star.then((s) => s && s.loaded), new Promise((r) => setTimeout(r, STAR_WAIT))]);
 
 // Loading (logo + progreso real) → luz roja → flash → el blanco se disuelve en el hero. Solo la primera vez por
 // sesión (html.intro-skip, desde el <head>): después, el hero entra directamente (o al abrirse el velo de la transición).
@@ -53,13 +57,14 @@ intro.then(() => {
   const fx = initScrollFx({ gsap, ScrollTrigger, reduced });
   fx.curtain(document.getElementById('hero-main'), document.getElementById('equipo'));
   initTeam({ gsap, ScrollTrigger, reduced });
-  initRec({ gsap, ScrollTrigger, lenis, loop, reduced }); // "Dale al REC." → estudio: degradado vivo + iris
+  initRec({ gsap, ScrollTrigger, lenis, loop, reduced }); // "Dale al REC." → estudio: degradado vivo + fundido
   hero.watchParallax();
   // Servicios ya no está en la home (vive en servicios.html, con js/services.js)
-  initWhy({ gsap, ScrollTrigger, reduced, loop }); // "¿Por qué nosotros?": enfoque + bokeh + diafragma
+  // "¿Por qué nosotros?": enfoque + bokeh + diafragma (en móvil, la lista compacta; el fundido de salida, solo
+  // con el enfoque)
+  initWhy({ gsap, ScrollTrigger, reduced, loop, exitFade: () => fx.exitFade(document.getElementById('porque'), document.querySelector('#porque .why__pin')) });
   // ningún texto por debajo del menú flotante
   fx.navFade('.team__phrase, .team__sub, .team__name-in, .team__more, [data-nav-fade]');
-  fx.exitFade(document.getElementById('porque'), document.querySelector('#porque .why__pin'));
   initHomeClose({ gsap, reduced }); // cómo trabajamos + banda final (+ prueba social si hay datos)
   // footer "fin de la sesión": el destello se muere y cae sobre el logo (su hueco es el último punto de paso)
   initFin({ gsap, lenis, reduced, loop, star });
