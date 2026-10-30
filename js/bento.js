@@ -197,8 +197,8 @@ function words({ gsap, card }) {
     });
   };
   if (document.fonts) document.fonts.ready.then(layout);
-  window.addEventListener('resize', () => requestAnimationFrame(layout));
-  requestAnimationFrame(layout);
+  window.addEventListener('resize', () => gsap.delayedCall(0, layout));
+  gsap.delayedCall(0, layout);
   return {
     live(v) { on = v; apply(false); if (!v) { tmx = 0; tmy = 0; } },
     move(nx, ny) { tmx = nx - 0.5; tmy = ny - 0.5; },

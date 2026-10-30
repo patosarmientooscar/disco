@@ -105,8 +105,9 @@
   letter-spacing: -0.02em;
 }
 .sv-manifest__text em { font-style: normal; }
-.sv-manifest__text .mw { opacity: 0.15; }
+.sv-manifest__text .mw { opacity: 0.4; } /* apagadas, pero legibles (≥ 3:1, texto grande) */
 .sv-manifest__text .mw--hot { color: var(--orange); }
+.sv-manifest__text .mw.mw--hot { opacity: 0.75; }
 
 /* ---------- C) Tres oficios: tres paneles, cada uno con su material real y su escena (js/oficios.js) ----------
    Cada panel pinta su material del tamaño del panel ABIERTO (.of-pic, medidas y desplazamiento desde JS), centrado

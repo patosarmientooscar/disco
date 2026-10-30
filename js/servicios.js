@@ -93,7 +93,7 @@ function initSectors({ gsap, loop, still, desktop }) {
       if (!img.src.endsWith(ph.src)) img.src = ph.src;
       // se revela desde el negativo en 0.4 s
       follow.classList.add('is-neg');
-      requestAnimationFrame(() => requestAnimationFrame(() => follow.classList.remove('is-neg')));
+      gsap.delayedCall(0, () => gsap.delayedCall(0, () => follow.classList.remove('is-neg')));
       if (!pos.on) { pos.x = e.clientX; pos.y = e.clientY; }
       pos.on = true;
       gsap.to(follow, { opacity: 1, duration: 0.25, overwrite: true });

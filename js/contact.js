@@ -19,6 +19,17 @@ const MSG = {
   privacidad: 'Necesitamos que aceptes la política de privacidad.',
 };
 const loaded = performance.now();
+// EmailJS (envía el correo desde el navegador): solo se descarga cuando hace falta (al tocar el formulario)
+const EMAILJS = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js';
+let emailjsReady = null;
+const loadEmailjs = () => emailjsReady ||= new Promise((resolve, reject) => {
+  if (window.emailjs) { resolve(window.emailjs); return; }
+  const sc = document.createElement('script');
+  sc.src = EMAILJS;
+  sc.onload = () => (window.emailjs ? resolve(window.emailjs) : reject(new Error('emailjs')));
+  sc.onerror = () => { emailjsReady = null; reject(new Error('emailjs')); };
+  document.head.append(sc);
+});
 
 export function init({ gsap, lenis, reduced }) {
   const email = config.email;
@@ -56,6 +67,9 @@ export function init({ gsap, lenis, reduced }) {
   const keys = config.emailjs || {};
   const ready = !!(keys.publicKey && keys.serviceId && keys.templateId);
   const fallback = `<a href="mailto:${email}">${email}</a>`;
+
+  // con las claves puestas, EmailJS se descarga en cuanto se toca el formulario
+  if (ready) form.addEventListener('focusin', () => loadEmailjs().catch(() => {}), { once: true });
 
   // mientras se escribe, el REC late más rápido
   let typing = 0;
@@ -103,15 +117,17 @@ export function init({ gsap, lenis, reduced }) {
     if (performance.now() - loaded < MIN_MS) { say('Un segundo… vuelve a pulsar Enviar.'); return; }
     if (now - last < LOCK_MS) { say(`Ya nos ha llegado tu mensaje. Si quieres añadir algo, espera unos segundos o escríbenos a ${fallback}.`); return; }
     // sin claves: el formulario aún no envía
-    if (!ready || !window.emailjs) {
+    let emailjs = null;
+    if (ready) { try { emailjs = await loadEmailjs(); } catch { /* sin red o bloqueado */ } }
+    if (!ready || !emailjs) {
       say(`Formulario en configuración: escríbenos a ${fallback}.`, true);
       return;
     }
     const params = buildParams(data);
     sending(true);
     try {
-      await window.emailjs.send(keys.serviceId, keys.templateId, params, { publicKey: keys.publicKey });
-      if (keys.autoReplyTemplateId) window.emailjs.send(keys.serviceId, keys.autoReplyTemplateId, params, { publicKey: keys.publicKey }).catch(() => {});
+      await emailjs.send(keys.serviceId, keys.templateId, params, { publicKey: keys.publicKey });
+      if (keys.autoReplyTemplateId) emailjs.send(keys.serviceId, keys.autoReplyTemplateId, params, { publicKey: keys.publicKey }).catch(() => {});
       try { localStorage.setItem(LOCK_KEY, String(Date.now())); } catch { /* sin almacenamiento */ }
       await gsap.to(bar, { scaleX: 1, duration: 0.25, ease: 'power2.out' });
       finish(data);

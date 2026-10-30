@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { finStop } from './fin.js';
-import { MODEL_HEIGHT, ENV_INTENSITY, FOV, CAMERA_Z, loadModel, studio, mixEnv, drift } from './star-core.js';
+import { MODEL_HEIGHT, ENV_INTENSITY, FOV, CAMERA_Z, loadModel, studio, mixEnv, drift, compileScene } from './star-core.js';
+import { gpuOK } from './gpu.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
 // debajo del texto y del menú (z-index, ver css/star.css). Render dentro del loop único (gsap.ticker).
 // Render y entorno: copia del visor aprobado por Oscar (el modelo, los materiales, los softboxes y la deriva, en
 // js/star-core.js, común con las páginas interiores).
-const MAX_DPR = 2;
+const MAX_DPR = matchMedia('(max-width: 767px)').matches ? 1.25 : 2; // móvil: como mucho 1.25
 const HERO_SIZE = 0.45;             // alto del destello en el hero (fracción de la pantalla): el protagonista
 const HERO_SIZE_MOBILE = 0.34;
 const MOBILE = '(max-width: 639px)';
@@ -74,6 +75,7 @@ const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente
 const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
+  if (!gpuOK()) return null; // sin GPU de verdad (js/gpu.js): no se muestra nada
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -111,7 +113,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const loaded = loadModel(renderer).then((gltf) => {
     gltf.scene.traverse((o) => { if (o.isMesh) { materials.push(o.material); mixEnv(o.material, envU); } });
     star.add(gltf.scene);
-    renderer.compile(scene, camera); // shaders listos antes de la entrada (sin tirón)
+    // shaders listos antes de la entrada (sin tirón); en paralelo, sin bloquear el hilo principal si se puede
+    return compileScene(renderer, scene, camera);
   }).catch(() => {
     failed = true; // sin modelo: sin destello
     canvas.remove();
@@ -157,8 +160,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   };
   resize();
   measureHero();
-  window.addEventListener('resize', () => requestAnimationFrame(() => requestAnimationFrame(measureHero)));
-  if (document.fonts) document.fonts.ready.then(() => requestAnimationFrame(measureHero));
+  window.addEventListener('resize', () => gsap.delayedCall(0, () => gsap.delayedCall(0, measureHero)));
+  if (document.fonts) document.fonts.ready.then(() => gsap.delayedCall(0, measureHero));
 
   // de pantalla normalizada (x, y de -1 a 1, z = 0) a mundo, y "escala 1" = alto del hero
   const place = (target, p) => {
@@ -483,7 +486,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
         heroPose(gsap.ticker.time);
         canvas.style.opacity = '0';
         renderer.render(scene, camera);
-        requestAnimationFrame(() => requestAnimationFrame(() => gsap.fromTo(entry, { p: 0 }, {
+        gsap.delayedCall(0, () => gsap.delayedCall(0, () => gsap.fromTo(entry, { p: 0 }, {
           p: 1,
           duration: ENTER.duration,
           ease: 'expo.out',
@@ -607,7 +610,7 @@ function waypoints(mobile, ScrollTrigger, heroPt = HERO_POINT) {
   const why = whySt ? [
     { ...at, at: whySt.start, hold: 'still' },
     { ...at, at: Math.min(max, Math.max(whySt.start + 1, whySt.end)), hold: 'still' },
-  ] : [];
+  ] : whyQuick(mobile);
   // frase puente y cierre de la home: en el hueco libre de cada bloque cuando está centrado en pantalla
   // (data-star-stop="x,y,s" en escritorio y data-star-stop-m en móvil, en el HTML). Nunca dentro de un pin.
   const pins = [studio, why].filter((p) => p.length === 2).map(([a, b]) => [a.at, b.at]);
@@ -621,6 +624,20 @@ function waypoints(mobile, ScrollTrigger, heroPt = HERO_POINT) {
   const end = last < max - 1 ? [{ ...footerPoint(mobile, max, at), at: max }] : [];
   const grown = [...team, ...studio, ...why, ...stops].map((p) => ({ ...p, s: p.s * GROW }));
   return [hero, ...grown, ...end].sort((p, q) => p.at - q.at);
+}
+
+// "¿Por qué nosotros?" en móvil (lista compacta, sin pin: js/why.js → .is-quick): el destello se aparta (sale por
+// arriba a la derecha antes de que lleguen las razones, nunca pasa por encima de ellas) y vuelve en el cierre
+function whyQuick(mobile) {
+  const section = document.getElementById('porque');
+  if (!mobile || !section?.classList.contains('is-quick')) return [];
+  let top = 0;
+  for (let n = section; n; n = n.offsetParent) top += n.offsetTop;
+  const away = { x: 0.95, y: 1.7, s: 0.2 };
+  return [
+    { ...away, at: Math.max(1, top - 0.7 * innerHeight) },
+    { ...away, at: top + Math.max(1, section.offsetHeight - 0.6 * innerHeight) },
+  ];
 }
 
 // Cofundadores: 1) mientras la frase cruza el centro de la pantalla, a su derecha (la frase ocupa las

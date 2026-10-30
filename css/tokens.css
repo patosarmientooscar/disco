@@ -11,8 +11,8 @@
   --hud-line: rgb(244 242 236 / 0.45);
 
   /* type (Gasoek One ya no se usa: los antiguos usos de --font-hero van con Clash Display) */
-  --font-display: 'Clash Display', 'Arial Narrow', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  --font-display: 'Clash Display', 'Clash Fallback', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Plex Fallback', ui-monospace, monospace;
   --hud-size: 12px;
 
   /* layout */

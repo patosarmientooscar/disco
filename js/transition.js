@@ -75,7 +75,7 @@ export function initTransitions({ gsap, reduced, loop }) {
   // atrás / adelante del navegador (bfcache): sin velo
   window.addEventListener('pageshow', (e) => { if (e.persisted) reset(); });
 
-  // --- precarga: <link rel="prefetch"> al pasar el ratón por un enlace interno ---
+  // --- precarga: <link rel="prefetch"> al pasar el ratón (o el dedo, o el foco) por un enlace interno ---
   const prefetched = new Set();
   const prefetch = (url) => {
     if (prefetched.has(url)) return;
@@ -85,10 +85,13 @@ export function initTransitions({ gsap, reduced, loop }) {
     link.href = url;
     document.head.append(link);
   };
-  document.addEventListener('pointerover', (e) => {
+  // (pointerover: ratón y también el dedo, justo antes del toque; focusin: con el teclado)
+  const warm = (e) => {
     const a = internal(e.target);
     if (a) prefetch(a.href);
-  });
+  };
+  document.addEventListener('pointerover', warm, { passive: true });
+  document.addEventListener('focusin', warm);
 
   // --- salida ---
   document.addEventListener('click', (e) => {

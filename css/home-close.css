@@ -42,7 +42,7 @@
   letter-spacing: -0.025em;
   text-wrap: balance;
 }
-.js .hc-how__line { opacity: 0.25; }
+.js .hc-how__line { opacity: 0.45; } /* apagadas, pero legibles (≥ 3:1, texto grande) */
 .hc-how__kw { position: relative; display: inline-block; }
 .hc-how__ul {
   position: absolute;

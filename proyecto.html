@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
-  <script src="js/file-guard.js"></script>
+  <script src="js/file-guard.js" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cachondeo Group — Proyecto de disco.</title>
   <meta name="description" content="Karaoke, fútbol y camisetas naranjas: la fiesta de Cachondeo Group en Madrid, contada en dos reels verticales y más de 80 fotos. Un proyecto de disco.">
@@ -30,11 +30,21 @@
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
 
-  <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <!-- fuentes locales (assets/fonts): Clash Display (Fontshare, ITF Free Font License) e IBM Plex Mono (OFL). Se
+       precargan los dos pesos de Clash del primer pantallazo; mientras llegan, Arial / Courier New con las métricas
+       ajustadas (size-adjust y ascent/descent) para que el texto no salte al cambiar -->
+  <link rel="preload" href="assets/fonts/clash-display-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/clash-display-600.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-400.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-500.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-600.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-700.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap}
+    @font-face{font-family:'IBM Plex Mono';src:url(assets/fonts/ibm-plex-mono-400.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
+    @font-face{font-family:'IBM Plex Mono';src:url(assets/fonts/ibm-plex-mono-500.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Fallback';src:local('Arial');size-adjust:106.9%;ascent-override:83.3%;descent-override:23.4%;line-gap-override:8.4%}
+    @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
+  </style>
 
   <link rel="preload" as="image" href="assets/portfolio/cachondeo/cachondeo-01.webp" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
@@ -50,6 +60,22 @@
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
     try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
   </script>
+  <!-- los módulos de esta página, pedidos a la vez desde el principio (sin cascada de imports) -->
+  <link rel="modulepreload" href="js/page.js">
+  <link rel="modulepreload" href="js/core.js">
+  <link rel="modulepreload" href="js/transition.js">
+  <link rel="modulepreload" href="js/water.js">
+  <link rel="modulepreload" href="js/wa-float.js">
+  <link rel="modulepreload" href="js/config.js">
+  <link rel="modulepreload" href="js/nav.js">
+  <link rel="modulepreload" href="js/fin.js">
+  <link rel="modulepreload" href="js/fin-physics.js">
+  <link rel="modulepreload" href="js/gpu.js">
+  <link rel="modulepreload" href="js/interior.js">
+  <link rel="modulepreload" href="js/placeholder.js">
+  <link rel="modulepreload" href="js/page-hero.js">
+  <link rel="modulepreload" href="js/proyecto.js">
+  <link rel="modulepreload" href="js/portfolio-data.js">
 </head>
 <body data-page="proyecto">
   <a class="skip" href="#contenido">Saltar al contenido</a>
@@ -90,11 +116,11 @@
     <p>© 2026 disco. · <a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a></p>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>
+  <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
+  <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
   <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
   </script>
   <script type="module" src="js/page.js"></script>
 </body>

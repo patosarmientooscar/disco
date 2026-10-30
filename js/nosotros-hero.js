@@ -5,7 +5,10 @@
 //   · LA ESTRELLA del logo se ha escapado: es el destello 3D, a la derecha del texto (en .nh__star). El mismo módulo
 //     y los mismos parámetros que el hero de servicios (js/hero-star.js): gira despacio de frente, se inclina con el
 //     ratón, se arrastra con inercia y, al bajar, se suelta, gira y sale en diagonal con su estela.
-// Sin WebGL: la estrellita 2D en su hueco. Movimiento reducido: todo puesto y el destello quieto de frente.
+// Sin WebGL o sin GPU de verdad (js/gpu.js): la estrellita 2D en su hueco. Movimiento reducido: todo puesto y el
+// destello quieto de frente.
+import { gpuOK, afterLoad } from './gpu.js';
+
 const DRAW = { duration: 0.9, stagger: 0.08, delay: 0.35, fill: 0.5 };
 
 export function initNosotrosHero({ gsap, lenis, loop, reduced }) {
@@ -44,7 +47,9 @@ export function initNosotrosHero({ gsap, lenis, loop, reduced }) {
     });
   }
 
-  import('./hero-star.js')
+  if (!gpuOK()) return; // sin GPU de verdad (js/gpu.js): la estrellita 2D
+  afterLoad()
+    .then(() => import('./hero-star.js'))
     .then((m) => m.createHeroStar({ gsap, lenis, stage: root, video: null, state, loop, reduced, slot }))
     .then((s) => {
       if (!s) return;

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { MODEL_HEIGHT, sharedGL, sharedModel, softboxScene, studio } from './star-core.js';
+import { MODEL_HEIGHT, sharedGL, sharedModel, softboxScene, studio, compileScene } from './star-core.js';
 
 // El destello 3D en el hero de las páginas interiores (js/page-hero.js): el mismo de la home (GLB, materiales,
 // softboxes, ACES; js/star-core.js), protagonista en el centro del hero. Pinta en el canvas fijo compartido con el
 // recorrido (sharedGL: un solo renderer por página), con su propia escena.
 // Reflejos vivos: el entorno es el estudio de softboxes con una esfera por dentro que lleva el VÍDEO del hero,
-// regenerado cada 5 fotogramas con una CubeCamera en un cubemap que se reutiliza y el PMREM a un render target que
+// regenerado cada 8 fotogramas (solo con el hero y su vídeo en pantalla) con una CubeCamera en un cubemap que se reutiliza y el PMREM a un render target que
 // también se reutiliza.
 // En reposo oscila de frente; se inclina hacia el cursor; se puede coger y girar con inercia (al soltar, se
 // recoloca de frente). SALIDA (sin pin; progreso 0 con el top del hero en 0 → 1 con su bottom en el 15 % superior):
@@ -21,7 +21,7 @@ const ENTER = { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180) };
 const IDLE = { amp: 0.32, speed: 0.45 };         // oscila ±0.32 rad en Y (fase a 0.45 rad/s), sin vueltas completas
 const TILT = { x: 0.22, y: 0.35, z: 0.06, lerp: 0.06 };
 const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07, idleBack: 1.2 };
-const REFLECT = { every: 5, size: 256, gain: 1.9, radius: 15 };
+const REFLECT = { every: 8, size: 256, gain: 1.9, radius: 15 };
 // salida: hasta dónde va (pantallas: x hacia la derecha, y hacia arriba), vueltas, inclinación y tamaño final
 const EXIT = { end: 0.15, lerp: 0.08, x: 1.55, y: 1.9, turns: 1.25, roll: -0.35, shrink: 0.6, back: 'back.out(1.4)', backDur: 0.9 };
 const TRAIL = { n: 6, gap: 2, more: 5, speed: 12, alpha: 0.35, color: 0xF35411, still: 0.012 };
@@ -142,7 +142,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     y: 1 - ((r.top + home.cy) / view.h) * 2,
     s: home.h / view.h,
   });
-  renderer.compile(scene, camera);
+  await compileScene(renderer, scene, camera); // en paralelo si se puede: sin congelar la página
 
   // ---------- movimiento reducido: quieto, de frente, sube con la sección ----------
   if (reduced.matches) {
@@ -315,6 +315,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     const v = Math.abs(lenis?.velocity || 0);
     const gap = TRAIL.gap + Math.min(TRAIL.more, Math.round(v / TRAIL.speed));
     ghosts.forEach((g, i) => {
+      if (!gl.quality.trail) { g.holder.visible = false; return; }
       const h = hist[Math.min(hist.length - 1, (i + 1) * gap)];
       const d = Math.hypot(h.x - now.x, h.y - now.y);
       const o = p > 0 ? TRAIL.alpha * (1 - i / TRAIL.n) * THREE.MathUtils.smoothstep(d, 0, TRAIL.still * 4) : 0;
@@ -330,13 +331,15 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     if (lift !== lifted) { lifted = lift; canvas.style.zIndex = lift ? '3' : ''; }
 
     if (!visible && !ghosts.some((g) => g.holder.visible)) { gl.blank('hero'); return; }
-    // reflejos vivos: cada 5 fotogramas con el vídeo en marcha
-    if (live.pmrem && video && !video.paused && video.readyState >= 2 && ++live.frame % REFLECT.every === 0) reflect();
+    // reflejos vivos: cada 8 fotogramas con el vídeo en marcha (sin ellos si la calidad ha bajado: js/star-core.js)
+    if (live.pmrem && gl.quality.live && video && !video.paused && video.readyState >= 2 && ++live.frame % REFLECT.every === 0) reflect();
     gl.draw(scene, 'hero');
+    gl.measure(dt);
   });
 
   // al salir de la página se liberan el vídeo de los reflejos y lo suyo (el renderer, en js/star-core.js)
-  window.addEventListener('pagehide', () => {
+  window.addEventListener('pagehide', (e) => {
+    if (e.persisted) return; // bfcache: al volver, todo sigue
     live.rt?.dispose();
     live.cube?.dispose();
     live.tex?.dispose();

@@ -297,3 +297,5 @@
   .pjv__nav { top: auto; bottom: 86px; margin-top: 0; }
   .pjv__img { max-height: calc(100svh - 270px); }
 }
+/* antes de que js/proyecto.js pinte la ficha: una pantalla reservada (el footer no aparece arriba y luego salta) */
+.js .pj:empty { min-height: 100vh; min-height: 100svh; background: #000; }

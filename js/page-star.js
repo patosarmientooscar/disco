@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { finStop } from './fin.js';
-import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studio, drift, mixEnv } from './star-core.js';
+import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studio, drift, mixEnv, compileScene } from './star-core.js';
 
 // Recorrido del destello 3D por las páginas interiores (después del hero, que tiene el suyo: js/hero-star.js).
 // Pinta en el canvas fijo compartido con el hero (sharedGL: un solo renderer por página; css/page-hero.css), con
@@ -178,7 +178,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   // ---------- tamaño ----------
   let dirty = true;
   gl.onResize(() => { dirty = true; });
-  renderer.compile(scene, gl.camera);
+  await compileScene(renderer, scene, gl.camera); // en paralelo si se puede: sin congelar la página
   const unit = () => UNIT * (view.mobile ? MOBILE_K : 1);
   const worldScale = (s) => (s * unit() * 2 * view.halfH) / MODEL_HEIGHT;
 
@@ -748,6 +748,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     star.scale.setScalar(Math.max(0.0001, worldScale(s)));
     star.rotation.set(cur.rx * Math.min(1, j), ryAll, cur.rz * Math.min(1, j));
     gl.draw(scene, 'page');
+    gl.measure(dt);
     drawn = true;
     dirty = false;
     seen();
@@ -764,7 +765,8 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     }
   });
 
-  window.addEventListener('pagehide', () => {
+  window.addEventListener('pagehide', (e) => {
+    if (e.persisted) return; // bfcache: al volver, todo sigue
     pmrem.dispose();
     studioTex.dispose();
     orangeTex?.dispose();

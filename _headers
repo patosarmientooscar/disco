@@ -1,0 +1,23 @@
+# Caché y cabeceras (Netlify / Cloudflare Pages). En Apache, lo mismo está en .htaccess. GitHub Pages ignora este
+# archivo (pone su propia caché de 10 min). Ver PENDIENTES.md → Hosting.
+#   /assets/: 1 año, immutable. OJO: si se sustituye un archivo de assets/, hay que cambiarle el nombre (o la
+#   ruta) para que los que ya lo tienen en caché vean el nuevo.
+#   HTML: siempre se revalida. CSS y JS: se revalidan (sin hash en el nombre; 304 si no ha cambiado).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.html
+  Cache-Control: no-cache
+
+/
+  Cache-Control: no-cache
+
+/css/*
+  Cache-Control: no-cache
+
+/js/*
+  Cache-Control: no-cache
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

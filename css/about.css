@@ -8,7 +8,7 @@
   font: 500 clamp(28px, 3.6vw, 56px) / 1.15 var(--font-display);
   letter-spacing: -0.02em;
 }
-.ab-manifesto__text .mw { opacity: 0.18; }
+.ab-manifesto__text .mw { opacity: 0.4; } /* apagadas, pero legibles (≥ 3:1, texto grande) */
 .ip-static .ab-manifesto__text .mw { opacity: 1; }
 
 /* Luna y Bruno */
@@ -130,7 +130,7 @@
 .nh__title { margin: 0; font: 500 clamp(44px, 10.6vw, 196px) / 0.9 var(--font-display); letter-spacing: -0.04em; white-space: nowrap; }
 .nh__mask { display: inline-block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; vertical-align: bottom; }
 .nh__mask > span { display: inline-block; }
-.nh__logo { display: inline-block; width: auto; height: 0.644em; height: 0.92cap; margin-left: 0.02em; overflow: visible; vertical-align: baseline; color: var(--paper); }
+.nh__logo { display: inline-block; width: auto; height: 0.616em; height: 0.92cap; margin-left: 0.02em; overflow: visible; vertical-align: baseline; color: var(--paper); }
 .nh__logo path { stroke: currentColor; stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-opacity: 0; }
 .nh__period { font-weight: inherit; color: var(--orange); margin-left: 0.02em; }
 .nh__sub { max-width: 38ch; margin: clamp(22px, 3.5vh, 36px) 0 0; font: 400 clamp(18px, 1.6vw, 24px) / 1.4 var(--font-display); color: rgb(244 242 239 / 0.86); text-wrap: pretty; }

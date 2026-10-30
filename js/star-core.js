@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { gpuOK } from './gpu.js';
 
 // Núcleo del destello 3D de plata, común a la home (js/star.js) y a las páginas interiores (js/hero-star.js,
 // js/page-star.js): el modelo con sus materiales, el estudio de softboxes de los reflejos, el fundido de dos
@@ -48,6 +49,14 @@ export function loadModel(renderer) {
   });
 }
 
+// Shaders listos antes de dibujar: en paralelo (KHR_parallel_shader_compile, sin congelar la página) si el
+// navegador lo tiene; si no, como siempre
+export function compileScene(renderer, scene, camera) {
+  if (renderer.extensions.has('KHR_parallel_shader_compile')) return renderer.compileAsync(scene, camera);
+  renderer.compile(scene, camera);
+  return Promise.resolve();
+}
+
 // Páginas interiores: el GLB se carga una vez y lo comparten el hero y el recorrido. Cada uno recibe su copia
 // (misma geometría y texturas; materiales propios, porque cada uno ajusta su brillo)
 let shared = null;
@@ -65,10 +74,14 @@ export function sharedModel(renderer) {
 // cámara y cada uno su escena; nunca a la vez. draw() apunta quién pintó lo último (también en el canvas:
 // data-star = hero | page, para las pruebas); blank() solo borra lo suyo.
 // Sin WebGL: null (el hero sigue con su vídeo y en el footer cae la estrella del logo).
+// CALIDAD ADAPTATIVA: measure(dt) cuenta los fotogramas dibujados; cada 2 s, si van por debajo de 50 fps, baja un
+// escalón, en este orden: DPR a 1 → sin la estela del hero → sin los reflejos vivos del vídeo (gl.quality).
 const GL_DPR = { desk: 1.75, mob: 1.25 };
+const QUALITY = { window: 2, min: 50 };
 let gl;
 export function sharedGL() {
   if (gl !== undefined) return gl;
+  if (!gpuOK()) { gl = null; return gl; } // sin GPU de verdad (js/gpu.js): como sin WebGL
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -88,6 +101,7 @@ export function sharedGL() {
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
   const view = { halfW: 1, halfH: 1, w: 1, h: 1, mobile: false };
   const subs = [];
+  const quality = { dpr: true, trail: true, live: true, step: 0 };
   const resize = () => {
     const w = innerWidth;
     const h = innerHeight;
@@ -95,7 +109,7 @@ export function sharedGL() {
     camera.position.set(0, 0, w >= h ? CAMERA_Z : Math.max(CAMERA_Z, (5.2 * h) / w));
     camera.updateProjectionMatrix();
     view.mobile = mobile();
-    renderer.setPixelRatio(Math.min(devicePixelRatio, view.mobile ? GL_DPR.mob : GL_DPR.desk));
+    renderer.setPixelRatio(quality.dpr ? Math.min(devicePixelRatio, view.mobile ? GL_DPR.mob : GL_DPR.desk) : 1);
     renderer.setSize(w, h);
     view.halfH = camera.position.z * Math.tan(THREE.MathUtils.degToRad(FOV / 2));
     view.halfW = view.halfH * camera.aspect;
@@ -105,8 +119,17 @@ export function sharedGL() {
   };
   resize();
   window.addEventListener('resize', resize);
-  window.addEventListener('pagehide', () => renderer.dispose());
+  // al salir de verdad se libera la GPU; si la página se queda en la caché de atrás/adelante (bfcache), no: al
+  // volver sigue igual
+  window.addEventListener('pagehide', (e) => { if (!e.persisted) renderer.dispose(); });
   let owner = null;
+  const fps = { t: 0, n: 0 };
+  const lower = () => {
+    quality.step++;
+    if (quality.step === 1) { quality.dpr = false; renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight); }
+    else if (quality.step === 2) quality.trail = false;
+    else if (quality.step === 3) quality.live = false;
+  };
   gl = {
     renderer,
     canvas,
@@ -116,6 +139,17 @@ export function sharedGL() {
     draw(scene, who) { renderer.render(scene, camera); if (owner !== who) canvas.dataset.star = who; owner = who; },
     blank(who) { if (owner === who) { renderer.clear(); owner = null; canvas.dataset.star = ''; } },
     get owner() { return owner; },
+    quality,
+    // tras cada dibujo (el tiempo real del fotograma, en s): ventanas de 2 s mientras queden escalones
+    measure(dt) {
+      if (quality.step >= 3 || document.hidden) return;
+      fps.t += dt;
+      fps.n++;
+      if (fps.t < QUALITY.window) return;
+      if (fps.n / fps.t < QUALITY.min) lower();
+      fps.t = 0;
+      fps.n = 0;
+    },
   };
   return gl;
 }

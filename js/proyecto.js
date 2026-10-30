@@ -123,7 +123,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
   // ?ver=galeria: directamente a la galería
   if (new URLSearchParams(location.search).get('ver') === 'galeria') {
     const go = () => { lenis.resize?.(); lenis.scrollTo('#galeria', { immediate: true, force: true, offset: -80 }); };
-    requestAnimationFrame(go);
+    gsap.delayedCall(0, go);
     Promise.all([arrived, document.fonts?.ready]).then(() => { ScrollTrigger.refresh(); go(); });
     window.addEventListener('load', () => setTimeout(go, 60), { once: true });
   }

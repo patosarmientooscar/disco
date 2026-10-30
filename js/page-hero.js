@@ -1,4 +1,5 @@
 import { config } from './config.js';
+import { gpuOK, afterLoad } from './gpu.js';
 
 // Hero de las páginas interiores (Servicios, Portfolio, Nosotros, Contacto; css/page-hero.css). Cada página solo
 // declara su contenido en <section class="pgh" data-page-hero="clave"> (la etiqueta de la página, que es su h1; el
@@ -86,7 +87,7 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   if (cfg.star !== false) stage.append(hint);
 
   // ---------- vídeo (con movimiento reducido, solo el póster). El póster se ve al instante; el vídeo pide solo los
-  // metadatos y, tras el primer pintado, se pone a cargar; arranca cuando puede reproducir sin cortes
+  // metadatos y, tras el load, se pone a cargar; arranca cuando puede reproducir sin cortes
   // (canplaythrough o 3 s) con un fundido de 0.4 s desde el póster (css). La fuente, por ancho y por conexión ----------
   let video = null;
   let canPlay = false;
@@ -106,11 +107,14 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
     look.append(video);
     const go = () => { if (canPlay) return; canPlay = true; play(); };
     video.addEventListener('canplaythrough', go, { once: true });
-    requestAnimationFrame(() => setTimeout(() => {
+    // a cargar de verdad, después del load (no compite con el póster ni con el primer pintado)
+    const buffer = () => {
       if (!video.isConnected) return;
       video.preload = 'auto';
       setTimeout(go, READY_MS);
-    }, 0));
+    };
+    if (document.readyState === 'complete') buffer();
+    else window.addEventListener('load', buffer, { once: true });
   }
   // en bucle mientras el hero se ve (y nadie lo ha parado); fuera de pantalla o con la pestaña oculta, en pausa
   const play = () => {
@@ -135,7 +139,8 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   let interacted = false;
   const hideHint = () => gsap.to(hint, { opacity: 0, duration: 0.3, overwrite: true });
   // (portfolio: sin destello, la bola del vídeo es la protagonista: js/portfolio-hero.js)
-  const star = cfg.star === false ? Promise.resolve(null) : import('./hero-star.js')
+  // (three y el GLB, después del load: no compiten con el primer pintado; sin GPU de verdad, ni se descargan)
+  const star = cfg.star === false || !gpuOK() ? Promise.resolve(null) : afterLoad().then(() => import('./hero-star.js'))
     .then((m) => m.createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, onInteract: () => { interacted = true; hideHint(); } }))
     .catch(() => null);
 

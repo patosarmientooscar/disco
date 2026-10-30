@@ -1,5 +1,6 @@
 import { splitLetters, initExposure } from './hero-exposure.js';
-import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/src/index.js';
+import { gpuOK, lowEnd } from './gpu.js';
+import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm';
 
 // Hero v2: foto roja a pantalla completa. Con ratón, el cursor remueve un fluido (stable fluids,
 // Navier-Stokes 2D en GPU) y la foto se pliega dentro de los remolinos, como mármol o tinta removida.
@@ -15,7 +16,7 @@ import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from '
 // movimiento y el hero está en pantalla. Sin ratón, quieta. Sin WebGL / HalfFloat o con
 // movimiento reducido: el <img>.
 // (LEGACY: la estela con el Flowmap de OGL está en legacy/js/hero-flowmap.js)
-const MAX_DPR = 2;
+const MAX_DPR = matchMedia('(max-width: 767px)').matches ? 1.25 : 2; // móvil: como mucho 1.25
 const SIM_RES = 128;              // lado corto de la simulación (independiente de la pantalla)
 const MAP_RES = 512;              // lado corto del mapa de pliegues (más resolución = filamentos más finos)
 const FLUID = {
@@ -231,7 +232,9 @@ export function initHero({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const lines = hero.querySelectorAll('[data-hero-line]');
   const scroll = hero.querySelector('[data-hero-scroll]');
 
-  if (!reduced.matches && hasWebGL()) setupFluid({ hero, img, loop });
+  // el fluido: con GPU de verdad (js/gpu.js) y, en móvil, no en los de gama baja
+  const weak = matchMedia('(max-width: 767px)').matches && lowEnd();
+  if (!reduced.matches && !weak && gpuOK()) setupFluid({ hero, img, loop });
   splitLetters(lines); // una <span> por letra (aria-hidden ya en la línea); el h1 conserva su aria-label
   fitTitle(title, lines);
   if (!reduced.matches) initExposure({ gsap, lenis, loop, hero, title, tail: hero.querySelector('[data-hero-tail]') });
@@ -333,17 +336,8 @@ function fitTitle(title, lines) {
   };
   fit();
   if (document.fonts) document.fonts.ready.then(fit);
-  let raf = 0;
-  window.addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); });
-}
-
-function hasWebGL() {
-  try {
-    const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
-  } catch {
-    return false;
-  }
+  let raf = null;
+  window.addEventListener('resize', () => { raf?.kill(); raf = gsap.delayedCall(0, fit); });
 }
 
 function setupFluid({ hero, img, loop }) {
@@ -582,6 +576,7 @@ function setupFluid({ hero, img, loop }) {
   hero.addEventListener('pointerleave', () => { last = null; });
 
   let settled = true;
+  const perf = { t: 0, n: 0, done: false };
   loop.add((time, ratio) => {
     // tapado del todo por la sección siguiente (telón, js/scroll-fx.js): no simula ni pinta
     if (!ready || !onScreen || hero.classList.contains('is-covered')) return;
@@ -600,6 +595,13 @@ function setupFluid({ hero, img, loop }) {
     while (queue.length) addSplat(...queue.shift());
     step(dt);
     draw();
+    // calidad adaptativa: si en los primeros 2 s de simulación va por debajo de 50 fps, fuera el fluido (la foto)
+    if (perf.done) return;
+    perf.t += ratio / 60;
+    perf.n++;
+    if (perf.t < 2) return;
+    perf.done = true;
+    if (perf.n / perf.t < 50) { ready = false; hero.classList.remove('is-gl'); gl.canvas.remove(); }
   });
 }
 

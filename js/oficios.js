@@ -399,8 +399,8 @@ export function initOficios({ gsap, loop, still }) {
     gsap.set(p.rise, { yPercent: still ? 0 : 100 });
   });
   if (document.fonts) document.fonts.ready.then(measure);
-  let raf = 0;
-  window.addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(measure); });
+  let raf = null;
+  window.addEventListener('resize', () => { raf?.kill(); raf = gsap.delayedCall(0, measure); });
 
   // con la sección a una pantalla: la foto y los metadatos de los dos vídeos
   const near = new IntersectionObserver((es) => {

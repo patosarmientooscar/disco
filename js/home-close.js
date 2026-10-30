@@ -32,7 +32,7 @@ function initHow({ gsap, reduced }) {
   document.querySelectorAll('[data-how-row]').forEach((row) => {
     const line = row.querySelector('.hc-how__line');
     gsap.timeline({ scrollTrigger: { trigger: line, start: 'top 85%', end: 'center 62%', scrub: 0.4 } })
-      .fromTo(line, { opacity: 0.25 }, { opacity: 1, ease: 'none', duration: 1 }, 0)
+      .fromTo(line, { opacity: 0.45 }, { opacity: 1, ease: 'none', duration: 1 }, 0)
       .fromTo(row.querySelectorAll('.hc-how__ul path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.5 }, 0.45);
   });
   const list = document.querySelector('[data-how]');

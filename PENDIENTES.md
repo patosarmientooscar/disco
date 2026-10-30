@@ -23,7 +23,7 @@ Lista de huecos (fotos y vídeos que faltan) y textos BORRADOR de la web. Ve tac
 ## Home (index.html)
 
 - [ ] **Prueba social:** `config.proof` en `js/config.js`. Logos de clientes (`{ src, alt }`) y 2–3 citas reales (`{ text, name, business }`). Con los dos vacíos la sección no aparece. Nada inventado.
-- [ ] **Roles del equipo (BORRADOR):** los mismos que en Nosotros. Si cambian, cámbialos en los dos sitios.
+- [x] **Roles del equipo:** confirmados (AD), los mismos que en Nosotros. Si cambian, cámbialos en los dos sitios.
 - [ ] **"Cómo trabajamos":** ya no son los 3 pasos de Contacto, sino la frase "Conocemos tu marca…" con sus 4 notas. Si cambia el proceso, revisar también "Qué pasa después" de Contacto.
 
 ## Servicios (servicios.html, js/servicios-data.js)
@@ -96,5 +96,42 @@ Todo se rellena en `js/portfolio-data.js`, que trae un ejemplo comentado. Las ca
 
 - [ ] **Páginas legales:** tienen plantilla estándar (LSSI-CE y RGPD) que hay que **REVISAR CON UN PROFESIONAL ANTES DE PUBLICAR**. Huecos: [TITULAR], [NIF], [DOMICILIO], [FECHA], datos registrales, plazos de conservación y proveedores (privacidad).
 - [ ] **Cookies:** la web no usa cookies de analítica ni de terceros, por eso no hay banner. Si se añade analítica, hay que poner banner y actualizar cookies.html.
-- [ ] **Fuentes:** se cargan de Fontshare y Google Fonts (servicios externos). Alojarlas en el propio servidor es mejor para la privacidad y la velocidad.
+- [x] **Fuentes:** alojadas en la propia web (`assets/fonts`: Clash Display, ITF Free Font License; IBM Plex Mono, OFL), con precarga y fallbacks métricos (AD-C).
 - [ ] **Newsletter del footer:** sin servicio conectado (TODO en `js/footer.js`).
+
+## Rendimiento y robustez (AD-C, 30-10-2026)
+
+Lighthouse 12, móvil (4G simulado, CPU ×4), con un servidor como el de producción (gzip/brotli + caché). Antes = commit `pre: AD`. Rendimiento / Accesibilidad / Buenas prácticas / SEO.
+
+| Página | Antes | Después | LCP | TBT | CLS |
+| --- | --- | --- | --- | --- | --- |
+| index | 0 / 96 / 100 / 100 | 0 / 100 / 100 / 100 | sin medir (ver abajo) | — | 0 |
+| servicios | 38 / 96 / 100 / 100 | 55–80 / 100 / 100 / 100 | 7,4 → 3,5–4,1 s | 6.800 → 350–1.710 ms | 0 |
+| portfolio | 44 / 100 / 100 / 100 | 88–90 / 100 / 100 / 100 | 7,5 → 3,3 s | 1.590 → 80–150 ms | 0 |
+| proyecto | 61 / 100 / 100 / 100 | 77–78 / 100 / 100 / 100 | 7,3 → 5,0 s | 460 → 190 ms | 0,264 → 0,001 |
+| nosotros | 62 / 96 / 100 / 100 | 96–97 / 100 / 100 / 100 | 3,0 → 2,0 s | 2.000 → 130 ms | 0 |
+| contacto | 56 / 100 / 100 / 100 | 97–98 / 100 / 100 / 100 | 2,9 → 2,0 s | 900 → 60–130 ms | 0,265 → 0 |
+
+(Los rangos son de varias pasadas: Lighthouse varía bastante en páginas con 3D.)
+
+**Qué se ha hecho**
+- Fuentes en la propia web (`assets/fonts`), con precarga de los dos pesos de Clash del primer pantallazo y fallbacks con las métricas ajustadas (el CLS de contacto venía de ahí).
+- GSAP, ScrollTrigger, Flip y Lenis servidos desde `assets/vendor` (mismas versiones) y con `defer`; `modulepreload` de todos los módulos de cada página (sin cascada de imports); three minificado y OGL en un solo archivo (antes, decenas de peticiones).
+- 3D solo cuando merece la pena (`js/gpu.js`): sin GPU de verdad no se descarga three y se ve la versión sin WebGL; en las páginas interiores el destello arranca después del load (a la primera interacción o a los 2 s). Shaders compilados en paralelo cuando el navegador lo permite. Reflejos vivos cada 8 fotogramas.
+- Calidad adaptativa: si el destello va por debajo de 50 fps, baja el DPR, luego quita la estela y luego los reflejos vivos; el fluido de la home se quita si va por debajo de 50 fps. Móvil: DPR máx. 1,25 y sin fluido en gama baja.
+- EmailJS solo se descarga al tocar el formulario. El vídeo del hero de servicios se pone a cargar después del load.
+- Sin `requestAnimationFrame` sueltos (todo en `gsap.ticker`). Con atrás/adelante (bfcache) la página vuelve tal cual (antes se liberaba la GPU al salir).
+- Proyecto: una pantalla reservada antes de pintar la ficha (el footer ya no salta). Panorama del estudio para móvil: 904 → 384 KB (el de 4096, en `legacy/assets/studio/`).
+- Contraste: las palabras "apagadas" de los manifiestos y de "Cómo trabajamos" pasan a ≥ 3:1 (texto grande, WCAG AA).
+- `_headers` (Netlify / Cloudflare Pages) y `.htaccess` (Apache): `assets/` con caché de 1 año immutable; HTML, CSS y JS se revalidan; compresión.
+
+**Comprobado** (Playwright): todas las páginas en 1440, 1024 y 390, con movimiento reducido, sin WebGL, con los vídeos bloqueados, con CPU ×4, redimensionando a mitad de la entrada, atrás/adelante, cambiando de página rápido, con scroll muy rápido y girando el móvil: consola sin errores propios, sin overflow horizontal y nunca dos destellos. Ningún enlace roto (458 referencias revisadas) ni `href="#"` sueltos.
+
+**Lo que no llega al objetivo (≥ 90) y por qué**
+- **index:** en la primera visita manda la intro (≥ 2,6 s, luz roja y flash) y el titular del hero no aparece hasta después; con 4G simulado eso son ~9 s y Lighthouse corta antes de verlo ("NO_LCP" → 0). Opciones: acortar la intro, saltarla en conexiones lentas o enseñarla solo en escritorio. Decisión de Oscar.
+- **servicios / proyecto:** el LCP es el texto del hero, que entra con su animación (Chrome no cuenta como LCP las imágenes que ocupan toda la pantalla, así que el póster no vale). En servicios, además, el primer cálculo de la página (muy larga) y el arranque del 3D pesan en el CPU ×4. Para bajar de 2,5 s habría que adelantar la entrada del subtítulo y los botones (hoy, 0,75 s después del titular).
+
+**Pendiente de hosting**
+- [ ] **Hosting:** aún no está decidido. GitHub Pages ignora `_headers` y `.htaccess` (pone su propia caché de 10 min y comprime él). En Netlify / Cloudflare Pages se usa `_headers`; en Apache, `.htaccess`. Con la caché immutable, si se sustituye un archivo de `assets/` hay que cambiarle el nombre.
+- [ ] **EmailJS:** las claves siguen vacías (ver la sección de Contacto).
+- [ ] **Foto real de Bruno** y textos en BORRADOR (`data-draft`): siguen pendientes (ver Nosotros).
