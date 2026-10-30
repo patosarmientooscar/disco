@@ -1,8 +1,8 @@
 /* ---------- hero de las páginas interiores (js/page-hero.js, js/hero-star.js) ----------
    Servicios, Portfolio, Nosotros y Contacto. Una sección normal de 100svh (mín. 600px), sin pin. El destello 3D
    pinta en el canvas fijo de la página (.ps-canvas, z-index 1; un solo renderer: js/star-core.js): por eso el hero
-   NO crea contexto de apilamiento (sin z-index ni isolation) y sus capas se ordenan con el canvas: vídeo (inset −4 %
-   para el parallax) · etalonado · [el destello] · grano, texto, botones y meta (z 2) · flash de entrada (z 3). Al
+   NO crea contexto de apilamiento (sin z-index ni isolation) y sus capas se ordenan con el canvas: vídeo (con margen
+   para el parallax) · degradados · [el destello] · texto, botones y meta (z 2) · flash de entrada (z 3). Al
    salir, el destello sube por encima de todo (z 3, js/hero-star.js). */
 .pgh {
   --ph-orange: #F35411;
@@ -26,7 +26,7 @@
 /* 1. vídeo (o su póster mientras carga) */
 .pgh__media {
   position: absolute;
-  inset: -4%;
+  inset: -12px -18px; /* solo el recorrido del parallax (translate): el vídeo no se escala por encima de 1 */
   will-change: transform;
 }
 .pgh__media img,
@@ -38,37 +38,27 @@
   height: 100%;
   object-fit: cover;
   object-position: var(--ph-pos, 50% 50%);
+  image-rendering: auto;
 }
 .pgh__media video { opacity: 0; transition: opacity 0.4s ease; }
 .pgh__media video.is-on { opacity: 1; }
+/* el vídeo limpio: solo un oscurecido mínimo (sin grano, blur ni saturación) */
 .pgh__look {
   position: absolute;
   inset: 0;
-  filter: brightness(0.58) saturate(0.9) contrast(1.05);
-  transform: scale(1.06);
+  filter: brightness(0.82);
 }
-/* 2. etalonado: viñeta, degradado inferior (para leer el texto) y uno suave arriba (para la nav) */
+/* 2. legibilidad: SOLO un degradado inferior (de #0b0909 al 85 % a transparente en el 40 % de abajo) y uno suave
+   arriba para la nav; el centro, nítido */
 .pgh__grade {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(to top, rgb(11 9 9 / 0.92) 0%, rgb(11 9 9 / 0) 42%),
-    linear-gradient(to bottom, rgb(11 9 9 / 0.55) 0%, rgb(11 9 9 / 0) 18%),
-    radial-gradient(ellipse 80% 75% at 50% 48%, rgb(11 9 9 / 0) 40%, rgb(11 9 9 / 0.75) 100%);
+    linear-gradient(to top, rgb(11 9 9 / 0.85) 0%, rgb(11 9 9 / 0) 40%),
+    linear-gradient(to bottom, rgb(11 9 9 / 0.45) 0%, rgb(11 9 9 / 0) 16%);
 }
 /* 3. el destello 3D: en el canvas fijo (.ps-canvas, abajo) */
-/* 5. grano de película (240×140 escalado, 12 fps) */
-.pgh__grain {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-  mix-blend-mode: overlay;
-  opacity: 0.07;
-  pointer-events: none;
-}
 /* 6. etiqueta de la página, titular, botones y meta: abajo, por encima del destello */
 .pgh__foot {
   position: absolute;
@@ -288,3 +278,8 @@
   opacity: 0;
   pointer-events: none;
 }
+/* el destello del recorrido se coge con el ratón en sus paradas (js/page-star.js): el cursor, en toda la página */
+html.ps-grab,
+html.ps-grab * { cursor: grab !important; }
+html.ps-dragging,
+html.ps-dragging * { cursor: grabbing !important; user-select: none; }

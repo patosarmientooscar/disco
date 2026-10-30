@@ -17,16 +17,14 @@
 // Movimiento reducido: los tres abiertos, quietos; el vídeo, con un botón para reproducirlo.
 // (LEGACY: la bailarina, en legacy/servicios-oficios-bailarina/)
 const MEDIA = {
-  foto: { w: 2000, h: 1333, fx: 0.42, fy: 0.4 },   // oficios-real/foto.webp: encuadre entre las dos caras de delante
+  foto: { w: 2400, h: 1800, fx: 0.5, fy: 0.4 },    // oficios-real/foto.webp (DSC03230): encuadre entre las dos caras
   video: { w: 1280, h: 720, fx: 0.5, fy: 0.45 },   // oficios-real/bus.mp4 (el baile en el bus)
 };
 // caras de la foto (fracción de la imagen: centro y ancho); la primera, la de la izquierda (donde se cierra el AF)
 const FACES = [
-  { x: 0.296, y: 0.36, w: 0.11 },
-  { x: 0.82, y: 0.31, w: 0.125 },
-  { x: 0.125, y: 0.29, w: 0.085 },
-  { x: 0.35, y: 0.175, w: 0.07 },
-  { x: 0.512, y: 0.3, w: 0.08 },
+  { x: 0.42, y: 0.37, w: 0.16 },   // las dos que cantan al micro, abrazadas
+  { x: 0.585, y: 0.385, w: 0.16 },
+  { x: 0.045, y: 0.28, w: 0.09 },  // la del fondo, a la izquierda
 ];
 const GROW = { open: 5, openM: 4, closed: 1 };
 const OPEN = { dur: 0.9, ease: 'expo.inOut' };

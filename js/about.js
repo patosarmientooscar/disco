@@ -5,8 +5,8 @@ import { initNosotrosHero } from './nosotros-hero.js';
 // escritorio) y la franja del estudio con parallax suave. Movimiento reducido: todo visible y quieto.
 const PIN = 2; // × alto de pantalla
 
-export function init({ gsap, ScrollTrigger, loop, reduced }) {
-  initNosotrosHero({ gsap, loop, reduced });
+export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
+  initNosotrosHero({ gsap, lenis, loop, reduced });
   const main = document.querySelector('main.ip');
   const manifesto = document.querySelector('[data-manifesto]');
   // palabras del manifiesto: el texto entero para lectores de pantalla, las palabras animadas ocultas para ellos

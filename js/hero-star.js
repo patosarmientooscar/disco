@@ -27,7 +27,9 @@ const EXIT = { end: 0.15, lerp: 0.08, x: 1.55, y: 1.9, turns: 1.25, roll: -0.35,
 const TRAIL = { n: 6, gap: 2, more: 5, speed: 12, alpha: 0.35, color: 0xF35411, still: 0.012 };
 const TAU = Math.PI * 2;
 
-export async function createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, onInteract }) {
+// slot (opcional; nosotros, js/nosotros-hero.js): un elemento del hero que marca dónde va y su alto (centrado en él,
+// a la derecha del texto) en vez del centro del escenario.
+export async function createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, onInteract, slot = null }) {
   const gl = sharedGL();
   if (!gl) return null; // sin WebGL: el hero sigue igual (vídeo + texto)
   const { renderer, canvas, camera, view } = gl;
@@ -90,11 +92,20 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
   };
 
   // ---------- sitio en el hero (px desde su top): centrado; sin tapar la nav ni el texto del pie ----------
-  const home = { cy: 0, h: 0 };
+  const home = { cx: 0, cy: 0, h: 0 };
   const foot = stage.querySelector('.pgh__foot > div');
   const place = () => {
-    const H = stage.clientHeight;
     const W = stage.clientWidth;
+    if (slot) {
+      const sr = stage.getBoundingClientRect();
+      const r = slot.getBoundingClientRect();
+      home.cx = r.left - sr.left + r.width / 2;
+      home.cy = r.top - sr.top + r.height / 2;
+      home.h = r.height;
+      return;
+    }
+    const H = stage.clientHeight;
+    home.cx = W / 2;
     let h = (mobile() ? SIZE.mob : SIZE.desk) * H;
     let cy = H * (0.5 - LIFT);
     // si el texto del pie (lo que ocupa de verdad: etiqueta, titular, botones) queda debajo del destello, este no
@@ -127,7 +138,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     obj.scale.setScalar(Math.max(0.0001, (s * 2 * view.halfH) / MODEL_HEIGHT));
   };
   const homePose = (r) => ({
-    x: ((r.left + r.width / 2) / view.w) * 2 - 1,
+    x: ((r.left + home.cx) / view.w) * 2 - 1,
     y: 1 - ((r.top + home.cy) / view.h) * 2,
     s: home.h / view.h,
   });

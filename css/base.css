@@ -96,3 +96,56 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .wa-float.is-on { opacity: 1; visibility: visible; transform: none; }
 .wa-float:focus-visible { outline: 2px solid #F35411; outline-offset: 3px; }
+
+/* ---------- CTA principal "Cuéntanos tu idea →" (en toda la web; js/core.js → el imán) ----------
+   Píldora #F35411 (sobre los cierres naranjas, la variante tinta). Al pasar el ratón: rodillo de texto (0.35 s) a
+   "Empezamos hoy", la flecha avanza y el punto REC late; el botón se acerca al cursor hasta 6 px (translate, desde
+   js). En táctil: sin imán y el rodillo se ve una vez al tocar. `a.cta-pill` para ganar a las clases de cada página. */
+a.cta-pill {
+  --cta-bg: #F35411;
+  --cta-fg: #0b0909;
+  --cta-hover: #ff6a2b;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 26px 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--cta-bg);
+  color: var(--cta-fg);
+  font: 500 16px / 1 var(--font-display);
+  letter-spacing: 0;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.25s ease;
+}
+a.cta-pill--ink { --cta-bg: #0b0909; --cta-fg: #f4f2ef; --cta-hover: #241d1c; }
+a.cta-pill:hover,
+a.cta-pill.is-roll { background: var(--cta-hover); }
+a.cta-pill:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+/* el punto REC: una lamparita (aro de tinta y centro naranja), quieta; con el ratón encima, late */
+.cta-pill__rec { position: relative; flex: none; width: 10px; height: 10px; border-radius: 50%; background: #0b0909; }
+.cta-pill__rec::after { content: ""; position: absolute; inset: 2.5px; border-radius: 50%; background: #F35411; opacity: 0.45; }
+.cta-pill--ink .cta-pill__rec { background: rgb(244 242 239 / 0.14); }
+a.cta-pill:hover .cta-pill__rec::after,
+a.cta-pill.is-roll .cta-pill__rec::after { opacity: 1; animation: cta-rec 0.9s ease-in-out infinite; }
+@keyframes cta-rec { 50% { opacity: 0.25; transform: scale(0.7); } }
+/* el rodillo: los dos textos en la misma celda, el segundo esperando debajo */
+.cta-pill__roll { display: inline-grid; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+.cta-pill__roll > span { grid-area: 1 / 1; transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1); }
+.cta-pill__roll > span + span { transform: translateY(110%); }
+a.cta-pill:hover .cta-pill__roll > span:first-child,
+a.cta-pill.is-roll .cta-pill__roll > span:first-child { transform: translateY(-110%); }
+a.cta-pill:hover .cta-pill__roll > span + span,
+a.cta-pill.is-roll .cta-pill__roll > span + span { transform: none; }
+.cta-pill__arrow { display: inline-block; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+a.cta-pill:hover .cta-pill__arrow,
+a.cta-pill.is-roll .cta-pill__arrow { transform: translateX(5px); }
+@media (prefers-reduced-motion: reduce) {
+  .cta-pill__roll > span,
+  .cta-pill__arrow { transition: none; }
+  a.cta-pill:hover .cta-pill__rec::after { animation: none; }
+}

@@ -85,7 +85,7 @@ Todo se rellena en `js/portfolio-data.js`, que trae un ejemplo comentado. Las ca
 - [ ] **Subtítulo (BORRADOR):** "Una productora pequeña, rápida y cercana…"
 - [ ] **Manifiesto (BORRADOR):** "Creemos que cada negocio tiene una energía propia…"
 - [ ] **Foto de Bruno:** `assets/team/bruno-marin-1280.webp` y `-720.webp` son provisionales. Hace falta la foto real, en 4:5 y 1280×1600, con el mismo nombre (se usa también en la home).
-- [ ] **Roles (BORRADOR), confirmar:** "COFUNDADORA · DIRECCIÓN Y FOTO" y "COFUNDADOR · VÍDEO Y EDICIÓN".
+- [x] **Roles:** Luna López, "Cofundadora · Dirección y edición de vídeo"; Bruno Marín, "Cofundador · Foto, vídeo y edición de foto" (nosotros y home).
 - [ ] **Bios (BORRADOR):** dos líneas para Luna y dos para Bruno.
 - [ ] **Kit favorito:** `[cámara / objetivo]` de cada uno.
 - [ ] **Instagram personal** de Luna y de Bruno, si existe. Si no, no se pone nada.

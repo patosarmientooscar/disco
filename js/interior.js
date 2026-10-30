@@ -30,7 +30,7 @@ export function splitWords(el) {
 
 export function enterHeader({ gsap, reduced, arrived }) {
   const words = [...document.querySelectorAll('.ip [data-words]')].flatMap(splitWords);
-  if (reduced.matches) return;
+  if (reduced.matches || !words.length) return;
   gsap.set(words, { yPercent: 105 });
   arrived.then(() => {
     gsap.to(words, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.06, delay: 0.1 });

@@ -42,7 +42,7 @@ export const config = {
   // de < 900 px o con ahorro de datos; poster: su primer fotograma (o el de `start`, en s); pos: encuadre
   // (object-position); fps: los del vídeo (el timecode del hero es el real); star: false = sin el destello 3D.
   pageHeroes: {
-    servicios: { video: 'assets/paginas/servicios-bg.mp4', videoSm: 'assets/paginas/servicios-bg-1280.mp4', poster: 'assets/paginas/servicios-poster.webp', pos: '50% 50%', start: 0, fps: 30 },
+    servicios: { video: 'assets/paginas/servicios-bg-hq.mp4', videoSm: 'assets/paginas/servicios-bg-hq-1280.mp4', poster: 'assets/paginas/servicios-poster-hq.webp', pos: '50% 50%', start: 0, fps: 30 },
     portfolio: { video: 'assets/portfolio/hero/bola.mp4', videoSm: 'assets/portfolio/hero/bola-1280.mp4', poster: 'assets/portfolio/hero/bola-poster.webp', pos: '50% 50%', start: 0, fps: 24, star: false }, // la bola: sin destello (js/portfolio-hero.js)
   },
 

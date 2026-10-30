@@ -3,14 +3,14 @@ import { config } from './config.js';
 // Hero de las páginas interiores (Servicios, Portfolio, Nosotros, Contacto; css/page-hero.css). Cada página solo
 // declara su contenido en <section class="pgh" data-page-hero="clave"> (la etiqueta de la página, que es su h1; el
 // titular; botones y una línea de meta); el vídeo de cada una está en js/config.js → pageHeroes. Una sección normal,
-// sin pin. Aquí: el vídeo (1280 en < 900 px o con ahorro de datos) con su timecode real, el grano, el parallax con
+// sin pin. Aquí: el vídeo (1280 en < 900 px, con ahorro de datos o en 2g/3g) limpio, con su timecode real, el parallax con
 // el ratón y la entrada (flash, destello, la estrellita de la etiqueta girando y el titular línea a línea). El
 // destello 3D (js/hero-star.js, protagonista en el centro; al bajar, sale en diagonal) se carga aparte: sin WebGL
 // el hero funciona igual. Todo en el loop único (gsap.ticker) y solo con el hero en pantalla (fuera de ella,
 // el vídeo se pausa). Otro módulo puede parar el vídeo con el evento "disco:hero-hold" (detail: true / false).
 const PARALLAX = { x: 18, y: 12, lerp: 0.06 };   // px: el vídeo, al revés que el cursor
 const ENTER = { flash: 0.56, tag: 0.15, head: 0.3, duration: 1.1, stagger: 0.08, after: 0.75 };
-const GRAIN = { w: 240, h: 140, fps: 12 };
+const READY_MS = 3000;                           // el vídeo arranca con canplaythrough o a los 3 s (lo primero)
 const HINT = 3000;                               // ms sin tocar el destello: aparece "Arrastra el destello"
 const NARROW = '(max-width: 899px)';
 
@@ -26,7 +26,6 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   const tag = root.querySelector('.pgh__tag');
   const tagStar = tag.querySelector('.pgh__tag-star');
   const head = root.querySelector('[data-ph-head]');
-  const foot = root.querySelector('.pgh__foot');
   const after = [...root.querySelectorAll('[data-ph-after]')];
   const tc = root.querySelector('[data-ph-tc]');
   if (cfg.pos) root.style.setProperty('--ph-pos', cfg.pos);
@@ -75,22 +74,6 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
     });
   }
 
-  // ---------- grano de película: ruido 240×140 escalado, a 12 fps ----------
-  const grain = document.createElement('canvas');
-  grain.className = 'pgh__grain';
-  grain.width = GRAIN.w;
-  grain.height = GRAIN.h;
-  grain.setAttribute('aria-hidden', 'true');
-  foot.before(grain);
-  const g = grain.getContext('2d');
-  const noise = g.createImageData(GRAIN.w, GRAIN.h);
-  const paintGrain = () => {
-    const d = noise.data;
-    for (let i = 0; i < d.length; i += 4) { const v = (Math.random() * 255) | 0; d[i] = v; d[i + 1] = v; d[i + 2] = v; d[i + 3] = 255; }
-    g.putImageData(noise, 0, 0);
-  };
-  paintGrain();
-
   // flash de la entrada y pista del destello
   const flash = document.createElement('i');
   flash.className = 'pgh__flash';
@@ -102,8 +85,11 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   hint.textContent = 'Arrastra el destello';
   if (cfg.star !== false) stage.append(hint);
 
-  // ---------- vídeo (con movimiento reducido, solo el póster). Solo los metadatos hasta que hace falta ----------
+  // ---------- vídeo (con movimiento reducido, solo el póster). El póster se ve al instante; el vídeo pide solo los
+  // metadatos y, tras el primer pintado, se pone a cargar; arranca cuando puede reproducir sin cortes
+  // (canplaythrough o 3 s) con un fundido de 0.4 s desde el póster (css). La fuente, por ancho y por conexión ----------
   let video = null;
+  let canPlay = false;
   if (!still && cfg.video) {
     const conn = navigator.connection || {};
     const small = matchMedia(NARROW).matches || conn.saveData || /2g|3g/.test(conn.effectiveType || '');
@@ -118,10 +104,17 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
     if (start) video.addEventListener('loadedmetadata', () => { video.currentTime = start % (video.duration || 5); }, { once: true });
     video.addEventListener('playing', () => video.classList.add('is-on'), { once: true });
     look.append(video);
+    const go = () => { if (canPlay) return; canPlay = true; play(); };
+    video.addEventListener('canplaythrough', go, { once: true });
+    requestAnimationFrame(() => setTimeout(() => {
+      if (!video.isConnected) return;
+      video.preload = 'auto';
+      setTimeout(go, READY_MS);
+    }, 0));
   }
   // en bucle mientras el hero se ve (y nadie lo ha parado); fuera de pantalla o con la pestaña oculta, en pausa
   const play = () => {
-    if (!video) return;
+    if (!video || !canPlay) return;
     if (state.inView && !document.hidden && !state.held) { if (video.paused) video.play().catch(() => {}); } else if (!video.paused) video.pause();
   };
   new IntersectionObserver(([e]) => { state.inView = e.isIntersecting; play(); }).observe(root);
@@ -183,7 +176,6 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
     state.ty = clamp((e.clientY / innerHeight) * 2 - 1);
   }, { passive: true });
 
-  let grainT = 0;
   loop.add((time, ratio) => {
     if (!state.inView || document.hidden) return;
     const a = 1 - Math.pow(1 - PARALLAX.lerp, ratio);
@@ -191,7 +183,6 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
     state.my += (state.ty - state.my) * a;
     media.style.transform = `translate3d(${(-state.mx * PARALLAX.x).toFixed(2)}px, ${(-state.my * PARALLAX.y).toFixed(2)}px, 0)`;
     timecode();
-    if (time - grainT >= 1 / GRAIN.fps) { grainT = time; paintGrain(); }
   });
   return { state, star, video };
 }

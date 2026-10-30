@@ -6,6 +6,10 @@ import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studi
 // Pinta en el canvas fijo compartido con el hero (sharedGL: un solo renderer por página; css/page-hero.css), con
 // su escena; z-index 1: por encima del fondo de las secciones y por debajo de su contenido. Un solo loop.
 // Servicios, el destello como GUÍA del proceso:
+//   · MANIFIESTO: cuando el hero lo suelta (sale por arriba a la derecha), vuelve por ahí y se queda a la DERECHA del
+//     texto, centrado con él (escala .26), girando despacio en Y y respondiendo al ratón. Cuando se iluminan las
+//     palabras clave ("idea", "imágenes"; evento "disco:manifest-hot" de js/servicios.js) da un giro extra y su
+//     reflejo se tiñe un instante de naranja. Al bajar se queda a media pantalla y "Tres oficios" lo tapa;
 //   · espera escondido detrás de "Tres oficios" (z-index 2, fondo opaco: le hace de tapa). Cuando su borde inferior
 //     pasa del 70 % de la pantalla, una luz naranja se filtra por debajo del borde (0.3 s, luz detrás de una
 //     puerta) y salta con rebote dando una vuelta entera, hasta quedar junto a "En cada producción.";
@@ -19,6 +23,9 @@ import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studi
 //   · CIERRE: al entrar gira rápido 2 vueltas y lo "sella" con una onda de luz;
 //   · footer: se apaga y cae (js/fin.js). Al subir, todo al revés.
 //   Móvil: 4 paradas en el bento y sin compañero del cursor.
+// ARRASTRE: en las paradas donde está quieto (manifiesto, "En cada producción.", "Para quién", cierre) se coge con
+// el ratón y se gira con inercia (como en el hero, js/hero-star.js); mientras se arrastra, el recorrido por scroll se
+// pausa (se queda donde está) y al soltar vuelve con suavidad y se recoloca de frente.
 // Resto de páginas: solo el footer. Movimiento reducido: no hay recorrido (el footer ya está encajado).
 const UNIT = 0.45;                 // "escala 1" = 45 % del alto de pantalla (como en la home)
 const MOBILE_K = 0.75;             // en móvil, escalas un 25 % menores
@@ -58,6 +65,11 @@ const RETURN_K = 5;
 const RETURN_LERP = 0.08;
 const VELOCITY_MUTE = 600;
 const TAU = Math.PI * 2;
+// el manifiesto: escala, hueco con el texto, altura a la que se queda (× pantalla), giro lento (rad/s), entrada y
+// salida (s), el giro extra y el reflejo naranja de las palabras clave; el hero lo suelta con su bottom en el 15 %
+const MANI = { s: 0.26, gap: 48, stick: 0.42, spin: 0.5, enter: 1.1, leave: 0.45, hotTurn: Math.PI, hotDur: 0.9, glow: 0.7, glowDur: 0.9, heroOff: 0.15, follow: 10 };
+const TILT = { x: 0.22, y: 0.35, z: 0.06, lerp: 0.06 };
+const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07 };
 
 export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   if (reduced.matches) return null;
@@ -91,6 +103,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const hero = document.querySelector('[data-page-hero], [data-star-hero]'); // (nosotros: el hero "Somos disco.", js/nosotros-hero.js)
   const bento = document.querySelector('[data-bento]');
   const list = document.querySelector('[data-sectors]');
+  const manifest = gate ? document.querySelector('[data-manifest]') : null;
 
   // ---------- reflejos: el estudio y, mezclado encima (envMix), el plano naranja o la foto de un sector ----------
   const U = { envMap2: { value: studioTex }, envMix: { value: 0 }, envRot2: { value: new THREE.Matrix3() } };
@@ -174,11 +187,14 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   let simple = false;
   let tour = null;   // { cards, ats }
   let mate = null;   // { start, end }
+  let maniGeo = null; // { top, h, right }
   const build = () => {
     const max = Math.max(1, ScrollTrigger.maxScroll(window));
     const end = footerStop(max);
     stops = gate ? servicesStops(max, end) : [{ x: 0, y: -1.8, s: end.s, at: Math.max(1, end.at - innerHeight), off: true }, end];
     stops.sort((a, b) => a.at - b.at);
+    // el manifiesto, en coordenadas de la página (sin lecturas en cada fotograma)
+    maniGeo = manifest ? { top: docTop(manifest), h: manifest.offsetHeight, right: docLeft(manifest) + wordsWidth(manifest) } : null;
     dirty = true;
   };
   const footerStop = (max) => {
@@ -375,6 +391,122 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const perf = { acc: 0, n: 0, checked: false };
   const lift = (on) => { if (on !== lifted) { lifted = on; canvas.style.zIndex = on ? '3' : ''; } };
 
+  // ---------- el ratón (inclinación) y el ARRASTRE en las paradas (el canvas no recibe el ratón: se comprueba que
+  // el puntero está sobre la estrella con su pose del último dibujo) ----------
+  const mouse = { tx: 0, ty: 0, x: 0, y: 0 };
+  const drag = { on: false, x: 0, t: 0, vel: 0, spin: 0, moved: 0, frozen: null, can: false };
+  const scr = { x: 0, y: 0, h: 0 }; // el destello en pantalla (px)
+  const html = document.documentElement;
+  const onStar = (e) => drag.can && drawn && Math.abs(e.clientX - scr.x) < scr.h * 0.36 && Math.abs(e.clientY - scr.y) < scr.h * 0.5;
+  window.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
+    mouse.tx = (e.clientX / innerWidth) * 2 - 1;
+    mouse.ty = (e.clientY / innerHeight) * 2 - 1;
+    if (!drag.on) { html.classList.toggle('ps-grab', onStar(e)); return; }
+    const t = performance.now();
+    const dx = e.clientX - drag.x;
+    drag.spin += dx * DRAG.gain;
+    drag.vel = (dx * DRAG.gain) / Math.max(1, (t - drag.t) / (1000 / 60)); // rad por frame a 60 fps
+    drag.moved += Math.abs(dx);
+    drag.x = e.clientX;
+    drag.t = t;
+  }, { passive: true });
+  window.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch' || e.button !== 0 || !onStar(e) || e.target.closest('a, input, textarea, select')) return;
+    e.preventDefault();
+    Object.assign(drag, { on: true, x: e.clientX, t: performance.now(), vel: 0, moved: 0, frozen: null });
+    html.classList.add('ps-dragging');
+  });
+  const drop = () => {
+    if (!drag.on) return;
+    drag.on = false;
+    drag.frozen = null;
+    html.classList.remove('ps-dragging');
+    if (performance.now() - drag.t > 80) drag.vel = 0; // se paró antes de soltar
+    setTimeout(() => { drag.moved = 0; }, 0);
+  };
+  window.addEventListener('pointerup', drop);
+  window.addEventListener('pointercancel', drop);
+  window.addEventListener('blur', drop);
+  // un arrastre no es un clic (en "Para quién" hay botones debajo)
+  window.addEventListener('click', (e) => { if (drag.moved > 4) { e.preventDefault(); e.stopPropagation(); } }, true);
+  // al soltar: inercia y, quieto, de frente (el múltiplo de π más cercano)
+  const dragStep = (ratio) => {
+    if (drag.on) return;
+    drag.spin += drag.vel * ratio;
+    drag.vel *= Math.pow(DRAG.friction, ratio);
+    if (Math.abs(drag.vel) < DRAG.stop) {
+      drag.vel = 0;
+      drag.spin += (Math.round(drag.spin / Math.PI) * Math.PI - drag.spin) * (1 - Math.pow(1 - DRAG.settle, ratio));
+    }
+  };
+  const seen = () => {
+    scr.x = ((star.position.x / view.halfW + 1) / 2) * innerWidth;
+    scr.y = ((1 - star.position.y / view.halfH) / 2) * innerHeight;
+    scr.h = ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * innerHeight;
+  };
+
+  // ---------- servicios: el manifiesto ----------
+  const mani = { k: 0, on: false, tw: null, x: 0, y: 0, init: false, base: 0 };
+  const hot = { spin: 0, glow: 0 };
+  document.addEventListener('disco:manifest-hot', () => {
+    if (!mani.on) return;
+    gsap.to(hot, { spin: hot.spin + MANI.hotTurn, duration: MANI.hotDur, ease: 'power3.out' });
+    gsap.fromTo(hot, { glow: MANI.glow }, { glow: 0, duration: MANI.glowDur, ease: 'power2.out' });
+  });
+  // a la derecha del texto, centrado con él; si no cabe (móvil), encima, a la derecha (y va con el texto)
+  const maniPose = (px) => {
+    const H = innerHeight;
+    const hPx = MANI.s * unit() * H;
+    const half = (WIDTH * hPx) / 2;
+    let cx = maniGeo.right + MANI.gap + half;
+    let cy = maniGeo.top + maniGeo.h / 2 - px;
+    if (cx + half > innerWidth - 16) {
+      cx = innerWidth - 20 - half;
+      cy = maniGeo.top - px - 18 - hPx / 2;
+    } else cy = Math.max(cy, MANI.stick * H); // se queda a media pantalla: "Tres oficios" sube y lo tapa
+    return { cx, cy, hPx };
+  };
+  const maniFrame = (ratio, px, gateTop) => {
+    const dt = ratio / 60;
+    const H = innerHeight;
+    const p = maniPose(px);
+    const k = mani.k;
+    // llega (y se va) por arriba a la derecha, por donde salió el del hero
+    let tx = innerWidth * 1.15 + (p.cx - innerWidth * 1.15) * k;
+    let ty = -0.25 * H + (p.cy + 0.25 * H) * k;
+    if (drag.on) { drag.frozen ||= { x: mani.x, y: mani.y }; tx = drag.frozen.x; ty = drag.frozen.y; }
+    if (!mani.init) { mani.x = tx; mani.y = ty; mani.init = true; }
+    const a = 1 - Math.exp(-MANI.follow * dt);
+    mani.x += (tx - mani.x) * a;
+    mani.y += (ty - mani.y) * a;
+    // el giro: lento en Y, el de la mano, el de las palabras clave y, al llegar, una vuelta; inclinado hacia el ratón
+    dragStep(ratio);
+    mani.base += MANI.spin * dt;
+    const ta = 1 - Math.pow(1 - TILT.lerp, ratio);
+    mouse.x += (mouse.tx - mouse.x) * ta;
+    mouse.y += (mouse.ty - mouse.y) * ta;
+    const ry = mani.base + drag.spin + hot.spin + (1 - k) * TAU + mouse.x * TILT.y;
+    // el reflejo naranja de las palabras clave (encima del estudio)
+    if (orangeTex && scene.environment === studioTex && !env.tw?.isActive()) { env.b = orangeTex; env.mix = hot.glow; applyMix(); }
+    cur.init = false;
+    lift(false);
+    drag.can = mani.on && k > 0.99;
+    // tapado del todo por "Tres oficios" o fuera de pantalla: no se pinta
+    if (gateTop <= mani.y - p.hPx / 2 || mani.y + p.hPx / 2 < 0 || mani.y - p.hPx / 2 > H || mani.x - p.hPx > innerWidth) {
+      drag.can = false;
+      show(false);
+      return;
+    }
+    star.visible = true;
+    star.position.set(((mani.x / innerWidth) * 2 - 1) * view.halfW, (1 - (mani.y / H) * 2) * view.halfH, 0);
+    star.scale.setScalar(Math.max(0.0001, worldScale(MANI.s)));
+    star.rotation.set(mouse.y * TILT.x, ry, -mouse.x * TILT.z);
+    gl.draw(scene, 'page');
+    drawn = true;
+    seen();
+  };
+
   // el salto: primero la luz se filtra por debajo del borde (0.3 s) y después sale con rebote y una vuelta entera
   const openGate = (edge) => {
     jump.open = true;
@@ -409,6 +541,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     if (document.hidden || !stops.length) return;
     // en el footer, "muerto": lo mueve la física (js/fin.js); aquí solo se pinta (pose en px de pantalla)
     if (fin.held) {
+      drag.can = false;
       const p = fin.pose;
       const k = `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.angle.toFixed(3)}|${p.spinY.toFixed(3)}|${p.h.toFixed(1)}`;
       if (k === fin.key && !dirty && gl.owner === 'page') return;
@@ -434,14 +567,41 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     const dt = ratio / 60;
     // servicios: la puerta (borde inferior de "Tres oficios")
     let edge = H;
+    let gateTop = H;
     if (gate) {
-      edge = gate.getBoundingClientRect().bottom;
+      const gr = gate.getBoundingClientRect();
+      edge = gr.bottom;
+      gateTop = gr.top;
       if (!jump.open && edge < JUMP.at * H) openGate(edge);
       else if (jump.open && edge > JUMP.at * H + 2) closeGate();
       if (+glow.style.opacity > 0) gsap.set(glow, { y: edge });
     }
+    // servicios: el manifiesto, entre el hero (cuando ya ha soltado su destello) y "Tres oficios"
+    const heroBottom = hero ? hero.getBoundingClientRect().bottom : -1;
+    if (maniGeo) {
+      const armed = heroBottom <= MANI.heroOff * H && !jump.open && jump.j <= 0.0005;
+      if (armed && !mani.on) {
+        mani.on = true;
+        mani.tw?.kill();
+        const p = maniPose(px);
+        // vuelve desde "Tres oficios" (estaba tapado): ya está en su sitio; si no, entra desde arriba a la derecha
+        if (gateTop <= p.cy - p.hPx / 2) mani.k = 1;
+        else mani.tw = gsap.to(mani, { k: 1, duration: MANI.enter * (1 - mani.k), ease: 'expo.out' });
+        if (mani.k === 0) mani.init = false;
+      } else if (!armed && mani.on) {
+        mani.on = false;
+        mani.tw?.kill();
+        drop();
+        // vuelve al hero: sale por arriba a la derecha; se abre la puerta de "Tres oficios": ya estaba tapado
+        if (heroBottom > MANI.heroOff * H) mani.tw = gsap.to(mani, { k: 0, duration: MANI.leave, ease: 'power2.in' });
+        else mani.k = 0;
+      }
+      if (mani.on || mani.k > 0.001) { maniFrame(ratio, px, gateTop); return; }
+      mani.init = false;
+    }
     // con el hero en pantalla (su destello está ahí) este no se ve nunca, aunque se suba muy rápido
-    if (hero && hero.getBoundingClientRect().bottom > 0) {
+    if (heroBottom > 0) {
+      drag.can = false;
       if (gate && (jump.open || jump.j > 0)) { jump.tl?.kill(); jump.j = 0; jump.open = false; gsap.set(glow, { opacity: 0 }); }
       if (drawn) { show(false); star.visible = false; }
       lift(false);
@@ -450,6 +610,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     }
     const j = jump.j;
     if (j <= 0.0005) {
+      drag.can = false;
       if (drawn) { show(false); star.visible = false; }
       lift(false);
       cur.init = false;
@@ -503,6 +664,13 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       applyMix();
     }
     const guide = Math.max(tw, mw);
+    // arrastre: en las paradas (no en el bento); mientras se arrastra, la pose se queda donde está
+    drag.can = tw < 0.5 && j >= 0.999;
+    dragStep(ratio);
+    if (drag.on) {
+      drag.frozen ||= { x: cur.x, y: cur.y, s: cur.s };
+      t = { x: drag.frozen.x, y: drag.frozen.y, s: drag.frozen.s, off: false };
+    }
     lift(tw > 0.5); // en el bento salta por encima de las tarjetas
     // posición y tamaño: un solo filtro según dt (con el scroll rápido se queda algo atrás; en el bento, rápido)
     const kTo = fin.returning ? RETURN_K : guide > 0.5 ? TOUR.k : POS_K / (1 + Math.abs(velocity) * LAG);
@@ -562,7 +730,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       if (seal.armed && px > closeStop.at - 0.2 * H && px < closeStop.at + 0.4 * H && there) { seal.armed = false; sealIt(); }
       else if (!seal.armed && px < closeStop.at - 0.6 * H) seal.armed = true;
     }
-    ryAll += seal.spin;
+    ryAll += seal.spin + drag.spin;
     // escondido (tramo entre dos puntos fuera de pantalla) o fuera de la pantalla: no se pinta
     const hh = (s * unit()) + 0.05;
     const onScreen = !t.off && y - hh < 1.05 && y + hh > -1.05;
@@ -582,6 +750,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     gl.draw(scene, 'page');
     drawn = true;
     dirty = false;
+    seen();
     ringAt();
 
     // móvil: si no llega a 50 fps (2 s midiendo), el recorrido intermedio se simplifica
@@ -643,6 +812,13 @@ function docLeft(el) {
   let x = 0;
   for (let n = el; n; n = n.offsetParent) x += n.offsetLeft;
   return x;
+}
+// ancho de las palabras visibles (el manifiesto lleva además el texto entero oculto para el lector de pantalla)
+function wordsWidth(el) {
+  const words = el.querySelectorAll('.mw');
+  if (!words.length) return textWidth(el);
+  const left = el.getBoundingClientRect().left;
+  return Math.max(...[...words].map((w) => w.getBoundingClientRect().right)) - left;
 }
 // ancho real del texto de un título (el bloque ocupa toda la fila)
 function textWidth(el) {

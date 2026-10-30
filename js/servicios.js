@@ -26,7 +26,8 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
   if (document.fonts) document.fonts.ready.then(() => ScrollTrigger.refresh());
 }
 
-// ---------- B) manifiesto: palabra a palabra (.15 → 1); "idea" e "imágenes" en naranja ----------
+// ---------- B) manifiesto: palabra a palabra (.15 → 1); "idea" e "imágenes" en naranja (y el destello, a su
+// derecha, lo celebra: js/page-star.js) ----------
 function initManifest(gsap, still) {
   const el = document.querySelector('[data-manifest]');
   if (!el) return;
@@ -37,11 +38,17 @@ function initManifest(gsap, still) {
     return `<span class="mw${hot.has(bare) ? ' mw--hot' : ''}" aria-hidden="true">${w}</span>`;
   }).join(' ')}`;
   if (still) return;
+  // cuando se ilumina una palabra clave, aviso al destello (js/page-star.js: giro extra y reflejo naranja)
+  const hotWords = [...el.querySelectorAll('.mw--hot')].map((w) => ({ w, lit: false }));
   gsap.to(el.querySelectorAll('.mw'), {
     opacity: 1,
     ease: 'none',
     stagger: 0.1,
     scrollTrigger: { trigger: el, start: 'top 75%', end: 'bottom 40%', scrub: 0.6 },
+    onUpdate: () => hotWords.forEach((h) => {
+      const o = +gsap.getProperty(h.w, 'opacity');
+      if (!h.lit && o > 0.85) { h.lit = true; document.dispatchEvent(new CustomEvent('disco:manifest-hot')); } else if (h.lit && o < 0.5) h.lit = false;
+    }),
   });
 }
 
