@@ -44,7 +44,52 @@ export function initCore() {
   // WhatsApp flotante en móvil (solo si el número es real: config.ready.whatsapp)
   initWaFloat();
 
+  // "sigue bajando": aviso discreto abajo si el visitante se para
+  initScrollHint({ lenis });
+
   return { gsap, ScrollTrigger, lenis, loop, reduced, transitions };
+}
+
+// "Sigue bajando" (.scroll-hint, css/base.css): si el visitante se queda quieto HINT.idle s sin haber llegado al
+// final, aparece abajo en el centro, muy discreto (mono pequeño y una línea fina por la que baja un punto); al mover
+// el scroll se va. Nunca durante el loading, con el menú abierto, con el aviso propio del hero de la home en pantalla, encima de un botón o de texto, ni cerca del final de la página. Cuando ya ha
+// recorrido más de HINT.learned de la página, no vuelve a salir (ya lo sabe). Decorativo: aria-hidden.
+const HINT = { idle: 3.5, end: 1.2, learned: 0.6 };
+function initScrollHint({ lenis }) {
+  const el = document.createElement('div');
+  el.className = 'scroll-hint';
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = '<span>Sigue bajando</span><i></i>';
+  document.body.append(el);
+  const nav = document.querySelector('[data-nav]');
+  let timer = 0;
+  let done = false;
+  const show = (on) => el.classList.toggle('is-on', on);
+  const check = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const y = lenis.scroll;
+    const busy = document.body.classList.contains('is-loading') || nav?.classList.contains('is-open') || document.documentElement.classList.contains('is-arriving');
+    // la página ya tiene su propio aviso en pantalla (el "Scroll to explore" del hero de la home): no se repite
+    const own = document.querySelector('[data-hero-scroll]')?.getBoundingClientRect();
+    const ownOn = own && y < innerHeight * 0.5 && own.top < innerHeight && own.bottom > 0; // (el hero se queda fijo debajo: solo arriba)
+    if (done || ownOn || max < innerHeight * 0.5 || y > max - HINT.end * innerHeight || busy) return;
+    // nunca encima de un botón, un enlace o texto (mira 5 puntos de su sitio)
+    const r = el.getBoundingClientRect();
+    const pts = [[0.5, 0.5], [0.05, 0.2], [0.95, 0.2], [0.05, 0.8], [0.95, 0.8]];
+    const hit = pts.some(([fx, fy]) => document.elementsFromPoint(r.left + r.width * fx, r.top + r.height * fy)
+      .some((n) => n !== el && !el.contains(n) && n.closest('a, button, input, textarea, select, label, p, h1, h2, h3, h4, li, figcaption')));
+    if (hit) return;
+    show(true);
+  };
+  const arm = () => { clearTimeout(timer); if (!done) timer = setTimeout(check, HINT.idle * 1000); };
+  lenis.on('scroll', () => {
+    show(false);
+    const max = document.documentElement.scrollHeight - innerHeight;
+    if (max > 0 && lenis.scroll / max > HINT.learned) { done = true; clearTimeout(timer); return; }
+    arm();
+  });
+  window.addEventListener('pageshow', arm);
+  arm();
 }
 
 // CTA principal (.cta-pill, css/base.css): con ratón, el botón se acerca al cursor hasta 6 px (lerp .15, con

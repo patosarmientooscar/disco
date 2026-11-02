@@ -8,7 +8,14 @@
   --studio-orange: #F35411;
   position: relative;
   height: 600vh;
-  background: #0b0909;
+  background: transparent; /* hasta que empieza: debajo sigue el naranja de "Dale al REC." */
+}
+/* se solapa con la última pantalla de "Dale al REC." (css/rec.css): su pin empieza justo cuando el naranja está
+   completo, sin una pantalla de scroll de por medio (js/studio-cross.js). Mientras sube por encima del tramo, ni
+   fondo ni contenido */
+@media (prefers-reduced-motion: no-preference) {
+  .studio:not(.is-still) { margin-top: -100vh; }
+  .studio:not(.is-lit):not(.is-still) .studio__pin { visibility: hidden; }
 }
 .studio.is-lit { background: #f4f2ef; }
 

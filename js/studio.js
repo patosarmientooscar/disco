@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createStudioUI } from './studio-ui.js';
-import { CROSS, crossAt } from './studio-cross.js';
+import { CROSS, cross as crossState } from './studio-cross.js';
 
 // Estudio de fotografía 360°: un panorama equirectangular en una esfera alrededor de la cámara, dibujado
 // como fondo en el MISMO canvas y renderer que el destello 3D (star.setBackdrop), dentro del loop único.
@@ -18,9 +18,9 @@ const PITCH = THREE.MathUtils.degToRad(3);
 const FOV = 55;
 const FOV_PORTRAIT = 70;
 const FADE = 0.08;                // fundido de la esfera: primer y último 8% del progreso
-// entrada: mientras la sección sube desde abajo, el estudio aparece con un fundido (opacidad, desenfoque 12 px → 0
-// y escala 1.04 → 1; js/studio-cross.js) encima del degradado naranja de "Dale al REC." (js/rec.js), que a la vez
-// se apaga. Sin máscaras ni formas: la luz naranja se convierte en el estudio
+// entrada: la sección se solapa con la última pantalla de "Dale al REC." (css/studio.css); cuando empieza el pin
+// (el naranja ya está completo) el estudio entra en un corte rápido por tiempo (0.45 s: opacidad, desenfoque 12 px
+// → 0 y escala 1.04 → 1; js/studio-cross.js) y el degradado naranja (js/rec.js) se apaga a la vez
 const ENV_INTENSITY = 1.4;        // brillo de los reflejos dentro del estudio
 const ENV_SIZE = 1024;            // ancho del equirectangular de reflejos → PMREM de 256, como el de softboxes (fundido)
 // Puestos del estudio: yaw (giro de la esfera, grados) que deja cada objeto en el centro de la pantalla y
@@ -205,11 +205,10 @@ void main() {`);
       onToggle: (self) => enter(self.isActive),
     },
   });
-  // en cuanto la sección asoma por abajo (el degradado de "Dale al REC." ya es naranja) empieza el fundido; el set
-  // está entero justo cuando empieza el pin
+  // se enciende cuando empieza el pin (el naranja de "Dale al REC." ya está completo)
   ScrollTrigger.create({
     trigger: section,
-    start: 'top bottom',
+    start: 'top top',
     end: 'bottom top',
     onEnter: light,
     onLeaveBack: () => { section.classList.remove('is-lit'); window.dispatchEvent(new CustomEvent('disco:studio-dark')); },
@@ -221,7 +220,16 @@ void main() {`);
   let slow = 0;
   let lowered = false;
 
-  let top = 0; // top de la sección en pantalla (px), para recortar el set antes del pin
+  let top = 0; // top de la sección en pantalla (px)
+  // el corte: entra (por tiempo) en cuanto está encendido y el panorama listo; al volver a subir, sale
+  let crossTo = 0;
+  let crossTw = null;
+  const cut = (to) => {
+    if (to === crossTo) return;
+    crossTo = to;
+    crossTw?.kill();
+    crossTw = gsap.to(crossState, { v: to, duration: to ? CROSS.in : CROSS.out, ease: to ? 'power2.out' : 'power2.in' });
+  };
   star.setBackdrop({
     update(ratio) {
       if (touch && active && !lowered) {
@@ -232,16 +240,16 @@ void main() {`);
       const prev = p;
       p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
       if (Math.abs(state.p - p) < 1e-5) p = state.p;
-      // antes del pin (encendido y asomando): el fundido, mientras la sección sube
       top = section.getBoundingClientRect().top;
-      const e = top > 0 ? crossAt(top) : 1;
+      cut(section.classList.contains('is-lit') && resident && panoTex ? 1 : 0);
+      const e = crossState.v;
       const prevC = cross.value;
       cross.value = e;
       blur.value = (1 - e) * CROSS.blur;
       const zoom = CROSS.zoom - (CROSS.zoom - 1) * e;
       if (zoom !== panoCam.zoom) { panoCam.zoom = zoom; panoCam.updateProjectionMatrix(); }
       // reflejos del destello: los del estudio a medida que aparece; dentro del pin, del todo
-      if (envTex) star.setEnvMix(envTex, active ? 1 : (top > 0 ? e : 0), ENV_INTENSITY);
+      if (envTex) star.setEnvMix(envTex, e, ENV_INTENSITY);
       const lit = section.classList.contains('is-lit') && top < innerHeight;
       const fade = (lit && p < FADE ? 1 : THREE.MathUtils.smoothstep(p, 0, FADE)) * (1 - THREE.MathUtils.smoothstep(p, 1 - FADE, 1));
       const show = fade > 0.001 && resident && !!panoTex;

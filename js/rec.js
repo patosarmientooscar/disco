@@ -1,4 +1,4 @@
-import { CROSS, crossAt } from './studio-cross.js';
+import { cross } from './studio-cross.js';
 import { gpuOK } from './gpu.js';
 
 // "Dale al REC." → estudio (home, css/rec.css). La frase se queda fija en el centro durante el tramo (130vh; 100vh
@@ -7,10 +7,11 @@ import { gpuOK } from './gpu.js';
 //   u_p .35 → .75 el halo se abre como una fuga de luz de película: bandas cálidas que entran desde la derecha
 //                 y se doblan, con aberración cromática suave en los bordes (no en móvil) y grano
 //   u_p .75 → 1   todo el plano llega al naranja del papel del set (el estudio, js/studio.js)
-// La frase pasa de papel a negro cuando el fondo se aclara y al final se desenfoca y sube. Después, mientras el
-// estudio sube desde abajo, el panorama aparece encima con un fundido (canvas del destello, js/studio.js) y este
-// plano baja su opacidad: los colores casan, se ve como una sola luz que se convierte en el estudio
-// (js/studio-cross.js; LEGACY: el iris de seis palas, en legacy/js/iris.js). El cursor mueve un poco las manchas;
+// La frase pasa de papel a negro cuando el fondo se aclara y al final se desenfoca y sube. Justo ahí empieza el
+// estudio (se solapa con la última pantalla del tramo): el panorama entra en un corte rápido (canvas del destello,
+// js/studio.js) y este plano se apaga a la vez: los colores casan, la luz naranja se convierte en el estudio
+// (js/studio-cross.js; LEGACY: el fundido con el scroll, en legacy/js/studio-cross-scroll.js; el iris, en
+// legacy/js/iris.js). El cursor mueve un poco las manchas;
 // la velocidad del scroll aviva la fuga.
 // El plano OGL solo existe cerca del tramo (se crea al acercarse y se destruye al salir). Movimiento reducido:
 // sin plano ni pin, un degradado fijo (CSS).
@@ -212,12 +213,12 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     gl.renderer.gl.getExtension('WEBGL_lose_context')?.loseContext();
     gl = null;
   };
-  // existe desde que el tramo está a media pantalla hasta que el estudio ya lo tapa entero (fundido hecho)
+  // existe desde que el tramo está a media pantalla hasta que el estudio ya lleva un rato dentro (corte hecho)
   ScrollTrigger.create({
     trigger: rec,
     start: 'top 150%',
     endTrigger: studio || rec,
-    end: studio ? 'top -10%' : 'bottom top',
+    end: studio ? 'top -40%' : 'bottom top',
     onToggle: (self) => (self.isActive ? create() : destroy()),
   });
 
@@ -252,11 +253,8 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     u.uMouse.value = [state.mx, state.my];
     u.uBoost.value = state.boost;
     u.uCA.value = mobile.matches ? 0 : 1;
-    // mientras el estudio aparece encima (mismo cálculo que js/studio.js), el degradado se apaga al final
-    const sTop = studio ? studio.getBoundingClientRect().top : innerHeight;
-    const e = sTop >= innerHeight ? 0 : crossAt(Math.max(0, sTop));
-    const k = Math.min(1, Math.max(0, (e - CROSS.recFrom) / (1 - CROSS.recFrom)));
-    const o = (1 - k * k * (3 - 2 * k)).toFixed(3);
+    // con el corte al estudio (js/studio.js), el degradado se apaga a la vez
+    const o = (1 - cross.v).toFixed(3);
     if (gl.canvas.style.opacity !== o) gl.canvas.style.opacity = o;
     if (o === '0.000') return;
     renderer.render({ scene: gl.mesh });
