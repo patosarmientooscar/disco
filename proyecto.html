@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
-  <script src="js/file-guard.js?v=cd59305-0d1eaa" defer></script>
+  <script src="js/file-guard.js?v=391a68e-09ad8b" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cachondeo Group — Proyecto de disco.</title>
   <meta name="description" content="Karaoke, fútbol y camisetas naranjas: la fiesta de Cachondeo Group en Madrid, contada en dos reels verticales y más de 80 fotos. Un proyecto de disco.">
@@ -46,14 +46,15 @@
     @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
   </style>
 
-  <link rel="stylesheet" href="css/tokens.css?v=cd59305-0d1eaa">
-  <link rel="stylesheet" href="css/base.css?v=cd59305-0d1eaa">
-  <link rel="stylesheet" href="css/interior.css?v=cd59305-0d1eaa">
-  <link rel="stylesheet" href="css/page-hero.css?v=cd59305-0d1eaa">
-  <link rel="stylesheet" href="css/proyecto.css?v=cd59305-0d1eaa">
-  <link rel="stylesheet" href="css/nav.css?v=cd59305-0d1eaa">
-  <link rel="stylesheet" href="css/fin.css?v=cd59305-0d1eaa">
-  <link rel="stylesheet" href="css/transition.css?v=cd59305-0d1eaa">
+  <link rel="stylesheet" href="css/tokens.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/base.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/interior.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/page-hero.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/proyecto.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/nav.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/fin.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/transition.css?v=391a68e-09ad8b">
+  <link rel="stylesheet" href="css/malla.css?v=391a68e-09ad8b">
   <script>
     document.documentElement.classList.add('js');
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
@@ -65,67 +66,68 @@
     { "imports": {
       "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
       "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/",
-      "./js/about.js": "./js/about.js?v=cd59305-0d1eaa",
-      "./js/aurora.js": "./js/aurora.js?v=cd59305-0d1eaa",
-      "./js/bento.js": "./js/bento.js?v=cd59305-0d1eaa",
-      "./js/config.js": "./js/config.js?v=cd59305-0d1eaa",
-      "./js/contact.js": "./js/contact.js?v=cd59305-0d1eaa",
-      "./js/core.js": "./js/core.js?v=cd59305-0d1eaa",
-      "./js/file-guard.js": "./js/file-guard.js?v=cd59305-0d1eaa",
-      "./js/fin-physics.js": "./js/fin-physics.js?v=cd59305-0d1eaa",
-      "./js/fin.js": "./js/fin.js?v=cd59305-0d1eaa",
-      "./js/gpu.js": "./js/gpu.js?v=cd59305-0d1eaa",
-      "./js/hero-exposure.js": "./js/hero-exposure.js?v=cd59305-0d1eaa",
-      "./js/hero-star.js": "./js/hero-star.js?v=cd59305-0d1eaa",
-      "./js/hero.js": "./js/hero.js?v=cd59305-0d1eaa",
-      "./js/home-close.js": "./js/home-close.js?v=cd59305-0d1eaa",
-      "./js/interior.js": "./js/interior.js?v=cd59305-0d1eaa",
-      "./js/intro-loader.js": "./js/intro-loader.js?v=cd59305-0d1eaa",
-      "./js/intro-shot.js": "./js/intro-shot.js?v=cd59305-0d1eaa",
-      "./js/main.js": "./js/main.js?v=cd59305-0d1eaa",
-      "./js/manifesto.js": "./js/manifesto.js?v=cd59305-0d1eaa",
-      "./js/nav.js": "./js/nav.js?v=cd59305-0d1eaa",
-      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=cd59305-0d1eaa",
-      "./js/oficios.js": "./js/oficios.js?v=cd59305-0d1eaa",
-      "./js/page-hero.js": "./js/page-hero.js?v=cd59305-0d1eaa",
-      "./js/page-star.js": "./js/page-star.js?v=cd59305-0d1eaa",
-      "./js/page.js": "./js/page.js?v=cd59305-0d1eaa",
-      "./js/placeholder.js": "./js/placeholder.js?v=cd59305-0d1eaa",
-      "./js/portfolio-data.js": "./js/portfolio-data.js?v=cd59305-0d1eaa",
-      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=cd59305-0d1eaa",
-      "./js/portfolio.js": "./js/portfolio.js?v=cd59305-0d1eaa",
-      "./js/proyecto.js": "./js/proyecto.js?v=cd59305-0d1eaa",
-      "./js/rec.js": "./js/rec.js?v=cd59305-0d1eaa",
-      "./js/scroll-fx.js": "./js/scroll-fx.js?v=cd59305-0d1eaa",
-      "./js/servicios-data.js": "./js/servicios-data.js?v=cd59305-0d1eaa",
-      "./js/servicios.js": "./js/servicios.js?v=cd59305-0d1eaa",
-      "./js/star-core.js": "./js/star-core.js?v=cd59305-0d1eaa",
-      "./js/star.js": "./js/star.js?v=cd59305-0d1eaa",
-      "./js/studio-cross.js": "./js/studio-cross.js?v=cd59305-0d1eaa",
-      "./js/studio-ui.js": "./js/studio-ui.js?v=cd59305-0d1eaa",
-      "./js/studio.js": "./js/studio.js?v=cd59305-0d1eaa",
-      "./js/team.js": "./js/team.js?v=cd59305-0d1eaa",
-      "./js/transition.js": "./js/transition.js?v=cd59305-0d1eaa",
-      "./js/wa-float.js": "./js/wa-float.js?v=cd59305-0d1eaa",
-      "./js/water.js": "./js/water.js?v=cd59305-0d1eaa",
-      "./js/why.js": "./js/why.js?v=cd59305-0d1eaa"
+      "./js/about.js": "./js/about.js?v=391a68e-09ad8b",
+      "./js/aurora.js": "./js/aurora.js?v=391a68e-09ad8b",
+      "./js/bento.js": "./js/bento.js?v=391a68e-09ad8b",
+      "./js/config.js": "./js/config.js?v=391a68e-09ad8b",
+      "./js/contact.js": "./js/contact.js?v=391a68e-09ad8b",
+      "./js/core.js": "./js/core.js?v=391a68e-09ad8b",
+      "./js/file-guard.js": "./js/file-guard.js?v=391a68e-09ad8b",
+      "./js/fin-physics.js": "./js/fin-physics.js?v=391a68e-09ad8b",
+      "./js/fin.js": "./js/fin.js?v=391a68e-09ad8b",
+      "./js/gpu.js": "./js/gpu.js?v=391a68e-09ad8b",
+      "./js/hero-exposure.js": "./js/hero-exposure.js?v=391a68e-09ad8b",
+      "./js/hero-star.js": "./js/hero-star.js?v=391a68e-09ad8b",
+      "./js/hero.js": "./js/hero.js?v=391a68e-09ad8b",
+      "./js/home-close.js": "./js/home-close.js?v=391a68e-09ad8b",
+      "./js/interior.js": "./js/interior.js?v=391a68e-09ad8b",
+      "./js/intro-loader.js": "./js/intro-loader.js?v=391a68e-09ad8b",
+      "./js/intro-shot.js": "./js/intro-shot.js?v=391a68e-09ad8b",
+      "./js/main.js": "./js/main.js?v=391a68e-09ad8b",
+      "./js/malla.js": "./js/malla.js?v=391a68e-09ad8b",
+      "./js/manifesto.js": "./js/manifesto.js?v=391a68e-09ad8b",
+      "./js/nav.js": "./js/nav.js?v=391a68e-09ad8b",
+      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=391a68e-09ad8b",
+      "./js/oficios.js": "./js/oficios.js?v=391a68e-09ad8b",
+      "./js/page-hero.js": "./js/page-hero.js?v=391a68e-09ad8b",
+      "./js/page-star.js": "./js/page-star.js?v=391a68e-09ad8b",
+      "./js/page.js": "./js/page.js?v=391a68e-09ad8b",
+      "./js/placeholder.js": "./js/placeholder.js?v=391a68e-09ad8b",
+      "./js/portfolio-data.js": "./js/portfolio-data.js?v=391a68e-09ad8b",
+      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=391a68e-09ad8b",
+      "./js/portfolio.js": "./js/portfolio.js?v=391a68e-09ad8b",
+      "./js/proyecto.js": "./js/proyecto.js?v=391a68e-09ad8b",
+      "./js/rec.js": "./js/rec.js?v=391a68e-09ad8b",
+      "./js/scroll-fx.js": "./js/scroll-fx.js?v=391a68e-09ad8b",
+      "./js/servicios-data.js": "./js/servicios-data.js?v=391a68e-09ad8b",
+      "./js/servicios.js": "./js/servicios.js?v=391a68e-09ad8b",
+      "./js/star-core.js": "./js/star-core.js?v=391a68e-09ad8b",
+      "./js/star.js": "./js/star.js?v=391a68e-09ad8b",
+      "./js/studio-cross.js": "./js/studio-cross.js?v=391a68e-09ad8b",
+      "./js/studio-ui.js": "./js/studio-ui.js?v=391a68e-09ad8b",
+      "./js/studio.js": "./js/studio.js?v=391a68e-09ad8b",
+      "./js/team.js": "./js/team.js?v=391a68e-09ad8b",
+      "./js/transition.js": "./js/transition.js?v=391a68e-09ad8b",
+      "./js/wa-float.js": "./js/wa-float.js?v=391a68e-09ad8b",
+      "./js/water.js": "./js/water.js?v=391a68e-09ad8b",
+      "./js/why.js": "./js/why.js?v=391a68e-09ad8b"
     } }
   </script>
-  <link rel="modulepreload" href="js/page.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/core.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/transition.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/water.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/wa-float.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/config.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/nav.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/fin.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/fin-physics.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/gpu.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/interior.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/placeholder.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/page-hero.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/proyecto.js?v=cd59305-0d1eaa">
-  <link rel="modulepreload" href="js/portfolio-data.js?v=cd59305-0d1eaa">
+  <link rel="modulepreload" href="js/page.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/core.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/transition.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/water.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/wa-float.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/config.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/nav.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/fin.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/fin-physics.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/gpu.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/interior.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/placeholder.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/page-hero.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/proyecto.js?v=391a68e-09ad8b">
+  <link rel="modulepreload" href="js/portfolio-data.js?v=391a68e-09ad8b">
   <script>
     // el póster del reel de la portada, pedido desde el principio (la ficha la pinta js/proyecto.js): uno por proyecto
     // con página, el de js/portfolio-data.js → project.reels[0].poster. Al añadir un proyecto, añadirlo aquí.
@@ -140,6 +142,7 @@
   </script>
 </head>
 <body data-page="proyecto">
+  <canvas id="malla" aria-hidden="true"></canvas>
   <a class="skip" href="#contenido">Saltar al contenido</a>
 
   <!-- Nav flotante de cristal (misma en todas las páginas; estilos en css/nav.css, lógica en js/nav.js) -->
@@ -181,6 +184,7 @@
   <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
   <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
-  <script type="module" src="js/page.js?v=cd59305-0d1eaa"></script>
+  <script type="module" src="js/page.js?v=391a68e-09ad8b"></script>
+  <script type="module" src="js/malla.js?v=391a68e-09ad8b"></script>
 </body>
 </html>

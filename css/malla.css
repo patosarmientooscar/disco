@@ -1,0 +1,62 @@
+/* ---------- fondo "malla de color" (js/malla.js) ----------
+   Un canvas fijo debajo de todo (z-index -1: no altera el apilado de la página). Para que se vea, body deja de pintar
+   su negro; html sigue en #0b0909. Los fondos solo pasan a transparente con html.malla-on (ya hay malla pintada) o
+   html.malla-static (sin WebGL): si la malla tarda o falla, la web se queda como estaba. Las secciones claras solo
+   con malla de verdad: en el fondo estático quedarían oscuras. */
+#malla {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.9s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+}
+#malla.is-on { opacity: 1; }
+#malla.malla--static {
+  opacity: 1;
+  background: radial-gradient(60% 55% at 82% 12%, #3a1005 0%, rgb(58 16 5 / 0) 70%), #0b0909;
+}
+
+html.malla-on body,
+html.malla-static body,
+html.malla-on main.ip,
+html.malla-static main.ip,
+html.malla-on .hc-close,
+html.malla-static .hc-close,
+html.malla-on .pj-reels,
+html.malla-static .pj-reels { background: transparent; }
+
+/* claras: la malla se funde a papel */
+html.malla-on .why,
+html.malla-on .hc-steps { background: transparent; }
+
+/* home: .team sigue opaco durante el telón (debajo está el hero fijo); cuando el hero queda tapado, se abre */
+.team { transition: background-color 0.6s cubic-bezier(0.32, 0.72, 0, 1); }
+html.malla-on .hero.is-covered,
+html.malla-static .hero.is-covered { visibility: hidden; transition: visibility 0s 0.6s; }
+html.malla-on .hero.is-covered ~ .team,
+html.malla-static .hero.is-covered ~ .team { background-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  html.malla-on .team,
+  html.malla-static .team { background-color: transparent; }
+}
+
+/* el final de los heros de vídeo o foto llega a negro: la malla sale de ahí sin línea */
+.pgh__stage::after,
+.pj-cover__shade::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18vh;
+  background: linear-gradient(to bottom, rgb(11 9 9 / 0), #0b0909);
+  pointer-events: none;
+}
+
+/* nosotros: la aurora y la malla son un solo cielo */
+html.malla-on .nh,
+html.malla-static .nh { background: transparent; }

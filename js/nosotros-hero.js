@@ -26,10 +26,22 @@ export function initNosotrosHero({ gsap, lenis, loop, reduced }) {
 
   // la aurora: con la página cargada y el navegador libre (el logo y el texto llegan antes, sobre su degradado CSS;
   // ella entra con su fundido)
-  const aurora = () => initAurora({ canvas: root.querySelector('[data-aurora]'), stage: root, loop, reduced });
+  let sky = null;
+  const aurora = () => { sky = initAurora({ canvas: root.querySelector('[data-aurora]'), stage: root, loop, reduced }); };
   const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(aurora, { timeout: 1200 }) : setTimeout(aurora, 200));
   if (document.readyState === 'complete') idle();
   else window.addEventListener('load', idle, { once: true });
+  // en el último 40 % del hero la aurora se derrite en la malla (ligado al scroll) y, a 0, deja de pintar
+  const veil = root.querySelector('.nh__aurora');
+  let fade = -1;
+  loop.add(() => {
+    const p = Math.max(0, -root.getBoundingClientRect().top / Math.max(1, root.offsetHeight));
+    const f = 1 - Math.min(1, Math.max(0, (p - 0.6) / 0.4));
+    if (f === fade) return;
+    fade = f;
+    veil.style.opacity = f.toFixed(3);
+    sky?.hold(f === 0);
+  });
 
   if (!still) {
     const tl = gsap.timeline({ delay: DRAW.delay, onComplete: () => logo.classList.add('is-glint') });

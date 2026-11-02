@@ -1,5 +1,6 @@
 // Aurora (nosotros.html, el hero; css/about.css): un velo de luz de escenario con los colores de disco que entra
-// por arriba. Traducción a vanilla de shader-aurora-veil (React) con su misma técnica: WebGL1 sin three, un solo
+// por arriba. No pinta negro: su base es transparente (alfa = intensidad, premultiplicado), debajo está la malla
+// (js/malla.js) y son un solo cielo; sobre negro se ve exactamente igual. Traducción a vanilla de shader-aurora-veil (React) con su misma técnica: WebGL1 sin three, un solo
 // triángulo a pantalla completa, un draw por fotograma (en el gsap.ticker de la web, no un rAF propio), solo con el
 // hero en pantalla, DPR y píxeles limitados, y pérdida de contexto gestionada.
 // El degradado CSS de su contenedor (.nh__aurora) se ve SIEMPRE, debajo: el canvas solo aparece (fundido de 0.6 s)
@@ -60,15 +61,18 @@ vec3 shaderColor(vec2 uv, vec2 p, float t, vec2 pointer, float intensity) {
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution;
   vec2 p = vec2((uv.x - 0.5) * (u_resolution.x / u_resolution.y), uv.y); // y: 0 abajo, 1 arriba
-  vec3 color = shaderColor(uv, p, u_time, u_pointer, u_intensity);
-  gl_FragColor = vec4(pow(max(color, 0.0), vec3(0.92)), 1.0);
+  vec3 f = pow(max(shaderColor(uv, p, u_time, u_pointer, u_intensity), 0.0), vec3(0.92));
+  vec3 b = pow(vec3(0.043, 0.035, 0.035) * mix(1.0, 0.35, u_scroll) * (0.86 + u_intensity * 0.2), vec3(0.92));
+  vec3 d = max(f - b, 0.0);
+  float a = clamp(max(d.r, max(d.g, d.b)) * 1.5, 0.0, 1.0);
+  gl_FragColor = vec4(d + b * a, a);
 }`;
 
 export function initAurora({ canvas, stage, loop, reduced }) {
   if (!canvas || !webglOK()) return null;
   const low = (navigator.deviceMemory || 8) <= 4 || gpuLevel() === 'low';
   const still = reduced.matches;
-  const opts = { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: 'low-power', preserveDrawingBuffer: false };
+  const opts = { alpha: true, antialias: false, depth: false, stencil: false, premultipliedAlpha: true, powerPreference: 'low-power', preserveDrawingBuffer: false };
   let gl = null;
   try { gl = canvas.getContext('webgl', opts) || canvas.getContext('experimental-webgl', opts); } catch { gl = null; }
   if (!gl) return null; // el degradado CSS de .nh__aurora se queda
@@ -130,6 +134,7 @@ export function initAurora({ canvas, stage, loop, reduced }) {
 
   const ptr = { tx: 0, ty: 0, x: 0, y: 0 };
   let inView = true;
+  let held = false; // nosotros: al salir del hero se ha fundido del todo (js/nosotros-hero.js)
   let dirty = true;
   let t0 = performance.now();
   let last = -1;
@@ -149,7 +154,7 @@ export function initAurora({ canvas, stage, loop, reduced }) {
   }
 
   const frame = (time, ratio) => {
-    if (lost || !inView || document.hidden) return;
+    if (lost || !inView || held || document.hidden) return;
     if (!linked) {
       if (par && !gl.getProgramParameter(prog, par.COMPLETION_STATUS_KHR)) return; // aún compilando
       try { setup(); resize(); } catch { stop(); return; } // el degradado CSS se queda
@@ -173,6 +178,7 @@ export function initAurora({ canvas, stage, loop, reduced }) {
       shown = true;
       clearTimeout(giveUp);
       canvas.classList.add('is-on'); // fundido de 0.6 s (css/about.css)
+      canvas.parentElement.classList.add('is-live'); // el degradado CSS se retira: el canvas ya no es opaco
     }
   };
   const off = loop.add(frame);
@@ -182,6 +188,7 @@ export function initAurora({ canvas, stage, loop, reduced }) {
     ro.disconnect();
     io.disconnect();
     canvas.classList.remove('is-on');
+    canvas.parentElement.classList.remove('is-live');
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
   // (con la pestaña en segundo plano no hay fotogramas: se espera a que vuelva)
@@ -189,7 +196,7 @@ export function initAurora({ canvas, stage, loop, reduced }) {
   const arm = () => { giveUp = setTimeout(() => { if (shown) return; if (document.hidden) document.addEventListener('visibilitychange', arm, { once: true }); else stop(); }, GIVE_UP); };
   arm();
 
-  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); lost = true; canvas.classList.remove('is-on'); shown = false; });
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); lost = true; canvas.classList.remove('is-on'); canvas.parentElement.classList.remove('is-live'); shown = false; });
   canvas.addEventListener('webglcontextrestored', () => {
     compile();
     lost = false;
@@ -203,5 +210,5 @@ export function initAurora({ canvas, stage, loop, reduced }) {
     io.disconnect();
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   });
-  return { canvas };
+  return { canvas, hold(on) { held = on; } };
 }
