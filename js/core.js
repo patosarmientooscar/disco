@@ -73,10 +73,10 @@ function initScrollHint({ lenis }) {
     const own = document.querySelector('[data-hero-scroll]')?.getBoundingClientRect();
     const ownOn = own && y < innerHeight * 0.5 && own.top < innerHeight && own.bottom > 0; // (el hero se queda fijo debajo: solo arriba)
     if (done || ownOn || max < innerHeight * 0.5 || y > max - HINT.end * innerHeight || busy) return;
-    // nunca encima de un botón, un enlace o texto (mira 5 puntos de su sitio)
+    // nunca encima de un botón, un enlace o texto (mira 5 puntos de su sitio; escondido está 8 px más abajo)
     const r = el.getBoundingClientRect();
     const pts = [[0.5, 0.5], [0.05, 0.2], [0.95, 0.2], [0.05, 0.8], [0.95, 0.8]];
-    const hit = pts.some(([fx, fy]) => document.elementsFromPoint(r.left + r.width * fx, r.top + r.height * fy)
+    const hit = pts.some(([fx, fy]) => document.elementsFromPoint(r.left + r.width * fx, r.top - 10 + (r.height + 10) * fy)
       .some((n) => n !== el && !el.contains(n) && n.closest('a, button, input, textarea, select, label, p, h1, h2, h3, h4, li, figcaption')));
     if (hit) return;
     show(true);

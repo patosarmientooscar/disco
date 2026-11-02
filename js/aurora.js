@@ -5,8 +5,8 @@
 // El degradado CSS de su contenedor (.nh__aurora) se ve SIEMPRE, debajo: el canvas solo aparece (fundido de 0.6 s)
 // cuando ha pintado bien su primer fotograma; si no hay WebGL por hardware (js/gpu.js → webglOK), si falla o si tarda
 // más de 1.5 s, se queda el CSS. Nunca tapa en negro. Movimiento reducido: un solo fotograma (t = 18). Gama baja
-// (deviceMemory ≤ 4): 0.75 de resolución y 30 fps.
-import { webglOK } from './gpu.js';
+// (deviceMemory ≤ 4 o nivel 'low' de js/gpu.js): 0.75 de resolución y 30 fps.
+import { webglOK, gpuLevel } from './gpu.js';
 const MAX_DPR = 1.35;
 const MAX_PIXELS = 620000;
 const POINTER_LERP = 0.05;
@@ -66,7 +66,7 @@ void main() {
 
 export function initAurora({ canvas, stage, loop, reduced }) {
   if (!canvas || !webglOK()) return null;
-  const low = (navigator.deviceMemory || 8) <= 4;
+  const low = (navigator.deviceMemory || 8) <= 4 || gpuLevel() === 'low';
   const still = reduced.matches;
   const opts = { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: 'low-power', preserveDrawingBuffer: false };
   let gl = null;

@@ -1,5 +1,5 @@
 import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm';
-import { gpuOK } from './gpu.js';
+import { gpuOK, levelDpr } from './gpu.js';
 
 // Hero de portfolio: la bola de espejos (el vídeo de js/config.js → pageHeroes.portfolio; el hero común, en
 // js/page-hero.js, sin el destello 3D). Inspirado en el hero de la home:
@@ -237,7 +237,7 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
   const block = root.querySelector('.pgh__foot > div');
   const video = look.querySelector('video');
   const still = reduced.matches;
-  const fine = matchMedia('(hover: hover) and (pointer: fine)');
+  const fine = matchMedia('(any-hover: hover) and (any-pointer: fine)');
 
   // el fluido: solo con ratón (en táctil, el vídeo tal cual), con WebGL y sin movimiento reducido
   let fluid = null;
@@ -432,16 +432,19 @@ function smooth(a, b, x) {
 
 // ============ el fluido (como en la home, js/hero.js → setupFluid), con el vídeo de textura ============
 function setupFluid({ look, video, loop }) {
-  const renderer = new Renderer({ dpr: Math.min(devicePixelRatio, MAX_DPR), antialias: false, depth: false });
+  const renderer = new Renderer({ dpr: Math.min(devicePixelRatio, levelDpr(MAX_DPR)), antialias: false, depth: false });
   const { gl } = renderer;
   const isWebgl2 = renderer.isWebgl2;
   const halfExt = !isWebgl2 && renderer.extensions.OES_texture_half_float;
   const halfFloat = isWebgl2 ? gl.HALF_FLOAT : halfExt && halfExt.HALF_FLOAT_OES;
   const linear = isWebgl2 || !!renderer.extensions.OES_texture_half_float_linear;
-  const rtOptions = { type: halfFloat, format: gl.RGBA, internalFormat: isWebgl2 ? gl.RGBA16F : gl.RGBA, minFilter: gl.LINEAR, depth: false };
+  // el mejor formato renderizable: half-float o float, lineal si se puede (sin lineal, algo más basto, pero se ve)
+  if (isWebgl2) gl.getExtension('EXT_color_buffer_half_float');
+  const float = isWebgl2 || gl.getExtension('OES_texture_float') ? gl.FLOAT : null;
+  const floatLin = !!gl.getExtension('OES_texture_float_linear');
+  let rtOptions = null;
   const createTarget = (width, height) => new RenderTarget(gl, { width, height, ...rtOptions });
-  const supported = (() => {
-    if (!halfFloat || !linear) return false;
+  const works = () => {
     const probe = createTarget(4, 4);
     gl.bindFramebuffer(gl.FRAMEBUFFER, probe.buffer);
     const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
@@ -449,8 +452,16 @@ function setupFluid({ look, video, loop }) {
     renderer.bindFramebuffer();
     destroyTarget(gl, probe);
     return ok;
-  })();
-  if (!supported) return null;
+  };
+  for (const [type, lin] of [[halfFloat, linear], [float, floatLin], [halfFloat, false], [float, false]]) {
+    if (!type) continue;
+    const big = type === gl.FLOAT ? gl.RGBA32F : gl.RGBA16F;
+    const filter = lin ? gl.LINEAR : gl.NEAREST;
+    rtOptions = { type, format: gl.RGBA, internalFormat: isWebgl2 ? big : gl.RGBA, minFilter: filter, magFilter: filter, depth: false };
+    if (works()) break;
+    rtOptions = null;
+  }
+  if (!rtOptions) return null;
 
   gl.canvas.className = 'pgh__fluid';
   gl.canvas.setAttribute('aria-hidden', 'true');

@@ -1,5 +1,5 @@
 import { splitLetters, initExposure } from './hero-exposure.js';
-import { gpuOK, lowEnd } from './gpu.js';
+import { gpuOK, gpuLevel, dlog } from './gpu.js';
 import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm';
 
 // Hero v2: foto roja a pantalla completa. Con ratón, el cursor remueve un fluido (stable fluids,
@@ -13,16 +13,32 @@ import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from '
 // ondularía). El mapa vuelve a cero solo y la foto queda perfecta.
 //
 // Un único renderer (OGL) dentro del loop único (gsap.ticker). Se simula solo mientras hay
-// movimiento y el hero está en pantalla. Sin ratón, quieta. Sin WebGL / HalfFloat o con
-// movimiento reducido: el <img>.
+// movimiento y el hero está en pantalla. En táctil, quieta (no hay cursor). Sin WebGL, con render por
+// software puro (js/gpu.js) o con movimiento reducido: el <img>.
+// El fluido NUNCA se apaga por rendimiento ni por formato: sirve cualquier formato de textura (pickFormat) y, si
+// va lento, baja de escalón (QUALITY: resolución, iteraciones y DPR), vuelve a medir cada 2 s y sube si va sobrado.
+// Si se pierde el contexto WebGL, se monta otro solo. Con ?debug, la consola dice qué ha hecho y por qué.
 // (LEGACY: la estela con el Flowmap de OGL está en legacy/js/hero-flowmap.js)
 const MAX_DPR = matchMedia('(max-width: 767px)').matches ? 1.25 : 2; // móvil: como mucho 1.25
-const SIM_RES = 128;              // lado corto de la simulación (independiente de la pantalla)
-const MAP_RES = 512;              // lado corto del mapa de pliegues (más resolución = filamentos más finos)
+// escalones de calidad: lado corto de la simulación y del mapa de pliegues (más resolución = filamentos más finos),
+// iteraciones de presión y DPR. El 0 es el aprobado; empieza según el nivel de la GPU y se mueve midiendo
+const QUALITY = [
+  { sim: 128, map: 512, iter: 20, dpr: MAX_DPR },
+  { sim: 128, map: 256, iter: 10, dpr: 1.5 },
+  { sim: 96, map: 128, iter: 6, dpr: 1 },
+  { sim: 64, map: 96, iter: 6, dpr: 1 },
+];
+const START = { high: 0, mid: 1, low: 2 };
+// s por medida; fps para bajar y para subir; medidas buenas; fotogramas que no cuentan al empezar o cambiar de escalón
+// (los primeros compilan shaders y crean texturas: un tirón así no dice nada del equipo)
+const TUNE = { window: 2, min: 50, ok: 56, upAfter: 2, warm: 30 };
+const REF_RES = 128;              // la velocidad va en celdas de esta rejilla: el aspecto no cambia con la resolución
+const VEL_RANGE = 1024;           // RGBA8: alcance de velocidad, presión y demás
+const MAP_RANGE = 2;              // RGBA8: alcance del mapa de pliegues
+const RELOST = { wait: 400, tries: 6 }; // contexto perdido: espera (ms, se dobla) e intentos
 const FLUID = {
   VELOCITY_DISSIPATION: 0.975,    // por frame a 60 fps (se escala con dt)
   PRESSURE: 0.8,
-  PRESSURE_ITERATIONS: 20,
   CURL: 15,                       // vorticidad: con 35 salían rizos diminutos (ruido de rejilla); 15 da remolinos grandes
   SPLAT_RADIUS: 0.003,
   SPLAT_FORCE: 4000,              // con 6000 un gesto rápido arrastraba media pantalla
@@ -34,6 +50,50 @@ const FOLD_RANGE = [4, 14];       // estiramiento del mapa (1 = el doble) en el 
                                   // solo los pliegues más cerrados (con 0.5–3 toda la zona quedaba agrisada)
 const MAX_SPLATS = 4;             // splats intermedios entre dos eventos de ratón muy separados
 const SETTLE_MS = 3000;           // sin ratón: a los 3 s velocidad y mapa ya son ~0 → se para
+
+// Cabecera de los shaders de la simulación: lectura (rd), lectura filtrada (rdl) y escritura (wr) según el formato.
+// ENCODED (RGBA8): cada componente en dos canales (x en rg, y en ba: v·0.5 + 0.5 en 16 bits). Sin filtrado lineal, el
+// bilineal se hace a mano (4 lecturas + mix). Sustituye a "precision highp float;" en cada fragment (fluidShader).
+const fluidHeader = (fmt) => `precision highp float;
+#define ENCODED ${fmt.encoded ? 1 : 0}
+#define LINEAR ${fmt.linear ? 1 : 0}
+const float VEL = ${VEL_RANGE.toFixed(1)};
+const float MAP = ${MAP_RANGE.toFixed(1)};
+vec2 rd(sampler2D t, vec2 uv, float range) {
+  vec4 c = texture2D(t, uv);
+#if ENCODED
+  return (vec2(c.r + c.g / 255.0, c.b + c.a / 255.0) * 2.0 - 1.0) * range;
+#else
+  return c.xy;
+#endif
+}
+vec2 pack16(float v) {
+  v = clamp(v, 0.0, 0.99998);
+  return vec2(floor(v * 255.0) / 255.0, fract(v * 255.0));
+}
+vec4 wr(vec2 v, float range) {
+#if ENCODED
+  vec2 n = v / range * 0.5 + 0.5;
+  return vec4(pack16(n.x), pack16(n.y));
+#else
+  return vec4(v, 0.0, 1.0);
+#endif
+}
+vec2 rdl(sampler2D t, vec2 uv, vec2 texel, float range) {
+#if LINEAR
+  return rd(t, uv, range);
+#else
+  vec2 st = uv / texel - 0.5;
+  vec2 i = floor(st);
+  vec2 f = st - i;
+  vec2 a = rd(t, (i + vec2(0.5, 0.5)) * texel, range);
+  vec2 b = rd(t, (i + vec2(1.5, 0.5)) * texel, range);
+  vec2 c = rd(t, (i + vec2(0.5, 1.5)) * texel, range);
+  vec2 d = rd(t, (i + vec2(1.5, 1.5)) * texel, range);
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+#endif
+}`;
+const fluidShader = (src, fmt) => src.replace('precision highp float;', fluidHeader(fmt));
 
 const baseVertex = /* glsl */ `
 precision highp float;
@@ -52,7 +112,8 @@ void main() {
 
 const clearShader = /* glsl */ `
 precision highp float;
-void main() { gl_FragColor = vec4(0.0); }`;
+uniform float range;
+void main() { gl_FragColor = wr(vec2(0.0), range); }`;
 
 const splatShader = /* glsl */ `
 precision highp float;
@@ -66,7 +127,7 @@ void main() {
   vec2 p = vUv - point;
   p.x *= aspectRatio;
   vec3 splat = exp(-dot(p, p) / radius) * color;
-  gl_FragColor = vec4(texture2D(uTarget, vUv).xyz + splat, 1.0);
+  gl_FragColor = wr(rd(uTarget, vUv, VEL) + splat.xy, VEL);
 }`;
 
 const curlShader = /* glsl */ `
@@ -74,11 +135,11 @@ precision highp float;
 varying vec2 vUv, vL, vR, vT, vB;
 uniform sampler2D uVelocity;
 void main() {
-  float L = texture2D(uVelocity, vL).y;
-  float R = texture2D(uVelocity, vR).y;
-  float T = texture2D(uVelocity, vT).x;
-  float B = texture2D(uVelocity, vB).x;
-  gl_FragColor = vec4(0.5 * (R - L - T + B), 0.0, 0.0, 1.0);
+  float L = rd(uVelocity, vL, VEL).y;
+  float R = rd(uVelocity, vR, VEL).y;
+  float T = rd(uVelocity, vT, VEL).x;
+  float B = rd(uVelocity, vB, VEL).x;
+  gl_FragColor = wr(vec2(0.5 * (R - L - T + B), 0.0), VEL);
 }`;
 
 const vorticityShader = /* glsl */ `
@@ -89,18 +150,18 @@ uniform sampler2D uCurl;
 uniform float curl;
 uniform float dt;
 void main() {
-  float L = texture2D(uCurl, vL).x;
-  float R = texture2D(uCurl, vR).x;
-  float T = texture2D(uCurl, vT).x;
-  float B = texture2D(uCurl, vB).x;
-  float C = texture2D(uCurl, vUv).x;
+  float L = rd(uCurl, vL, VEL).x;
+  float R = rd(uCurl, vR, VEL).x;
+  float T = rd(uCurl, vT, VEL).x;
+  float B = rd(uCurl, vB, VEL).x;
+  float C = rd(uCurl, vUv, VEL).x;
   vec2 force = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L));
   force /= length(force) + 0.0001;
   force *= curl * C;
   force.y *= -1.0;
-  vec2 velocity = texture2D(uVelocity, vUv).xy + force * dt;
+  vec2 velocity = rd(uVelocity, vUv, VEL) + force * dt;
   velocity = min(max(velocity, -1000.0), 1000.0);
-  gl_FragColor = vec4(velocity, 0.0, 1.0);
+  gl_FragColor = wr(velocity, VEL);
 }`;
 
 const divergenceShader = /* glsl */ `
@@ -108,24 +169,26 @@ precision highp float;
 varying vec2 vUv, vL, vR, vT, vB;
 uniform sampler2D uVelocity;
 void main() {
-  float L = texture2D(uVelocity, vL).x;
-  float R = texture2D(uVelocity, vR).x;
-  float T = texture2D(uVelocity, vT).y;
-  float B = texture2D(uVelocity, vB).y;
-  vec2 C = texture2D(uVelocity, vUv).xy;
+  float L = rd(uVelocity, vL, VEL).x;
+  float R = rd(uVelocity, vR, VEL).x;
+  float T = rd(uVelocity, vT, VEL).y;
+  float B = rd(uVelocity, vB, VEL).y;
+  vec2 C = rd(uVelocity, vUv, VEL);
   if (vL.x < 0.0) { L = -C.x; }
   if (vR.x > 1.0) { R = -C.x; }
   if (vT.y > 1.0) { T = -C.y; }
   if (vB.y < 0.0) { B = -C.y; }
-  gl_FragColor = vec4(0.5 * (R - L + T - B), 0.0, 0.0, 1.0);
+  gl_FragColor = wr(vec2(0.5 * (R - L + T - B), 0.0), VEL);
 }`;
 
 const scaleShader = /* glsl */ `
 precision highp float;
 varying vec2 vUv;
 uniform sampler2D uTexture;
+uniform vec2 srcTexel;
 uniform float value;
-void main() { gl_FragColor = value * texture2D(uTexture, vUv); }`;
+uniform float range;
+void main() { gl_FragColor = wr(value * rdl(uTexture, vUv, srcTexel, range), range); }`;
 
 const pressureShader = /* glsl */ `
 precision highp float;
@@ -133,12 +196,12 @@ varying vec2 vUv, vL, vR, vT, vB;
 uniform sampler2D uPressure;
 uniform sampler2D uDivergence;
 void main() {
-  float L = texture2D(uPressure, vL).x;
-  float R = texture2D(uPressure, vR).x;
-  float T = texture2D(uPressure, vT).x;
-  float B = texture2D(uPressure, vB).x;
-  float divergence = texture2D(uDivergence, vUv).x;
-  gl_FragColor = vec4((L + R + B + T - divergence) * 0.25, 0.0, 0.0, 1.0);
+  float L = rd(uPressure, vL, VEL).x;
+  float R = rd(uPressure, vR, VEL).x;
+  float T = rd(uPressure, vT, VEL).x;
+  float B = rd(uPressure, vB, VEL).x;
+  float divergence = rd(uDivergence, vUv, VEL).x;
+  gl_FragColor = wr(vec2((L + R + B + T - divergence) * 0.25, 0.0), VEL);
 }`;
 
 const gradientShader = /* glsl */ `
@@ -147,26 +210,27 @@ varying vec2 vUv, vL, vR, vT, vB;
 uniform sampler2D uPressure;
 uniform sampler2D uVelocity;
 void main() {
-  float L = texture2D(uPressure, vL).x;
-  float R = texture2D(uPressure, vR).x;
-  float T = texture2D(uPressure, vT).x;
-  float B = texture2D(uPressure, vB).x;
-  vec2 velocity = texture2D(uVelocity, vUv).xy - vec2(R - L, T - B);
-  gl_FragColor = vec4(velocity, 0.0, 1.0);
+  float L = rd(uPressure, vL, VEL).x;
+  float R = rd(uPressure, vR, VEL).x;
+  float T = rd(uPressure, vT, VEL).x;
+  float B = rd(uPressure, vB, VEL).x;
+  vec2 velocity = rd(uVelocity, vUv, VEL) - vec2(R - L, T - B);
+  gl_FragColor = wr(velocity, VEL);
 }`;
 
-// advección de la velocidad por sí misma (texelSize = el de la simulación)
+// advección de la velocidad por sí misma (velTexel: la celda de referencia, REF_RES; texelSize: la de verdad)
 const advectShader = /* glsl */ `
 precision highp float;
 varying vec2 vUv;
 uniform sampler2D uVelocity;
 uniform sampler2D uSource;
 uniform vec2 texelSize;
+uniform vec2 velTexel;
 uniform float dt;
 uniform float dissipation;
 void main() {
-  vec2 coord = vUv - dt * texture2D(uVelocity, vUv).xy * texelSize;
-  gl_FragColor = vec4(dissipation * texture2D(uSource, coord).xy, 0.0, 1.0);
+  vec2 coord = vUv - dt * rd(uVelocity, vUv, VEL) * velTexel;
+  gl_FragColor = wr(dissipation * rdl(uSource, coord, texelSize, VEL), VEL);
 }`;
 
 // el fluido arrastra el mapa de la foto: m(x) = x + o(x) → m'(x) = m(x - v·dt), guardado como offset
@@ -177,12 +241,14 @@ varying vec2 vUv;
 uniform sampler2D uVelocity;
 uniform sampler2D uSource;
 uniform vec2 velTexel;
+uniform vec2 simTexel;
+uniform vec2 texelSize;
 uniform float dt;
 uniform float relax;
 void main() {
-  vec2 coord = vUv - dt * texture2D(uVelocity, vUv).xy * velTexel;
-  vec2 o = coord - vUv + texture2D(uSource, coord).xy;
-  gl_FragColor = vec4(relax * o, 0.0, 1.0);
+  vec2 coord = vUv - dt * rdl(uVelocity, vUv, simTexel, VEL) * velTexel;
+  vec2 o = coord - vUv + rdl(uSource, coord, texelSize, MAP);
+  gl_FragColor = wr(relax * o, MAP);
 }`;
 
 const displayShader = /* glsl */ `
@@ -198,8 +264,8 @@ uniform float uDisplace;
 uniform float uFold;
 uniform vec2 uFoldRange; // umbrales del brillo: solo los pliegues más cerrados
 void main() {
-  vec2 o = texture2D(tOffset, vUv).xy;
-  vec2 m = vUv + o - texture2D(tVelocity, vUv).xy * uDisplace;
+  vec2 o = rdl(tOffset, vUv, uMapTexel, MAP);
+  vec2 m = vUv + o - rd(tVelocity, vUv, VEL) * uDisplace;
 
   // "cover" centrado en cualquier proporción; clamp para que no haya costuras en los bordes
   float rs = uRes.x / uRes.y;
@@ -209,8 +275,8 @@ void main() {
   vec3 col = texture2D(tMap, coverUv).rgb;
 
   // pliegues: donde el mapa se estira o se dobla de golpe, la foto brilla un poco
-  vec2 dx = texture2D(tOffset, vUv + vec2(uMapTexel.x, 0.0)).xy - texture2D(tOffset, vUv - vec2(uMapTexel.x, 0.0)).xy;
-  vec2 dy = texture2D(tOffset, vUv + vec2(0.0, uMapTexel.y)).xy - texture2D(tOffset, vUv - vec2(0.0, uMapTexel.y)).xy;
+  vec2 dx = rd(tOffset, vUv + vec2(uMapTexel.x, 0.0), MAP) - rd(tOffset, vUv - vec2(uMapTexel.x, 0.0), MAP);
+  vec2 dy = rd(tOffset, vUv + vec2(0.0, uMapTexel.y), MAP) - rd(tOffset, vUv - vec2(0.0, uMapTexel.y), MAP);
   float fold = length(dx) / (2.0 * uMapTexel.x) + length(dy) / (2.0 * uMapTexel.y);
   col += smoothstep(uFoldRange.x, uFoldRange.y, fold) * uFold;
   gl_FragColor = vec4(col, 1.0);
@@ -232,11 +298,26 @@ export function initHero({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const lines = hero.querySelectorAll('[data-hero-line]');
   const scroll = hero.querySelector('[data-hero-scroll]');
 
-  // el fluido: con GPU de verdad (js/gpu.js) y con ratón (en táctil la foto se queda quieta: no se monta); en móvil,
-  // nunca en los de gama baja
-  const weak = matchMedia('(max-width: 767px)').matches && lowEnd();
-  const mouse = matchMedia('(hover: hover) and (pointer: fine)').matches;
-  if (!reduced.matches && !weak && mouse && gpuOK()) setupFluid({ hero, img, loop });
+  // el fluido: en cualquier equipo con ratón (también un portátil táctil) y WebGL que no sea por software (js/gpu.js).
+  // Se monta en el primer rato libre, durante la intro; si el ratón se mueve antes, el gesto se guarda y arranca de ahí
+  const mouse = matchMedia('(any-hover: hover) and (any-pointer: fine)').matches;
+  if (reduced.matches) dlog('fluido: no (movimiento reducido)');
+  else if (!mouse) dlog('fluido: no (sin ratón)');
+  else if (!gpuOK()) dlog('fluido: no (sin WebGL o render por software)');
+  else {
+    const early = { last: null, seed: null };
+    const hold = (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const r = hero.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = 1 - (e.clientY - r.top) / r.height;
+      if (early.last) early.seed = [x, y, x - early.last.x, y - early.last.y];
+      early.last = { x, y };
+    };
+    hero.addEventListener('pointermove', hold);
+    const start = () => { hero.removeEventListener('pointermove', hold); mountFluid({ hero, img, loop, early }); };
+    if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 500 }); else setTimeout(start, 100);
+  }
   splitLetters(lines); // una <span> por letra (aria-hidden ya en la línea); el h1 conserva su aria-label
   fitTitle(title, lines);
   if (!reduced.matches) initExposure({ gsap, lenis, loop, hero, title, tail: hero.querySelector('[data-hero-tail]') });
@@ -342,34 +423,62 @@ function fitTitle(title, lines) {
   window.addEventListener('resize', () => { raf?.kill(); raf = gsap.delayedCall(0, fit); });
 }
 
-function setupFluid({ hero, img, loop }) {
-  const renderer = new Renderer({ dpr: Math.min(devicePixelRatio, MAX_DPR), antialias: false, depth: false });
-  const { gl } = renderer;
-
-  // --- HalfFloat con filtrado lineal y renderizable; si no, se queda el <img> ---
-  const isWebgl2 = renderer.isWebgl2;
-  const halfExt = !isWebgl2 && renderer.extensions.OES_texture_half_float;
-  const halfFloat = isWebgl2 ? gl.HALF_FLOAT : halfExt && halfExt.HALF_FLOAT_OES;
-  const linear = isWebgl2 || !!renderer.extensions.OES_texture_half_float_linear;
-  const rtOptions = {
-    type: halfFloat,
-    format: gl.RGBA,
-    internalFormat: isWebgl2 ? gl.RGBA16F : gl.RGBA,
-    minFilter: gl.LINEAR,
-    depth: false,
+// monta el fluido; si falla o se pierde el contexto, otro intento (con espera creciente)
+function mountFluid({ hero, img, loop, early, tries = 0 }) {
+  const retry = () => {
+    if (tries >= RELOST.tries) { dlog('fluido: sin contexto WebGL tras varios intentos: la foto'); return; }
+    setTimeout(() => mountFluid({ hero, img, loop, early: null, tries: tries + 1 }), RELOST.wait * 2 ** tries);
   };
-  const createTarget = (width, height) => new RenderTarget(gl, { width, height, ...rtOptions });
-  const supported = (() => {
-    if (!halfFloat || !linear) return false;
-    const probe = createTarget(4, 4);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, probe.buffer);
+  try { setupFluid({ hero, img, loop, early, retry }); } catch (e) { dlog('fluido: error al montar', e); retry(); }
+}
+
+// formato de las texturas de la simulación: el mejor que se pueda RENDERIZAR de verdad, y nunca "no hay"
+function pickFormat(renderer) {
+  const { gl } = renderer;
+  const v2 = renderer.isWebgl2;
+  const ext = (n) => gl.getExtension(n);
+  const halfExt = !v2 && ext('OES_texture_half_float');
+  const floatExt = !v2 && ext('OES_texture_float');
+  const half = v2 ? gl.HALF_FLOAT : halfExt && halfExt.HALF_FLOAT_OES;
+  if (v2) { ext('EXT_color_buffer_float'); ext('EXT_color_buffer_half_float'); } else { ext('WEBGL_color_buffer_float'); ext('EXT_color_buffer_half_float'); }
+  const halfLin = v2 || !!ext('OES_texture_half_float_linear');
+  const floatLin = !!ext('OES_texture_float_linear');
+  const list = [
+    half && halfLin && { name: 'half-float lineal', type: half, internalFormat: v2 ? gl.RGBA16F : gl.RGBA, linear: true },
+    (v2 || floatExt) && floatLin && { name: 'float lineal', type: gl.FLOAT, internalFormat: v2 ? gl.RGBA32F : gl.RGBA, linear: true },
+    half && { name: 'half-float, bilineal a mano', type: half, internalFormat: v2 ? gl.RGBA16F : gl.RGBA, linear: false },
+  ].filter(Boolean);
+  const works = (f) => {
+    const t = new RenderTarget(gl, { width: 4, height: 4, type: f.type, format: gl.RGBA, internalFormat: f.internalFormat, depth: false });
+    gl.bindFramebuffer(gl.FRAMEBUFFER, t.buffer);
     const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     renderer.bindFramebuffer(); // devuelve a OGL al framebuffer por defecto
-    destroyTarget(gl, probe);
+    destroyTarget(gl, t);
     return ok;
-  })();
-  if (!supported) return;
+  };
+  return list.find(works) || { name: 'RGBA8 empaquetado', type: gl.UNSIGNED_BYTE, internalFormat: gl.RGBA, linear: false, encoded: true };
+}
+
+function setupFluid({ hero, img, loop, early, retry }) {
+  let q = START[gpuLevel()] ?? 0;
+  const renderer = new Renderer({ dpr: Math.min(devicePixelRatio, QUALITY[q].dpr), antialias: false, depth: false });
+  const { gl } = renderer;
+  if (!gl) throw new Error('sin contexto');
+
+  // --- formato (de half-float lineal a RGBA8 empaquetado: siempre hay uno) ---
+  const fmt = pickFormat(renderer);
+  dlog(`fluido: montado · formato: ${fmt.name} · escalón ${q} · WebGL${renderer.isWebgl2 ? 2 : 1}`);
+  const filter = fmt.linear ? gl.LINEAR : gl.NEAREST;
+  const rtOptions = {
+    type: fmt.type,
+    format: gl.RGBA,
+    internalFormat: fmt.internalFormat,
+    minFilter: filter,
+    magFilter: filter,
+    depth: false,
+  };
+  const createTarget = (width, height) => new RenderTarget(gl, { width, height, ...rtOptions });
 
   gl.canvas.className = 'hero__canvas';
   gl.canvas.setAttribute('aria-hidden', 'true');
@@ -381,7 +490,7 @@ function setupFluid({ hero, img, loop }) {
     geometry,
     program: new Program(gl, {
       vertex: baseVertex,
-      fragment,
+      fragment: fluidShader(fragment, fmt),
       uniforms: { texelSize: { value: new Vec2() }, ...uniforms },
       depthTest: false,
       depthWrite: false,
@@ -390,16 +499,16 @@ function setupFluid({ hero, img, loop }) {
   });
   const tex = () => ({ value: null });
   const num = (v = 0) => ({ value: v });
-  const clear = pass(clearShader, {});
+  const clear = pass(clearShader, { range: num(VEL_RANGE) });
   const splat = pass(splatShader, { uTarget: tex(), aspectRatio: num(1), color: { value: [0, 0, 0] }, point: { value: new Vec2() }, radius: num() });
   const curl = pass(curlShader, { uVelocity: tex() });
   const vorticity = pass(vorticityShader, { uVelocity: tex(), uCurl: tex(), curl: num(FLUID.CURL), dt: num() });
   const divergence = pass(divergenceShader, { uVelocity: tex() });
-  const scale = pass(scaleShader, { uTexture: tex(), value: num(FLUID.PRESSURE) });
+  const scale = pass(scaleShader, { uTexture: tex(), srcTexel: { value: new Vec2() }, value: num(FLUID.PRESSURE), range: num(VEL_RANGE) });
   const pressure = pass(pressureShader, { uPressure: tex(), uDivergence: tex() });
   const gradient = pass(gradientShader, { uPressure: tex(), uVelocity: tex() });
-  const advect = pass(advectShader, { uVelocity: tex(), uSource: tex(), dt: num(), dissipation: num(1) });
-  const advectMap = pass(mapShader, { uVelocity: tex(), uSource: tex(), velTexel: { value: new Vec2() }, dt: num(), relax: num(1) });
+  const advect = pass(advectShader, { uVelocity: tex(), uSource: tex(), velTexel: { value: new Vec2() }, dt: num(), dissipation: num(1) });
+  const advectMap = pass(mapShader, { uVelocity: tex(), uSource: tex(), velTexel: { value: new Vec2() }, simTexel: { value: new Vec2() }, dt: num(), relax: num(1) });
 
   const photo = new Texture(gl, { generateMipmaps: false, minFilter: gl.LINEAR });
   const display = pass(displayShader, {
@@ -429,14 +538,26 @@ function setupFluid({ hero, img, loop }) {
     d.swap = () => { [d.read, d.write] = [d.write, d.read]; };
     return d;
   };
+  // copia una textura a otra de distinto tamaño (al cambiar de escalón no se pierde lo que se está moviendo)
+  const copy = (from, to, range) => {
+    const u = scale.program.uniforms;
+    const keep = [u.value.value, u.range.value];
+    u.uTexture.value = from.texture;
+    u.srcTexel.value.set(1 / from.width, 1 / from.height);
+    u.value.value = 1;
+    u.range.value = range;
+    run(scale, to, new Vec2(1 / to.width, 1 / to.height));
+    [u.value.value, u.range.value] = keep;
+  };
   const buildTargets = (aspect) => {
-    const [sw, sh] = size(SIM_RES, aspect);
-    const [mw, mh] = size(MAP_RES, aspect);
-    if (fbo && fbo.sw === sw && fbo.sh === sh) return;
-    if (fbo) [fbo.velocity.read, fbo.velocity.write, fbo.pressure.read, fbo.pressure.write, fbo.map.read, fbo.map.write, fbo.curl, fbo.divergence]
-      .forEach((t) => destroyTarget(gl, t));
+    const [sw, sh] = size(QUALITY[q].sim, aspect);
+    const [mw, mh] = size(QUALITY[q].map, aspect);
+    if (fbo && fbo.sw === sw && fbo.sh === sh && fbo.mw === mw) return;
+    const old = fbo;
+    const [rw, rh] = size(REF_RES, aspect);
     fbo = {
-      sw, sh,
+      sw, sh, mw,
+      refTexel: new Vec2(1 / rw, 1 / rh),
       simTexel: new Vec2(1 / sw, 1 / sh),
       mapTexel: new Vec2(1 / mw, 1 / mh),
       velocity: double(sw, sh),
@@ -446,11 +567,18 @@ function setupFluid({ hero, img, loop }) {
       map: double(mw, mh),
     };
     reset();
+    if (!old) return;
+    copy(old.velocity.read, fbo.velocity.read, VEL_RANGE);
+    copy(old.map.read, fbo.map.read, MAP_RANGE);
+    [old.velocity.read, old.velocity.write, old.pressure.read, old.pressure.write, old.map.read, old.map.write, old.curl, old.divergence]
+      .forEach((t) => destroyTarget(gl, t));
   };
   // velocidad y mapa a cero: la foto, intacta
   const reset = () => {
-    [fbo.velocity.read, fbo.velocity.write, fbo.map.read, fbo.map.write, fbo.pressure.read, fbo.pressure.write]
-      .forEach((t) => run(clear, t));
+    clear.program.uniforms.range.value = VEL_RANGE;
+    [fbo.velocity.read, fbo.velocity.write, fbo.pressure.read, fbo.pressure.write].forEach((t) => run(clear, t));
+    clear.program.uniforms.range.value = MAP_RANGE;
+    [fbo.map.read, fbo.map.write].forEach((t) => run(clear, t));
   };
 
   // --- un paso de la simulación (Pavel Dobryakov, adaptado) ---
@@ -471,11 +599,12 @@ function setupFluid({ hero, img, loop }) {
     run(divergence, fbo.divergence, simTexel);
 
     scale.program.uniforms.uTexture.value = p.read.texture;
+    scale.program.uniforms.srcTexel.value.copy(simTexel);
     run(scale, p.write, simTexel);
     p.swap();
 
     pressure.program.uniforms.uDivergence.value = fbo.divergence.texture;
-    for (let i = 0; i < FLUID.PRESSURE_ITERATIONS; i++) {
+    for (let i = 0; i < QUALITY[q].iter; i++) {
       pressure.program.uniforms.uPressure.value = p.read.texture;
       run(pressure, p.write, simTexel);
       p.swap();
@@ -489,7 +618,8 @@ function setupFluid({ hero, img, loop }) {
     // el mapa de la foto viaja con la velocidad ya sin divergencia
     advectMap.program.uniforms.uVelocity.value = velocity.read.texture;
     advectMap.program.uniforms.uSource.value = fbo.map.read.texture;
-    advectMap.program.uniforms.velTexel.value.copy(simTexel);
+    advectMap.program.uniforms.velTexel.value.copy(fbo.refTexel);
+    advectMap.program.uniforms.simTexel.value.copy(simTexel);
     advectMap.program.uniforms.dt.value = dt;
     advectMap.program.uniforms.relax.value = Math.pow(MAP_RELAX, perFrame);
     run(advectMap, fbo.map.write, fbo.mapTexel);
@@ -497,6 +627,7 @@ function setupFluid({ hero, img, loop }) {
 
     advect.program.uniforms.uVelocity.value = velocity.read.texture;
     advect.program.uniforms.uSource.value = velocity.read.texture;
+    advect.program.uniforms.velTexel.value.copy(fbo.refTexel);
     advect.program.uniforms.dt.value = dt;
     advect.program.uniforms.dissipation.value = Math.pow(FLUID.VELOCITY_DISSIPATION, perFrame);
     run(advect, velocity.write, simTexel);
@@ -534,7 +665,8 @@ function setupFluid({ hero, img, loop }) {
     buildTargets(aspect);
     if (ready) draw();
   };
-  new ResizeObserver(resize).observe(hero);
+  const ro = new ResizeObserver(resize);
+  ro.observe(hero);
   resize();
 
   // la misma foto que ya descarga el <img> (webp o jpg)
@@ -544,18 +676,21 @@ function setupFluid({ hero, img, loop }) {
     ready = true;
     draw();
     hero.classList.add('is-gl');
-  }).catch(() => gl.canvas.remove()); // si la foto no carga, se queda el <img>
+  }).catch(() => { dlog('fluido: la foto no ha cargado'); gl.canvas.remove(); }); // se queda el <img>
 
   let onScreen = true;
-  new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }).observe(hero);
+  const io = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; });
+  io.observe(hero);
 
   // --- ratón (solo ratón: en táctil la foto se queda quieta) ---
   // posición en uv del hero (y hacia arriba); los splats se aplican en el loop, no en el evento
+  // (también antes de que la foto esté lista: el gesto espera en la cola)
   const queue = [];
-  let last = null;
+  let last = early?.last || null;
   let activeUntil = 0;
-  hero.addEventListener('pointermove', (e) => {
-    if (e.pointerType !== 'mouse' || !ready) return;
+  if (early?.seed) { queue.push(early.seed); activeUntil = performance.now() + SETTLE_MS; }
+  const onMove = (e) => {
+    if (e.pointerType !== 'mouse') return;
     const r = hero.getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width;
     const y = 1 - (e.clientY - r.top) / r.height;
@@ -571,15 +706,49 @@ function setupFluid({ hero, img, loop }) {
         const t = i / n;
         queue.push([last.x + (x - last.x) * t, last.y + (y - last.y) * t, dx / n, dy / n]);
       }
+      if (queue.length > 64) queue.splice(0, queue.length - 64);
     }
     last = { x, y };
     activeUntil = performance.now() + SETTLE_MS;
-  });
-  hero.addEventListener('pointerleave', () => { last = null; });
+  };
+  const onLeave = () => { last = null; };
+  hero.addEventListener('pointermove', onMove);
+  hero.addEventListener('pointerleave', onLeave);
 
   let settled = true;
-  const perf = { t: 0, n: 0, done: false };
-  loop.add((time, ratio) => {
+  // calidad adaptativa: cada 2 s de simulación mide; por debajo de 50 fps baja un escalón (sin apagar nada: el último
+  // se queda aunque siga lento); si va sobrado, sube; si tras subir vuelve a ir lento, baja y ese es su techo
+  const perf = { t: 0, n: 0, good: 0, top: 0, rose: false, warm: TUNE.warm };
+  const setQuality = (to, why) => {
+    q = to;
+    perf.warm = TUNE.warm;
+    dlog(`fluido: escalón ${q} (${why}) · simulación ${QUALITY[q].sim}, mapa ${QUALITY[q].map}, ${QUALITY[q].iter} iteraciones`);
+    const dpr = Math.min(devicePixelRatio, QUALITY[q].dpr);
+    if (dpr !== renderer.dpr) { renderer.dpr = dpr; resize(); } else buildTargets(aspect);
+    draw();
+  };
+  const tune = (dt) => {
+    if (perf.warm > 0) { perf.warm--; return; }
+    perf.t += dt;
+    perf.n++;
+    if (perf.t < TUNE.window) return;
+    const fps = perf.n / perf.t;
+    perf.t = 0;
+    perf.n = 0;
+    if (fps < TUNE.min) {
+      perf.good = 0;
+      if (q < QUALITY.length - 1) {
+        if (perf.rose) perf.top = q + 1;
+        setQuality(q + 1, `${fps.toFixed(0)} fps`);
+      }
+      perf.rose = false;
+    } else if (fps >= TUNE.ok && q > perf.top && ++perf.good >= TUNE.upAfter) {
+      perf.good = 0;
+      perf.rose = true;
+      setQuality(q - 1, `${fps.toFixed(0)} fps: va sobrado`);
+    }
+  };
+  const offLoop = loop.add((time, ratio) => {
     // tapado del todo por la sección siguiente (telón, js/scroll-fx.js): no simula ni pinta
     if (!ready || !onScreen || hero.classList.contains('is-covered')) return;
     if (performance.now() > activeUntil) {
@@ -597,13 +766,22 @@ function setupFluid({ hero, img, loop }) {
     while (queue.length) addSplat(...queue.shift());
     step(dt);
     draw();
-    // calidad adaptativa: si en los primeros 2 s de simulación va por debajo de 50 fps, fuera el fluido (la foto)
-    if (perf.done) return;
-    perf.t += ratio / 60;
-    perf.n++;
-    if (perf.t < 2) return;
-    perf.done = true;
-    if (perf.n / perf.t < 50) { ready = false; hero.classList.remove('is-gl'); gl.canvas.remove(); }
+    tune(ratio / 60);
+  });
+
+  // contexto perdido (la gráfica se reinicia, el portátil vuelve de suspensión…): la foto, y otro fluido nuevo
+  gl.canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    dlog('fluido: contexto perdido, se vuelve a montar');
+    ready = false;
+    offLoop();
+    ro.disconnect();
+    io.disconnect();
+    hero.removeEventListener('pointermove', onMove);
+    hero.removeEventListener('pointerleave', onLeave);
+    hero.classList.remove('is-gl');
+    gl.canvas.remove();
+    retry();
   });
 }
 

@@ -1,18 +1,22 @@
-// ¿Merece la pena el 3D? Lo usan todos los WebGL de la web (el destello, los fluidos de los heroes, el degradado de
-// "Dale al REC.", el estudio).
-//   gpuOK(): WebGL con failIfMajorPerformanceCaveat. Sin aceleración por hardware (render por software, como
-//     SwiftShader) el contexto no se crea: cada fotograma costaría decenas de ms de CPU y la página iría a tirones.
-//     Entonces no se monta nada 3D y la web enseña sus versiones sin WebGL (fotos, la estrella 2D, el logo del
-//     footer). Para probar el 3D en un navegador sin GPU: localStorage.disco_gl = 'force'; para probar la web sin
-//     él: localStorage.disco_gl = 'off'.
-//   webglOK(): criterio suave para lo ligero (la aurora de nosotros): basta con WebGL que no sea render por software
-//     puro (SwiftShader, llvmpipe, "Basic Render Driver"…). Cualquier gráfica integrada vale.
-//   Con ?debug en la URL, la consola dice el renderer de WebGL, gpuOK(), webglOK() y el motivo.
-//   lowEnd(): móvil de gama baja (deviceMemory ≤ 4 o hardwareConcurrency ≤ 4): sin el fluido del hero de la home.
+// Niveles de calidad de todos los WebGL de la web (el destello, los fluidos, la aurora, el degradado de "Dale al REC.",
+// el estudio). REGLA: optimizar nunca apaga un efecto aprobado; si va lento, baja su calidad.
+//   gpuLevel(): 'high' | 'mid' | 'low' | 'none'. 'none' SOLO si no hay WebGL o el render es por software puro
+//     (SwiftShader, llvmpipe, "Basic Render Driver"…: cada fotograma costaría decenas de ms de CPU). El resto decide
+//     la calidad, nunca si se ve: gráfica integrada → 'mid'; failIfMajorPerformanceCaveat (Chrome avisa de que irá
+//     justa) o equipo de gama baja (lowEnd) → 'low'; lo demás → 'high'.
+//   gpuOK() y webglOK(): nivel distinto de 'none' (¿hay efecto? sí o no).
+//   levelDpr(max): el DPR máximo de un canvas según el nivel (high: max; mid: hasta 1.5; low: 1).
+//   Para probar: localStorage.disco_gl = 'force' (todo en 'high', aunque sea por software), 'low' (todo se ve, con
+//     calidad baja, aunque sea por software), 'off' (sin WebGL: las versiones de reserva).
+//   Con ?debug en la URL, la consola dice el renderer, el nivel y el motivo (dlog: para los demás módulos).
+//   lowEnd(): móvil u ordenador de gama baja (deviceMemory ≤ 4 o hardwareConcurrency ≤ 4).
 //   afterLoad(): después del load de la página, a la primera interacción (ratón, dedo, rueda, tecla, scroll) o a los
 //     2 s sin tocar nada: el 3D no compite con el primer pintado, el LCP ni la primera respuesta.
 const SOFTWARE = /swiftshader|llvmpipe|softpipe|basic render|microsoft basic|software/i;
+const INTEGRATED = /intel|uhd|iris|radeon\(tm\) graphics|radeon graphics|vega \d|mali|adreno|powervr/i;
 const debug = /[?&]debug(?:[=&]|$)/.test(location.search);
+export const dlog = (...a) => { if (debug) console.info('[disco]', ...a); };
+export const isDebug = () => debug;
 const pref = () => { try { return localStorage.getItem('disco_gl'); } catch { return null; } };
 // un contexto de prueba (con o sin failIfMajorPerformanceCaveat): ¿se crea? ¿qué renderer?
 const probe = (strict) => {
@@ -29,30 +33,33 @@ const probe = (strict) => {
     return { gl: false, renderer: '' };
   }
 };
-const log = (what, ok, why, renderer) => { if (debug) console.info(`[disco] ${what}: ${ok} (${why}) · renderer: ${renderer || '—'}`); };
 
-let ok;
-export function gpuOK() {
-  if (ok !== undefined) return ok;
+let level;
+const decide = () => {
   const p = pref();
-  if (p === 'force') { log('gpuOK', (ok = true), 'forzado: disco_gl=force', ''); return ok; }
-  if (p === 'off') { log('gpuOK', (ok = false), 'apagado: disco_gl=off', ''); return ok; }
-  // failIfMajorPerformanceCaveat no siempre salta con el render por software: también se mira el renderer
-  const t = probe(true);
-  const software = t.gl && SOFTWARE.test(t.renderer);
-  ok = t.gl && !software;
-  log('gpuOK', ok, ok ? 'aceleración por hardware' : software ? 'render por software' : 'sin WebGL o rendimiento muy bajo (failIfMajorPerformanceCaveat)', t.renderer || probe(false).renderer);
-  return ok;
-}
-
-let soft;
-export function webglOK() {
-  if (soft !== undefined) return soft;
-  if (pref() === 'force') { log('webglOK', (soft = true), 'forzado: disco_gl=force', ''); return soft; }
+  if (p === 'force') return ['high', 'forzado: disco_gl=force', ''];
+  if (p === 'low') return ['low', 'forzado: disco_gl=low', ''];
+  if (p === 'off') return ['none', 'apagado: disco_gl=off', ''];
   const t = probe(false);
-  soft = t.gl && !SOFTWARE.test(t.renderer);
-  log('webglOK', soft, !t.gl ? 'sin WebGL' : soft ? 'WebGL por hardware' : 'render por software', t.renderer);
-  return soft;
+  if (!t.gl) return ['none', 'sin WebGL', ''];
+  if (SOFTWARE.test(t.renderer)) return ['none', 'render por software', t.renderer];
+  if (!probe(true).gl) return ['low', 'Chrome avisa de rendimiento justo (failIfMajorPerformanceCaveat)', t.renderer];
+  if (lowEnd()) return ['low', 'equipo de gama baja', t.renderer];
+  if (INTEGRATED.test(t.renderer)) return ['mid', 'gráfica integrada', t.renderer];
+  return ['high', 'gráfica dedicada', t.renderer];
+};
+export function gpuLevel() {
+  if (level) return level;
+  const [l, why, renderer] = decide();
+  level = l;
+  dlog(`nivel de GPU: ${l} (${why}) · renderer: ${renderer || '—'}`);
+  return level;
+}
+export const gpuOK = () => gpuLevel() !== 'none';
+export const webglOK = gpuOK;
+export function levelDpr(max) {
+  const l = gpuLevel();
+  return l === 'low' ? Math.min(max, 1) : l === 'mid' ? Math.min(max, 1.5) : max;
 }
 
 export function lowEnd() {

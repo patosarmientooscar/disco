@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { gpuOK } from './gpu.js';
+import { gpuOK, levelDpr } from './gpu.js';
 
 // Núcleo del destello 3D de plata, común a la home (js/star.js) y a las páginas interiores (js/hero-star.js,
 // js/page-star.js): el modelo con sus materiales, el estudio de softboxes de los reflejos, el fundido de dos
@@ -109,7 +109,7 @@ export function sharedGL() {
     camera.position.set(0, 0, w >= h ? CAMERA_Z : Math.max(CAMERA_Z, (5.2 * h) / w));
     camera.updateProjectionMatrix();
     view.mobile = mobile();
-    renderer.setPixelRatio(quality.dpr ? Math.min(devicePixelRatio, view.mobile ? GL_DPR.mob : GL_DPR.desk) : 1);
+    renderer.setPixelRatio(quality.dpr ? Math.min(devicePixelRatio, levelDpr(view.mobile ? GL_DPR.mob : GL_DPR.desk)) : 1);
     renderer.setSize(w, h);
     view.halfH = camera.position.z * Math.tan(THREE.MathUtils.degToRad(FOV / 2));
     view.halfW = view.halfH * camera.aspect;

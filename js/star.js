@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { finStop } from './fin.js';
 import { MODEL_HEIGHT, ENV_INTENSITY, FOV, CAMERA_Z, loadModel, studio, mixEnv, drift, compileScene } from './star-core.js';
-import { gpuOK } from './gpu.js';
+import { gpuOK, levelDpr } from './gpu.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
@@ -82,7 +82,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   } catch {
     return null; // sin WebGL: no se muestra nada
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio, MAX_DPR));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, levelDpr(MAX_DPR)));
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;

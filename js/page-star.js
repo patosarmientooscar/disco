@@ -66,7 +66,6 @@ const ORANGE = { base: 0.14, lit: 0.42, peak: 0.85, decay: 0.9 }; // el plano na
 const MATE = { s: 0.24, lerp: 0.1, gap: 12, fade: 0.4 };        // "Para quién": el compañero del cursor
 const SEAL = { turns: 2, dur: 0.9, ring: 0.6 };
 const CLOSE_DIM = 0.62;            // brillo de los reflejos sobre el naranja del cierre (que no se queme)
-const LOW_FPS = 50;                // móvil por debajo: el recorrido intermedio se simplifica
 const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26]];
 const RETURN_K = 5;
 const RETURN_LERP = 0.08;
@@ -222,7 +221,6 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
 
   // ---------- puntos de paso ----------
   let stops = [];
-  let simple = false;
   let tour = null;   // { cards, ats }
   let mate = null;   // { start, end }
   let maniGeo = null; // { top, h, right }
@@ -273,11 +271,6 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     // A: tras el salto, de frente a la derecha de "En cada producción."
     const aAt = docTop(gate) + gate.offsetHeight - JUMP.at * H;
     out.push({ ...beside(title, aAt, 0.32), at: Math.max(1, aAt), jump: true });
-    if (simple) {
-      // móvil justo: solo la reaparición y el footer (sube, desaparece y vuelve en el footer)
-      out.push({ ...out[0], y: 1.8, at: aAt + 0.9 * H, off: true }, { x: 0, y: -1.8, s: end.s, at: Math.max(aAt + H, end.at - H), off: true }, end);
-      return out;
-    }
     // B: el bento, tarjeta a tarjeta (cada parada, con su tarjeta en el centro de la pantalla si se puede)
     if (bento) {
       const cards = (view.mobile ? TOUR.mob : TOUR.desk).map((k) => bento.querySelector(`[data-card="${k}"]`)).filter(Boolean);
@@ -565,7 +558,6 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const BACK = back.intensity;
   const dimLights = () => { const f = envK.k / ENV_INTENSITY; key.intensity = KEY * f; back.intensity = BACK * f; applyEnv(); };
   const fin = { held: false, pose: null, key: '', returning: false, rewrap: false };
-  const perf = { acc: 0, n: 0, checked: false };
   const lift = (on) => { if (on !== lifted) { lifted = on; canvas.style.zIndex = on ? '3' : ''; } };
 
   // ---------- el ratón (inclinación) y el ARRASTRE en las paradas (el canvas no recibe el ratón: se comprueba que
@@ -967,15 +959,6 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     seen();
     ringAt();
 
-    // móvil: si no llega a 50 fps (2 s midiendo), el recorrido intermedio se simplifica
-    if (view.mobile && !perf.checked && gate) {
-      perf.acc += dt;
-      perf.n++;
-      if (perf.acc >= 2) {
-        perf.checked = true;
-        if (perf.n / perf.acc < LOW_FPS) { simple = true; light(-1); build(); }
-      }
-    }
   });
 
   if (about) {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createStudioUI } from './studio-ui.js';
 import { CROSS, cross as crossState } from './studio-cross.js';
+import { dlog, isDebug } from './gpu.js';
 
 // Estudio de fotografía 360°: un panorama equirectangular en una esfera alrededor de la cámara, dibujado
 // como fondo en el MISMO canvas y renderer que el destello 3D (star.setBackdrop), dentro del loop único.
@@ -17,7 +18,6 @@ const SMOOTH = 0.05;              // suavizado extra del giro (por frame a 60 fp
 const PITCH = THREE.MathUtils.degToRad(3);
 const FOV = 55;
 const FOV_PORTRAIT = 70;
-const FADE = 0.08;                // fundido de la esfera: primer y último 8% del progreso
 // entrada: la sección se solapa con la última pantalla de "Dale al REC." (css/studio.css); cuando empieza el pin
 // (el naranja ya está completo) el estudio entra en un corte rápido por tiempo (0.45 s: opacidad, desenfoque 12 px
 // → 0 y escala 1.04 → 1; js/studio-cross.js) y el degradado naranja (js/rec.js) se apaga a la vez
@@ -77,7 +77,8 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   const geo = new THREE.SphereGeometry(50, 96, 48);
   geo.scale(-1, 1, 1);
   geo.rotateY(Math.PI);
-  const mat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+  // (el panorama no se funde con el scroll: al final del pin se va con la sección, sin velo; ver draw)
+  const mat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, toneMapped: false });
   // fundido de la entrada (opacidad y desenfoque por sesgo de mipmap: barato y sin pasadas extra)
   const cross = { value: 1 };
   const blur = { value: 0 };
@@ -220,7 +221,8 @@ void main() {`);
   let slow = 0;
   let lowered = false;
 
-  let top = 0; // top de la sección en pantalla (px)
+  let top = 0;    // top de la sección en pantalla (px)
+  let bottom = 0; // bottom: al acabar el pin la sección sube y el panorama se recorta con ella
   // el corte: entra (por tiempo) en cuanto está encendido y el panorama listo; al volver a subir, sale
   let crossTo = 0;
   let crossTw = null;
@@ -240,7 +242,10 @@ void main() {`);
       const prev = p;
       p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
       if (Math.abs(state.p - p) < 1e-5) p = state.p;
-      top = section.getBoundingClientRect().top;
+      const sr = section.getBoundingClientRect();
+      const prevB = bottom;
+      top = sr.top;
+      bottom = sr.bottom;
       cut(section.classList.contains('is-lit') && resident && panoTex ? 1 : 0);
       const e = crossState.v;
       const prevC = cross.value;
@@ -249,10 +254,9 @@ void main() {`);
       const zoom = CROSS.zoom - (CROSS.zoom - 1) * e;
       if (zoom !== panoCam.zoom) { panoCam.zoom = zoom; panoCam.updateProjectionMatrix(); }
       // reflejos del destello: los del estudio a medida que aparece; dentro del pin, del todo
-      if (envTex) star.setEnvMix(envTex, e, ENV_INTENSITY);
-      const lit = section.classList.contains('is-lit') && top < innerHeight;
-      const fade = (lit && p < FADE ? 1 : THREE.MathUtils.smoothstep(p, 0, FADE)) * (1 - THREE.MathUtils.smoothstep(p, 1 - FADE, 1));
-      const show = fade > 0.001 && resident && !!panoTex;
+      if (envTex) star.setEnvMix(envTex, active ? e : 0, ENV_INTENSITY);
+      const lit = section.classList.contains('is-lit') && top < innerHeight && bottom > 0;
+      const show = lit && resident && !!panoTex;
       // giro del estudio y dónde caen los puestos en pantalla (también sin textura: el AF va igual)
       const yaw = THREE.MathUtils.degToRad(yawAt(p, portrait ? ASIDE_MOBILE : ASIDE));
       sphere.rotation.y = yaw;
@@ -265,17 +269,45 @@ void main() {`);
         if (v.z > 1) return null; // detrás de la cámara
         return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight };
       }));
-      const changed = p !== prev || sphere.visible !== show || cross.value !== prevC;
+      const changed = p !== prev || sphere.visible !== show || cross.value !== prevC || (bottom !== prevB && bottom < innerHeight);
       sphere.visible = show;
-      if (!show) return changed;
-      mat.opacity = fade;
+      if (isDebug()) layers(p);
       return changed;
     },
     draw(r) {
       if (!sphere.visible || cross.value === 0) return;
+      // la sección ya se va hacia arriba: el panorama, solo en lo que queda de ella (debajo, la sección siguiente)
+      const clip = bottom < innerHeight;
+      if (clip) {
+        r.setScissorTest(true);
+        r.setScissor(0, innerHeight - bottom, innerWidth, bottom);
+      }
       r.render(panoScene, panoCam);
+      if (clip) r.setScissorTest(false);
     },
   });
+}
+
+// ?debug: al pasar por el 10, 50 y 90 % del pin, lista lo que hay encima del panorama: más del 40 % de la pantalla
+// con opacidad entre 0.02 y 0.98, o cualquier backdrop-filter (js/gpu.js → dlog)
+const seen = new Set();
+function layers(p) {
+  const at = [0.1, 0.5, 0.9].find((m) => p >= m && !seen.has(m));
+  if (at === undefined) return;
+  seen.add(at);
+  const found = [];
+  document.querySelectorAll('body *').forEach((e) => {
+    const s = getComputedStyle(e);
+    if (s.display === 'none' || s.visibility === 'hidden') return;
+    const r = e.getBoundingClientRect();
+    const w = Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0));
+    const h = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
+    const area = (w * h) / (innerWidth * innerHeight);
+    const name = `${e.tagName.toLowerCase()}.${String(e.className.baseVal ?? e.className).split(' ')[0]}`;
+    if (w * h && s.backdropFilter && s.backdropFilter !== 'none') found.push(`${name} (backdrop, ${(area * 100).toFixed(1)} %)`);
+    if (area > 0.4 && +s.opacity > 0.02 && +s.opacity < 0.98) found.push(`${name} (opacidad ${s.opacity})`);
+  });
+  dlog(`capas sobre el estudio al ${at * 100} %: ${found.join(' · ') || 'ninguna'}`);
 }
 
 // Recorrido de la cámara por el estudio (yaw en grados según p): set → Luna → cámara de cine → monitores

@@ -1,5 +1,5 @@
 import { cross } from './studio-cross.js';
-import { gpuOK } from './gpu.js';
+import { gpuOK, gpuLevel } from './gpu.js';
 
 // "Dale al REC." → estudio (home, css/rec.css). La frase se queda fija en el centro durante el tramo (130vh; 100vh
 // en móvil) y el piloto REC se convierte en la luz que descubre el estudio:
@@ -169,6 +169,7 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   let gl = null;      // { renderer, program, mesh, canvas }
   let making = false;
   let alive = false;
+  let near = false;   // el tramo está al alcance
 
   const create = async () => {
     alive = true;
@@ -178,7 +179,7 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     try { O = await import(OGL); } catch { making = false; return; }
     making = false;
     if (!alive || gl) return;
-    const renderer = new O.Renderer({ dpr: Math.min(devicePixelRatio, 1), alpha: false, antialias: false, depth: false });
+    const renderer = new O.Renderer({ dpr: Math.min(devicePixelRatio, gpuLevel() === 'low' ? 0.75 : 1), alpha: false, antialias: false, depth: false });
     const canvas = renderer.gl.canvas;
     canvas.className = 'rec-gl';
     canvas.setAttribute('aria-hidden', 'true');
@@ -219,7 +220,7 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     start: 'top 150%',
     endTrigger: studio || rec,
     end: studio ? 'top -40%' : 'bottom top',
-    onToggle: (self) => (self.isActive ? create() : destroy()),
+    onToggle: (self) => { near = self.isActive; if (near) create(); else destroy(); },
   });
 
   let lastKey = '';
@@ -230,6 +231,9 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     // la frase reacciona aunque no haya plano (al volver a subir rápido, por ejemplo)
     const key = state.p.toFixed(4);
     if (key !== lastKey) { lastKey = key; react.progress(state.p); }
+    // hecho el corte al estudio, el plano deja de existir (nada debajo a medias); al volver arriba, se rehace
+    if (cross.v >= 1) { if (gl) destroy(); return; }
+    if (near && !gl) create();
     if (!gl) return;
 
     state.mx += (state.tmx - state.mx) * (1 - Math.exp(-MOUSE_EASE * dt));
@@ -254,9 +258,8 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     u.uBoost.value = state.boost;
     u.uCA.value = mobile.matches ? 0 : 1;
     // con el corte al estudio (js/studio.js), el degradado se apaga a la vez
-    const o = (1 - cross.v).toFixed(3);
+    const o = (cross.v < 0.01 ? 1 : 1 - cross.v).toFixed(3);
     if (gl.canvas.style.opacity !== o) gl.canvas.style.opacity = o;
-    if (o === '0.000') return;
     renderer.render({ scene: gl.mesh });
   });
 }
