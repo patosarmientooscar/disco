@@ -14,6 +14,8 @@ const ENTER = { flash: 0.56, tag: 0.15, head: 0.3, duration: 1.1, stagger: 0.08,
 const READY_MS = 3000;                           // el vídeo arranca con canplaythrough o a los 3 s (lo primero)
 const HINT = 3000;                               // ms sin tocar el destello: aparece "Arrastra el destello"
 const NARROW = '(max-width: 899px)';
+// pantalla en vertical (la versión vertical del vídeo del hero, si la hay)
+export const portraitView = () => matchMedia('(orientation: portrait)').matches || innerHeight / innerWidth > 1.1;
 
 export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrived }) {
   const root = document.querySelector('[data-page-hero]');
@@ -89,18 +91,35 @@ export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrive
   // ---------- vídeo (con movimiento reducido, solo el póster). El póster se ve al instante; el vídeo pide solo los
   // metadatos y, ya cargada la página, se pone a cargar; arranca cuando puede reproducir sin cortes
   // (canplaythrough o 3 s) con un fundido de 0.4 s desde el póster (css). La fuente, por ancho y por conexión ----------
+  // (con versión vertical, portfolio: en pantallas en vertical, la vertical; en horizontal, la grande siempre y la
+  // pequeña solo con ahorro de datos o conexión lenta, no por ancho. Al girar, cambia sin recargar, desde el mismo
+  // punto. root.dataset.heroVersion = land | portrait, y el evento "disco:hero-version" en el hero)
+  const conn = navigator.connection || {};
+  const slow = conn.saveData || /2g|3g/.test(conn.effectiveType || '');
+  const pick = () => {
+    if (cfg.videoPortrait && portraitView()) return { v: 'portrait', src: cfg.videoPortrait, poster: cfg.posterPortrait || cfg.poster, pos: cfg.posPortrait || cfg.pos };
+    const small = cfg.videoPortrait ? slow : matchMedia(NARROW).matches || slow;
+    return { v: 'land', src: small ? cfg.videoSm || cfg.video : cfg.video, poster: cfg.poster, pos: cfg.pos };
+  };
+  let version = pick();
+  root.dataset.heroVersion = version.v;
+  if (version.pos) root.style.setProperty('--ph-pos', version.pos);
   let video = null;
   let canPlay = false;
   if (!still && cfg.video) {
-    const conn = navigator.connection || {};
-    const small = matchMedia(NARROW).matches || conn.saveData || /2g|3g/.test(conn.effectiveType || '');
+    const small = matchMedia(NARROW).matches || slow;
     video = document.createElement('video');
-    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: 'metadata' });
+    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: cfg.videoPortrait && !slow ? 'auto' : 'metadata' });
     video.setAttribute('muted', '');
     video.setAttribute('playsinline', '');
     video.setAttribute('aria-hidden', 'true');
-    if (cfg.poster) video.poster = cfg.poster;
-    video.src = small ? cfg.videoSm || cfg.video : cfg.video;
+    if (cfg.videoPortrait) {
+      video.poster = version.poster;
+      video.src = version.src;
+    } else {
+      if (cfg.poster) video.poster = cfg.poster;
+      video.src = small ? cfg.videoSm || cfg.video : cfg.video;
+    }
     const start = cfg.start || 0;
     if (start) video.addEventListener('loadedmetadata', () => { video.currentTime = start % (video.duration || 5); }, { once: true });
     video.addEventListener('playing', () => video.classList.add('is-on'), { once: true });
@@ -110,10 +129,27 @@ export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrive
     // a cargar de verdad después del load, a la primera interacción o a los 2 s (js/gpu.js): no compite con la carga
     const buffer = () => {
       if (!video.isConnected) return;
-      video.preload = 'auto';
+      if (!(cfg.videoPortrait && slow)) video.preload = 'auto';
       setTimeout(go, READY_MS);
     };
     afterLoad().then(buffer);
+  }
+  if (cfg.videoPortrait) {
+    window.addEventListener('resize', () => {
+      const next = pick();
+      if (next.v === version.v) return;
+      version = next;
+      root.dataset.heroVersion = next.v;
+      if (next.pos) root.style.setProperty('--ph-pos', next.pos);
+      if (video) {
+        const t = video.currentTime;
+        video.poster = next.poster;
+        video.src = next.src;
+        video.addEventListener('loadedmetadata', () => { video.currentTime = t % (video.duration || 1); }, { once: true });
+        play();
+      }
+      root.dispatchEvent(new CustomEvent('disco:hero-version', { detail: next.v }));
+    });
   }
   // en bucle mientras el hero se ve (y nadie lo ha parado); fuera de pantalla o con la pestaña oculta, en pausa
   const play = () => {

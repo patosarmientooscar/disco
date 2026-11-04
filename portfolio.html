@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
-  <script src="js/file-guard.js?v=c16191e-22846a" defer></script>
+  <script src="js/file-guard.js?v=b3d4569-a3bb35" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Portfolio — disco.</title>
   <meta name="description" content="Foto y vídeo para restaurantes, bares, discotecas y marcas en Madrid.">
@@ -46,18 +46,19 @@
     @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
   </style>
 
-  <link rel="preload" as="image" href="assets/portfolio/hero/bola-poster.webp" fetchpriority="high">
-  <link rel="stylesheet" href="css/tokens.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/base.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/placeholder.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/interior.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/portfolio.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/manifesto.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/page-hero.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/nav.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/fin.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/transition.css?v=c16191e-22846a">
-  <link rel="stylesheet" href="css/malla.css?v=c16191e-22846a">
+  <link rel="preload" as="image" href="assets/portfolio/hero/bola-v2-poster-1920.webp" media="(orientation: landscape)" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/portfolio/hero/bola-v2-vertical-poster.webp" media="(orientation: portrait)" fetchpriority="high">
+  <link rel="stylesheet" href="css/tokens.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/base.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/placeholder.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/interior.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/portfolio.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/manifesto.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/page-hero.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/nav.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/fin.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/transition.css?v=b3d4569-a3bb35">
+  <link rel="stylesheet" href="css/malla.css?v=b3d4569-a3bb35">
   <script>
     document.documentElement.classList.add('js');
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
@@ -69,70 +70,70 @@
     { "imports": {
       "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
       "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/",
-      "./js/about.js": "./js/about.js?v=c16191e-22846a",
-      "./js/aurora.js": "./js/aurora.js?v=c16191e-22846a",
-      "./js/bento.js": "./js/bento.js?v=c16191e-22846a",
-      "./js/config.js": "./js/config.js?v=c16191e-22846a",
-      "./js/contact.js": "./js/contact.js?v=c16191e-22846a",
-      "./js/core.js": "./js/core.js?v=c16191e-22846a",
-      "./js/file-guard.js": "./js/file-guard.js?v=c16191e-22846a",
-      "./js/fin-physics.js": "./js/fin-physics.js?v=c16191e-22846a",
-      "./js/fin.js": "./js/fin.js?v=c16191e-22846a",
-      "./js/gpu.js": "./js/gpu.js?v=c16191e-22846a",
-      "./js/hero-exposure.js": "./js/hero-exposure.js?v=c16191e-22846a",
-      "./js/hero-star.js": "./js/hero-star.js?v=c16191e-22846a",
-      "./js/hero.js": "./js/hero.js?v=c16191e-22846a",
-      "./js/home-close.js": "./js/home-close.js?v=c16191e-22846a",
-      "./js/interior.js": "./js/interior.js?v=c16191e-22846a",
-      "./js/intro-loader.js": "./js/intro-loader.js?v=c16191e-22846a",
-      "./js/intro-shot.js": "./js/intro-shot.js?v=c16191e-22846a",
-      "./js/main.js": "./js/main.js?v=c16191e-22846a",
-      "./js/malla.js": "./js/malla.js?v=c16191e-22846a",
-      "./js/manifesto.js": "./js/manifesto.js?v=c16191e-22846a",
-      "./js/nav.js": "./js/nav.js?v=c16191e-22846a",
-      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=c16191e-22846a",
-      "./js/oficios.js": "./js/oficios.js?v=c16191e-22846a",
-      "./js/page-hero.js": "./js/page-hero.js?v=c16191e-22846a",
-      "./js/page-star.js": "./js/page-star.js?v=c16191e-22846a",
-      "./js/page.js": "./js/page.js?v=c16191e-22846a",
-      "./js/placeholder.js": "./js/placeholder.js?v=c16191e-22846a",
-      "./js/portfolio-data.js": "./js/portfolio-data.js?v=c16191e-22846a",
-      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=c16191e-22846a",
-      "./js/portfolio.js": "./js/portfolio.js?v=c16191e-22846a",
-      "./js/proyecto.js": "./js/proyecto.js?v=c16191e-22846a",
-      "./js/rec.js": "./js/rec.js?v=c16191e-22846a",
-      "./js/scroll-fx.js": "./js/scroll-fx.js?v=c16191e-22846a",
-      "./js/servicios-data.js": "./js/servicios-data.js?v=c16191e-22846a",
-      "./js/servicios.js": "./js/servicios.js?v=c16191e-22846a",
-      "./js/star-core.js": "./js/star-core.js?v=c16191e-22846a",
-      "./js/star.js": "./js/star.js?v=c16191e-22846a",
-      "./js/studio-cross.js": "./js/studio-cross.js?v=c16191e-22846a",
-      "./js/studio-ui.js": "./js/studio-ui.js?v=c16191e-22846a",
-      "./js/studio.js": "./js/studio.js?v=c16191e-22846a",
-      "./js/team.js": "./js/team.js?v=c16191e-22846a",
-      "./js/transition.js": "./js/transition.js?v=c16191e-22846a",
-      "./js/wa-float.js": "./js/wa-float.js?v=c16191e-22846a",
-      "./js/water.js": "./js/water.js?v=c16191e-22846a",
-      "./js/why.js": "./js/why.js?v=c16191e-22846a"
+      "./js/about.js": "./js/about.js?v=b3d4569-a3bb35",
+      "./js/aurora.js": "./js/aurora.js?v=b3d4569-a3bb35",
+      "./js/bento.js": "./js/bento.js?v=b3d4569-a3bb35",
+      "./js/config.js": "./js/config.js?v=b3d4569-a3bb35",
+      "./js/contact.js": "./js/contact.js?v=b3d4569-a3bb35",
+      "./js/core.js": "./js/core.js?v=b3d4569-a3bb35",
+      "./js/file-guard.js": "./js/file-guard.js?v=b3d4569-a3bb35",
+      "./js/fin-physics.js": "./js/fin-physics.js?v=b3d4569-a3bb35",
+      "./js/fin.js": "./js/fin.js?v=b3d4569-a3bb35",
+      "./js/gpu.js": "./js/gpu.js?v=b3d4569-a3bb35",
+      "./js/hero-exposure.js": "./js/hero-exposure.js?v=b3d4569-a3bb35",
+      "./js/hero-star.js": "./js/hero-star.js?v=b3d4569-a3bb35",
+      "./js/hero.js": "./js/hero.js?v=b3d4569-a3bb35",
+      "./js/home-close.js": "./js/home-close.js?v=b3d4569-a3bb35",
+      "./js/interior.js": "./js/interior.js?v=b3d4569-a3bb35",
+      "./js/intro-loader.js": "./js/intro-loader.js?v=b3d4569-a3bb35",
+      "./js/intro-shot.js": "./js/intro-shot.js?v=b3d4569-a3bb35",
+      "./js/main.js": "./js/main.js?v=b3d4569-a3bb35",
+      "./js/malla.js": "./js/malla.js?v=b3d4569-a3bb35",
+      "./js/manifesto.js": "./js/manifesto.js?v=b3d4569-a3bb35",
+      "./js/nav.js": "./js/nav.js?v=b3d4569-a3bb35",
+      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=b3d4569-a3bb35",
+      "./js/oficios.js": "./js/oficios.js?v=b3d4569-a3bb35",
+      "./js/page-hero.js": "./js/page-hero.js?v=b3d4569-a3bb35",
+      "./js/page-star.js": "./js/page-star.js?v=b3d4569-a3bb35",
+      "./js/page.js": "./js/page.js?v=b3d4569-a3bb35",
+      "./js/placeholder.js": "./js/placeholder.js?v=b3d4569-a3bb35",
+      "./js/portfolio-data.js": "./js/portfolio-data.js?v=b3d4569-a3bb35",
+      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=b3d4569-a3bb35",
+      "./js/portfolio.js": "./js/portfolio.js?v=b3d4569-a3bb35",
+      "./js/proyecto.js": "./js/proyecto.js?v=b3d4569-a3bb35",
+      "./js/rec.js": "./js/rec.js?v=b3d4569-a3bb35",
+      "./js/scroll-fx.js": "./js/scroll-fx.js?v=b3d4569-a3bb35",
+      "./js/servicios-data.js": "./js/servicios-data.js?v=b3d4569-a3bb35",
+      "./js/servicios.js": "./js/servicios.js?v=b3d4569-a3bb35",
+      "./js/star-core.js": "./js/star-core.js?v=b3d4569-a3bb35",
+      "./js/star.js": "./js/star.js?v=b3d4569-a3bb35",
+      "./js/studio-cross.js": "./js/studio-cross.js?v=b3d4569-a3bb35",
+      "./js/studio-ui.js": "./js/studio-ui.js?v=b3d4569-a3bb35",
+      "./js/studio.js": "./js/studio.js?v=b3d4569-a3bb35",
+      "./js/team.js": "./js/team.js?v=b3d4569-a3bb35",
+      "./js/transition.js": "./js/transition.js?v=b3d4569-a3bb35",
+      "./js/wa-float.js": "./js/wa-float.js?v=b3d4569-a3bb35",
+      "./js/water.js": "./js/water.js?v=b3d4569-a3bb35",
+      "./js/why.js": "./js/why.js?v=b3d4569-a3bb35"
     } }
   </script>
-  <link rel="modulepreload" href="js/page.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/core.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/transition.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/water.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/wa-float.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/config.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/nav.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/fin.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/fin-physics.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/gpu.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/interior.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/placeholder.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/page-hero.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/portfolio.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/portfolio-data.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/manifesto.js?v=c16191e-22846a">
-  <link rel="modulepreload" href="js/portfolio-hero.js?v=c16191e-22846a">
+  <link rel="modulepreload" href="js/page.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/core.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/transition.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/water.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/wa-float.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/config.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/nav.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/fin.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/fin-physics.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/gpu.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/interior.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/placeholder.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/page-hero.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/portfolio.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/portfolio-data.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/manifesto.js?v=b3d4569-a3bb35">
+  <link rel="modulepreload" href="js/portfolio-hero.js?v=b3d4569-a3bb35">
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm">
 </head>
 <body data-page="portfolio">
@@ -170,7 +171,7 @@
          (js/portfolio-hero.js, css/portfolio.css) -->
     <section class="pgh" data-page-hero="portfolio" aria-labelledby="ph-title">
       <div class="pgh__stage">
-        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><img src="assets/portfolio/hero/bola-poster.webp" width="1920" height="1074" alt="" fetchpriority="high" decoding="async"></div></div>
+        <div class="pgh__media" aria-hidden="true"><div class="pgh__look"><picture><source media="(orientation: portrait)" srcset="assets/portfolio/hero/bola-v2-vertical-poster.webp" width="1080" height="1920"><img src="assets/portfolio/hero/bola-v2-poster-1920.webp" width="1920" height="1080" alt="" fetchpriority="high" decoding="async"></picture></div></div>
         <i class="pgh__grade" aria-hidden="true"></i>
         <i class="pgh__dark" data-ball-dark aria-hidden="true"></i>
         <div class="pgh__foot">
@@ -258,7 +259,7 @@
   <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
   <script src="assets/vendor/Flip-3.12.5.min.js" defer></script>
   <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
-  <script type="module" src="js/page.js?v=c16191e-22846a"></script>
-  <script type="module" src="js/malla.js?v=c16191e-22846a"></script>
+  <script type="module" src="js/page.js?v=b3d4569-a3bb35"></script>
+  <script type="module" src="js/malla.js?v=b3d4569-a3bb35"></script>
 </body>
 </html>

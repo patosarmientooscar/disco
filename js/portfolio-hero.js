@@ -1,8 +1,10 @@
 import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm';
-import { gpuOK, levelDpr } from './gpu.js';
+import { gpuOK, gpuLevel, levelDpr } from './gpu.js';
 
-// Hero de portfolio: la bola de espejos (el vídeo de js/config.js → pageHeroes.portfolio; el hero común, en
-// js/page-hero.js, sin el destello 3D). Inspirado en el hero de la home:
+// Hero de portfolio: la bola de espejos real, etalonada en naranja (el vídeo de js/config.js → pageHeroes.portfolio,
+// en dos versiones: horizontal 2560 y vertical, VERSIONS; el hero común, en js/page-hero.js, que elige la versión,
+// sin el destello 3D). Al arrancar, el ENCENDIDO: del póster quieto a la bola girando (0.9 s). Inspirado en el hero
+// de la home:
 //   · EL FLUIDO: la misma simulación de la home (stable fluids en OGL; js/hero.js, adaptada de WebGL-Fluid-Simulation
 //     de Pavel Dobryakov, licencia MIT), con el VÍDEO de textura en vez de la foto roja: al mover el ratón, la imagen
 //     se ondula. Los mismos parámetros, un 30 % más suaves. Solo con ratón; en táctil, el vídeo tal cual.
@@ -16,16 +18,28 @@ import { gpuOK, levelDpr } from './gpu.js';
 //   · La bola se acerca (escala 1 → 1.18, centrada en ella) y gira más rápido (playbackRate 1 → 1.8 con la velocidad
 //     del scroll); el titular se desliza a la izquierda y se desvanece; el fondo acaba en #0b0909.
 // Todo en el loop único (gsap.ticker). Movimiento reducido: los puntos quietos sobre la bola, sin fluido ni salida.
-const IMG = { w: 1920, h: 1074 };                 // el vídeo de la bola
-const BALL = { x: 0.677, y: 0.507, r: 0.142 };   // centro de la bola (fracción de la imagen) y radio (del ancho)
+// las dos versiones del vídeo (js/config.js; elige js/page-hero.js → root.dataset.heroVersion): tamaño, centro de la
+// bola (fracción de la imagen) y radio (del ancho), medidos sobre su póster
+const VERSIONS = {
+  land: { img: { w: 2560, h: 1440 }, ball: { x: 0.641, y: 0.5, r: 0.087 }, vMax: 0.9 },
+  portrait: { img: { w: 1080, h: 1920 }, ball: { x: 0.516, y: 0.494, r: 0.235 }, vMax: 0.72 },
+};
 const ZOOM = 1.18;
 const RATE = { max: 1.8, speed: 30, lerp: 0.06 }; // playbackRate: 1 + |velocidad de Lenis| / speed (hasta 1.8)
+const WAKE = { from: 0.15, dur: 0.9 };            // el encendido: la bola arranca a girar desde casi quieta
 const TITLE = { x: 160, fade: 1.6 };              // px a la izquierda al final de la salida; se va antes de acabar
 const DOTS = { n: 140, min: 3, max: 14, aMin: 0.15, aMax: 0.7, parallax: 12, glow: 150, glowGain: 1.4, dpr: 2, dprMob: 1.25 };
+// los reflejos, del color del vídeo: núcleo cálido y halo naranja (uno de cada cinco, todo naranja)
+const DOT_CORE = '255 214 187';                   // #ffd6bb
+const DOT_HALO = '243 84 17';                     // #F35411
+// el vídeo que sube a la GPU para el fluido, como mucho (ancho) según el nivel de js/gpu.js
+const TEX_MAX = { high: Infinity, mid: 1920, low: 1280 };
 // la dispersión, en pantallas de scroll (s): se sueltan, se encienden, giran, se abren, caen y se apagan
 const MOVE = { detach: 0.25, wake: 0.12, rest: 0.35, spin: 1.5, spread: 0.3, spreadZ: 0.75, lag: 0.95, fall: 0.5, fallZ: 0.9, fadeFrom: 1, fadeTo: 1.4 };
-// los puntos de luz del techo en el póster (u, v en fracción de la imagen; brillo 0–1), sacados con sharp
-const SPOTS = [[0.429,0.086,0.73],[0.446,0.134,0.73],[0.502,0.123,0.71],[0.479,0.022,0.68],[0.485,0.052,0.67],[0.54,0.067,0.67],[0.477,0.086,0.62],[0.469,0.164,0.58],[0.585,0.026,0.56],[0.577,0.082,0.56],[0.598,0.119,0.55],[0.358,0.123,0.55],[0.633,0.022,0.54],[0.535,0.138,0.54],[0.767,0.052,0.52],[0.346,0.019,0.5],[0.635,0.116,0.5],[0.725,0.112,0.49],[0.85,0.082,0.48],[0.39,0.201,0.48],[0.721,0.06,0.47],[0.825,0.06,0.47],[0.427,0.261,0.47],[0.821,0.325,0.45],[0.319,0.216,0.45],[0.781,0.157,0.44],[0.512,0.213,0.44],[0.631,0.075,0.43],[0.833,0.168,0.43],[0.39,0.056,0.42],[0.385,0.299,0.41],[0.5,0.187,0.4],[0.415,0.052,0.4],[0.885,0.198,0.39],[0.808,0.119,0.38],[0.731,0.157,0.38],[0.338,0.261,0.38],[0.319,0.183,0.38],[0.279,0.108,0.38],[0.867,0.127,0.37],[0.633,0.16,0.37],[0.423,0.183,0.37],[0.206,0.153,0.36],[0.373,0.164,0.36],[0.542,0.224,0.35],[0.846,0.257,0.35],[0.581,0.168,0.34],[0.269,0.201,0.34],[0.81,0.209,0.34],[0.917,0.075,0.33],[0.735,0.086,0.33],[0.879,0.019,0.32],[0.531,0.101,0.31],[0.756,0.112,0.31],[0.912,0.287,0.31],[0.379,0.228,0.31],[0.415,0.418,0.31],[0.465,0.362,0.3],[0.554,0.108,0.29],[0.965,0.116,0.29],[0.542,0.198,0.29],[0.244,0.045,0.29],[0.502,0.28,0.29],[0.585,0.216,0.28],[0.456,0.459,0.28],[0.388,0.362,0.27],[0.725,0.205,0.27],[0.194,0.06,0.26],[0.458,0.239,0.26],[0.5,0.246,0.25],[0.633,0.205,0.25],[0.773,0.224,0.25],[0.3,0.317,0.25],[0.496,0.321,0.25],[0.304,0.381,0.25],[0.121,0.075,0.24],[0.319,0.086,0.24],[0.858,0.478,0.24],[0.95,0.201,0.23],[0.683,0.205,0.23],[0.554,0.164,0.23],[0.765,0.198,0.23],[0.958,0.015,0.22],[0.369,0.485,0.22],[0.471,0.299,0.22],[0.542,0.265,0.22],[0.683,0.153,0.21],[0.921,0.373,0.21],[0.442,0.354,0.21],[0.433,0.332,0.2],[0.415,0.534,0.2],[0.431,0.295,0.2],[0.871,0.541,0.2],[0.608,0.172,0.19],[0.938,0.522,0.19],[0.217,0.295,0.18],[0.863,0.451,0.18],[0.481,0.522,0.18],[0.735,0.19,0.18],[0.146,0.209,0.18],[0.885,0.444,0.17],[0.919,0.552,0.16],[0.567,0.037,0.15],[0.483,0.597,0.15],[0.517,0.067,0.15],[0.556,0.25,0.15],[0.881,0.634,0.15],[0.99,0.354,0.14],[0.504,0.052,0.14]];
+// los puntos de luz de cada póster (u, v en fracción de la imagen; brillo 0–0.75): máximos locales del brillo fuera
+// de la bola × 1.1, a 0.012 como mínimo entre sí, los 110 más brillantes (sacados decodificando el póster en Chromium)
+VERSIONS.land.spots = [[0.602,0.303,0.75],[0.598,0.269,0.7],[0.608,0.283,0.69],[0.592,0.292,0.66],[0.613,0.325,0.62],[0.678,0.264,0.61],[0.684,0.281,0.56],[0.662,0.217,0.51],[0.672,0.278,0.49],[0.691,0.247,0.49],[0.695,0.267,0.46],[0.606,0.253,0.42],[0.591,0.25,0.42],[0.675,0.231,0.37],[0.691,0.3,0.36],[0.581,0.281,0.35],[0.677,0.3,0.34],[0.603,0.336,0.33],[0.652,0.236,0.32],[0.614,0.303,0.32],[0.669,0.242,0.32],[0.648,0.208,0.31],[0.598,0.233,0.31],[0.664,0.261,0.31],[0.702,0.289,0.29],[0.616,0.267,0.28],[0.584,0.317,0.28],[0.681,0.317,0.27],[0.664,0.3,0.27],[0.694,0.317,0.26],[0.662,0.183,0.25],[0.658,0.286,0.24],[0.68,0.197,0.24],[0.573,0.294,0.22],[0.622,0.283,0.21],[0.567,0.317,0.21],[0.711,0.256,0.21],[0.706,0.242,0.2],[0.583,0.225,0.2],[0.673,0.211,0.2],[0.581,0.339,0.2],[0.706,0.308,0.19],[0.572,0.247,0.19],[0.639,0.231,0.19],[0.689,0.208,0.19],[0.656,0.247,0.19],[0.672,0.164,0.19],[0.617,0.233,0.19],[0.566,0.272,0.18],[0.625,0.25,0.18],[0.684,0.331,0.18],[0.672,0.331,0.18],[0.695,0.336,0.18],[0.592,0.206,0.17],[0.716,0.281,0.17],[0.647,0.175,0.16],[0.641,0.25,0.15],[0.652,0.3,0.15],[0.609,0.214,0.15],[0.636,0.2,0.15],[0.709,0.328,0.14],[0.58,0.353,0.14],[0.72,0.3,0.14],[0.647,0.264,0.14],[0.63,0.267,0.14],[0.656,0.153,0.14],[0.569,0.339,0.14],[0.656,0.319,0.13],[0.709,0.344,0.12],[0.697,0.353,0.11],[0.722,0.322,0.11],[0.575,0.367,0.11],[0.711,0.361,0.11],[0.552,0.267,0.11],[0.637,0.281,0.1],[0.689,0.172,0.1],[0.627,0.308,0.1],[0.553,0.378,0.1],[0.723,0.342,0.09],[0.566,0.222,0.09],[0.634,0.169,0.09],[0.703,0.219,0.09],[0.572,0.381,0.09],[0.553,0.344,0.09],[0.578,0.194,0.09],[0.725,0.244,0.09],[0.547,0.406,0.09],[0.719,0.219,0.08],[0.633,0.319,0.08],[0.558,0.242,0.08],[0.623,0.203,0.08],[0.714,0.378,0.08],[0.723,0.361,0.08],[0.708,0.194,0.08],[0.544,0.297,0.08],[0.553,0.364,0.07],[0.553,0.425,0.07],[0.73,0.269,0.07],[0.642,0.144,0.07],[0.628,0.214,0.07],[0.542,0.322,0.07],[0.617,0.164,0.07],[0.603,0.186,0.07],[0.531,0.414,0.07],[0.727,0.422,0.07],[0.736,0.292,0.07],[0.738,0.336,0.07],[0.645,0.314,0.07],[0.556,0.325,0.07],[0.527,0.392,0.07]];
+VERSIONS.portrait.spots = [[0.4,0.301,0.75],[0.411,0.328,0.75],[0.427,0.313,0.71],[0.438,0.341,0.68],[0.386,0.318,0.68],[0.617,0.299,0.66],[0.634,0.31,0.63],[0.648,0.282,0.6],[0.602,0.308,0.58],[0.572,0.256,0.56],[0.664,0.299,0.55],[0.556,0.342,0.54],[0.383,0.284,0.51],[0.425,0.286,0.47],[0.461,0.334,0.47],[0.608,0.268,0.45],[0.647,0.327,0.43],[0.358,0.309,0.43],[0.416,0.357,0.39],[0.614,0.327,0.37],[0.445,0.329,0.37],[0.403,0.269,0.36],[0.678,0.318,0.36],[0.537,0.25,0.34],[0.592,0.277,0.34],[0.545,0.272,0.33],[0.575,0.28,0.33],[0.452,0.299,0.32],[0.572,0.227,0.32],[0.625,0.264,0.31],[0.578,0.293,0.3],[0.581,0.326,0.29],[0.362,0.34,0.29],[0.62,0.239,0.28],[0.625,0.339,0.28],[0.6,0.212,0.28],[0.395,0.362,0.28],[0.691,0.277,0.27],[0.563,0.315,0.27],[0.659,0.34,0.26],[0.317,0.34,0.26],[0.702,0.289,0.25],[0.333,0.282,0.25],[0.334,0.322,0.25],[0.637,0.276,0.24],[0.361,0.263,0.24],[0.466,0.311,0.24],[0.606,0.289,0.23],[0.691,0.333,0.23],[0.594,0.34,0.23],[0.605,0.25,0.22],[0.645,0.248,0.22],[0.316,0.302,0.22],[0.359,0.36,0.21],[0.473,0.284,0.21],[0.719,0.308,0.21],[0.428,0.351,0.21],[0.591,0.243,0.2],[0.531,0.22,0.2],[0.386,0.245,0.2],[0.305,0.309,0.2],[0.659,0.248,0.2],[0.6,0.353,0.2],[0.631,0.353,0.19],[0.558,0.283,0.19],[0.452,0.267,0.19],[0.511,0.267,0.19],[0.556,0.201,0.18],[0.639,0.237,0.18],[0.728,0.326,0.18],[0.664,0.358,0.18],[0.431,0.252,0.17],[0.505,0.243,0.17],[0.7,0.348,0.17],[0.545,0.326,0.16],[0.32,0.359,0.16],[0.533,0.295,0.15],[0.517,0.286,0.15],[0.481,0.326,0.15],[0.277,0.298,0.15],[0.314,0.259,0.14],[0.487,0.3,0.14],[0.352,0.371,0.14],[0.733,0.344,0.14],[0.547,0.294,0.13],[0.377,0.337,0.13],[0.345,0.238,0.13],[0.495,0.214,0.13],[0.698,0.365,0.13],[0.281,0.394,0.12],[0.645,0.218,0.12],[0.492,0.342,0.12],[0.681,0.257,0.12],[0.741,0.279,0.12],[0.508,0.308,0.12],[0.48,0.349,0.12],[0.341,0.383,0.12],[0.32,0.379,0.11],[0.725,0.259,0.11],[0.664,0.371,0.11],[0.292,0.278,0.11],[0.703,0.379,0.1],[0.697,0.237,0.1],[0.467,0.245,0.1],[0.28,0.363,0.1],[0.736,0.363,0.1],[0.256,0.324,0.09],[0.252,0.344,0.09],[0.417,0.225,0.09],[0.567,0.351,0.09]];
 
 // el fluido: los parámetros de la home, un 30 % más suaves (fuerza, vorticidad y brillo de los pliegues)
 const MAX_DPR = matchMedia('(max-width: 767px)').matches ? 1.25 : 2; // móvil: como mucho 1.25
@@ -204,6 +218,7 @@ uniform sampler2D tOffset;
 uniform sampler2D tVelocity;
 uniform vec2 uRes;        // tamaño del hero (px)
 uniform vec2 uImage;      // tamaño de la foto (px)
+uniform vec2 uPos;        // su object-position (0–1, y desde abajo): el encuadre del vídeo, igual que en CSS
 uniform vec2 uMapTexel;
 uniform float uDisplace;
 uniform float uFold;
@@ -212,11 +227,11 @@ void main() {
   vec2 o = texture2D(tOffset, vUv).xy;
   vec2 m = vUv + o - texture2D(tVelocity, vUv).xy * uDisplace;
 
-  // "cover" centrado en cualquier proporción; clamp para que no haya costuras en los bordes
+  // "cover" en cualquier proporción, encuadrado en uPos; clamp para que no haya costuras en los bordes
   float rs = uRes.x / uRes.y;
   float ri = uImage.x / uImage.y;
   vec2 scale = vec2(min(1.0, rs / ri), min(1.0, ri / rs));
-  vec2 coverUv = clamp((m - 0.5) * scale + 0.5, 0.0, 1.0);
+  vec2 coverUv = clamp(m * scale + (1.0 - scale) * uPos, 0.0, 1.0);
   vec3 col = texture2D(tMap, coverUv).rgb;
 
   // pliegues: donde el mapa se estira o se dobla de golpe, la foto brilla un poco
@@ -237,12 +252,13 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
   const block = root.querySelector('.pgh__foot > div');
   const video = look.querySelector('video');
   const still = reduced.matches;
+  let ver = VERSIONS[root.dataset.heroVersion] || VERSIONS.land; // horizontal o vertical (js/page-hero.js)
   const fine = matchMedia('(any-hover: hover) and (any-pointer: fine)');
 
   // el fluido: solo con ratón (en táctil, el vídeo tal cual), con WebGL y sin movimiento reducido
   let fluid = null;
   if (!still && video && fine.matches && gpuOK()) {
-    try { fluid = setupFluid({ look, video, loop }); } catch { fluid = null; }
+    try { fluid = setupFluid({ look, video, loop, img: ver.img }); } catch { fluid = null; }
   }
 
   // ---------- los reflejos ----------
@@ -251,22 +267,22 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
   canvas.setAttribute('aria-hidden', 'true');
   if (still) { canvas.style.position = 'absolute'; stage.querySelector('.pgh__foot').before(canvas); } else document.body.append(canvas);
   const ctx = canvas.getContext('2d');
-  const sprite = (rgb) => {
+  const sprite = (core, halo) => {
     const c = document.createElement('canvas');
     c.width = c.height = 64;
     const g = c.getContext('2d');
     const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-    r.addColorStop(0, `rgb(${rgb} / 1)`);
-    r.addColorStop(0.45, `rgb(${rgb} / 0.95)`);
-    r.addColorStop(0.7, `rgb(${rgb} / 0.35)`);
-    r.addColorStop(1, `rgb(${rgb} / 0)`);
+    r.addColorStop(0, `rgb(${core} / 1)`);
+    r.addColorStop(0.45, `rgb(${core} / 0.95)`);
+    r.addColorStop(0.7, `rgb(${halo} / 0.35)`);
+    r.addColorStop(1, `rgb(${halo} / 0)`);
     g.fillStyle = r;
     g.fillRect(0, 0, 64, 64);
     return c;
   };
-  const white = sprite('255 255 255');
-  const orange = sprite('243 84 17');
-  const dots = makeDots();
+  const warm = sprite(DOT_CORE, DOT_HALO);
+  const orange = sprite(DOT_HALO, DOT_HALO);
+  let dots = makeDots(ver);
   const view = { w: 1, h: 1, dpr: 1, k: 1 };
   const resize = () => {
     const mob = matchMedia('(max-width: 767px)').matches;
@@ -287,10 +303,10 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
   const cover = { x: 0, y: 0, w: 1, h: 1 };
   const measure = () => {
     const r = look.getBoundingClientRect();
-    const s = Math.max(r.width / IMG.w, r.height / IMG.h);
-    cover.w = IMG.w * s;
-    cover.h = IMG.h * s;
-    // con su object-position (en móvil, la bola encuadrada a la izquierda: css/portfolio.css)
+    const s = Math.max(r.width / ver.img.w, r.height / ver.img.h);
+    cover.w = ver.img.w * s;
+    cover.h = ver.img.h * s;
+    // con su object-position (el centro de la bola: js/config.js → pos)
     const [px, py] = getComputedStyle(look.querySelector('video, img')).objectPosition.split(' ').map((v) => parseFloat(v) / 100);
     cover.x = r.left + (r.width - cover.w) * (Number.isFinite(px) ? px : 0.5);
     cover.y = r.top + (r.height - cover.h) * (Number.isFinite(py) ? py : 0.5);
@@ -300,8 +316,8 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
   // el centro de la bola, para el zoom (en % de la caja del vídeo)
   const origin = () => {
     const r = measure();
-    look.style.setProperty('--ball-x', `${(((cover.x + BALL.x * cover.w - r.left) / r.width) * 100).toFixed(2)}%`);
-    look.style.setProperty('--ball-y', `${(((cover.y + BALL.y * cover.h - r.top) / r.height) * 100).toFixed(2)}%`);
+    look.style.setProperty('--ball-x', `${(((cover.x + ver.ball.x * cover.w - r.left) / r.width) * 100).toFixed(2)}%`);
+    look.style.setProperty('--ball-y', `${(((cover.y + ver.ball.y * cover.h - r.top) / r.height) * 100).toFixed(2)}%`);
   };
 
   // ratón: parallax de los puntos y los cercanos brillan más
@@ -319,8 +335,8 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
     ctx.clearRect(0, 0, view.w, view.h);
     ctx.globalCompositeOperation = 'lighter';
     const H = view.h;
-    const cx0 = cover.x + BALL.x * cover.w;
-    const cy0 = cover.y + BALL.y * cover.h;
+    const cx0 = cover.x + ver.ball.x * cover.w;
+    const cy0 = cover.y + ver.ball.y * cover.h;
     const k = smooth(0, MOVE.detach, s);                 // 0: pegados a la imagen · 1: sueltos
     const cy = cy0 + s * H * MOVE.lag * k;              // sueltos, ya no suben con la sección (casi quietos en pantalla)
     const fade = (MOVE.rest + (1 - MOVE.rest) * smooth(0, MOVE.wake, s)) * (1 - smooth(MOVE.fadeFrom, MOVE.fadeTo, s));
@@ -340,7 +356,7 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
       const near = Math.hypot(x - mouse.x, y - mouse.y);
       if (near < DOTS.glow) a = Math.min(1, a * (1 + DOTS.glowGain * (1 - near / DOTS.glow)));
       ctx.globalAlpha = a;
-      ctx.drawImage(d.o ? orange : white, x - size, y - size, size * 2, size * 2);
+      ctx.drawImage(d.o ? orange : warm, x - size, y - size, size * 2, size * 2);
     }
     ctx.globalAlpha = 1;
   };
@@ -355,6 +371,19 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
   }
   origin();
   window.addEventListener('resize', origin);
+  // al girar la pantalla, la otra versión del vídeo (js/page-hero.js): su bola, sus puntos y su textura
+  root.addEventListener('disco:hero-version', (e) => {
+    ver = VERSIONS[e.detail] || VERSIONS.land;
+    dots = makeDots(ver);
+    fluid?.image(ver.img);
+    origin();
+    lastP = -1;
+  });
+
+  // el encendido: la primera vez que arranca, la bola pasa de casi quieta a su giro (con el fundido del póster al
+  // vídeo, css/portfolio.css)
+  const wake = { k: video && video.paused ? WAKE.from : 1 };
+  video?.addEventListener('playing', () => gsap.to(wake, { k: 1, duration: WAKE.dur, ease: 'power3.out' }), { once: true });
 
   // ---------- el loop: salida (sin pin), la bola se acerca y gira más rápido, el titular se va ----------
   let rate = 1;
@@ -372,7 +401,7 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
       if (Math.abs(p - lastP) > 0.0005) {
         lastP = p;
         const e = p * p * (3 - 2 * p);
-        look.style.transform = `scale(${(1.06 * (1 + (ZOOM - 1) * e)).toFixed(4)})`;
+        look.style.transform = `scale(${(1 + (ZOOM - 1) * e).toFixed(4)})`;
         dark.style.opacity = smooth(0.35, 1, p).toFixed(3);
         block.style.transform = `translate3d(${(-p * TITLE.x).toFixed(1)}px, 0, 0)`;
         block.style.opacity = Math.max(0, 1 - p * TITLE.fade).toFixed(3);
@@ -381,7 +410,8 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
       if (video) {
         const to = 1 + Math.min(RATE.max - 1, Math.abs(lenis.velocity || 0) / RATE.speed);
         rate += (to - rate) * (1 - Math.pow(1 - RATE.lerp, ratio));
-        if (Math.abs(video.playbackRate - rate) > 0.02) video.playbackRate = rate;
+        const want = rate * wake.k;
+        if (Math.abs(video.playbackRate - want) > 0.02 || (wake.k === 1 && video.playbackRate !== want && Math.abs(video.playbackRate - want) > 0.001)) video.playbackRate = want;
       }
     }
     if (s > MOVE.fadeTo + 0.05) {
@@ -395,18 +425,18 @@ export function initBallHero({ gsap, lenis, loop, reduced }) {
   return { fluid };
 }
 
-// los ~140 puntos: los del techo del vídeo (sacados de su póster) y, hasta completar, unos al azar en la mitad
-// de arriba, más densos cerca de la bola
-function makeDots() {
+// los ~140 puntos: los del techo del vídeo (sacados de su póster) y, hasta completar, unos al azar alrededor de la
+// bola (sin bajar al texto del pie), más densos cerca de ella
+function makeDots({ spots, ball, img, vMax }) {
   let seed = 7;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-  const list = SPOTS.map(([u, v, b]) => ({ u, v, b }));
+  const list = spots.map(([u, v, b]) => ({ u, v, b }));
   while (list.length < DOTS.n) {
     const ang = rnd() * Math.PI * 2;
-    const r = BALL.r * (1.15 + Math.pow(rnd(), 1.8) * 3.6);
-    const u = BALL.x + Math.cos(ang) * r;
-    const v = BALL.y + Math.sin(ang) * r * (IMG.w / IMG.h);
-    if (u < 0.02 || u > 0.98 || v < 0.02 || v > 0.55) continue;
+    const r = ball.r * (1.15 + Math.pow(rnd(), 1.8) * 3.6);
+    const u = ball.x + Math.cos(ang) * r;
+    const v = ball.y + Math.sin(ang) * r * (img.w / img.h);
+    if (u < 0.02 || u > 0.98 || v < 0.02 || v > vMax) continue;
     list.push({ u, v, b: 0.15 + rnd() * 0.35 });
   }
   return list.map((d, i) => {
@@ -431,7 +461,7 @@ function smooth(a, b, x) {
 }
 
 // ============ el fluido (como en la home, js/hero.js → setupFluid), con el vídeo de textura ============
-function setupFluid({ look, video, loop }) {
+function setupFluid({ look, video, loop, img }) {
   const renderer = new Renderer({ dpr: Math.min(devicePixelRatio, levelDpr(MAX_DPR)), antialias: false, depth: false });
   const { gl } = renderer;
   const isWebgl2 = renderer.isWebgl2;
@@ -491,7 +521,8 @@ function setupFluid({ look, video, loop }) {
     tOffset: tex(),
     tVelocity: tex(),
     uRes: { value: new Vec2(1, 1) },
-    uImage: { value: new Vec2(IMG.w, IMG.h) },
+    uImage: { value: new Vec2(img.w, img.h) },
+    uPos: { value: new Vec2(0.5, 0.5) },
     uMapTexel: { value: new Vec2() },
     uDisplace: num(DISPLACE),
     uFold: num(FOLD),
@@ -586,10 +617,32 @@ function setupFluid({ look, video, loop }) {
     aspect = width / height;
     renderer.setSize(width, height);
     display.program.uniforms.uRes.value.set(width, height);
+    // el encuadre del vídeo (su object-position), para que la bola caiga en el mismo sitio que en CSS
+    const [px, py] = getComputedStyle(video).objectPosition.split(' ').map((v) => parseFloat(v) / 100);
+    display.program.uniforms.uPos.value.set(Number.isFinite(px) ? px : 0.5, 1 - (Number.isFinite(py) ? py : 0.5));
     buildTargets(aspect);
   };
   new ResizeObserver(resize).observe(look);
   resize();
+
+  // la textura: el vídeo tal cual o, si es más ancho que lo que admite el nivel de la GPU (js/gpu.js: 1920 en
+  // "mid", 1280 en "low"), reducido en un canvas (menos calidad, nunca sin fluido)
+  const cap = TEX_MAX[gpuLevel()] || Infinity;
+  let small = null;
+  const source = () => {
+    const vw = video.videoWidth;
+    if (!vw || vw <= cap) { small = null; frame.image = video; return; }
+    small ||= document.createElement('canvas');
+    small.width = cap;
+    small.height = Math.round((cap * video.videoHeight) / vw);
+    small.getContext('2d').drawImage(video, 0, 0, small.width, small.height);
+    frame.image = small;
+  };
+  const upload = () => {
+    if (small) small.getContext('2d').drawImage(video, 0, 0, small.width, small.height);
+    frame.needsUpdate = true;
+  };
+  video.addEventListener('loadeddata', () => { if (ready) { source(); resize(); } }); // otra versión (al girar)
 
   // el vídeo, fotograma a fotograma (cuando tiene uno nuevo)
   let ready = false;
@@ -597,7 +650,7 @@ function setupFluid({ look, video, loop }) {
   const onFrame = () => { fresh = true; if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(onFrame); };
   const start = () => {
     if (ready) return;
-    frame.image = video;
+    source();
     ready = true;
     look.classList.add('is-gl');
     if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(onFrame);
@@ -636,7 +689,7 @@ function setupFluid({ look, video, loop }) {
   loop.add((time, ratio) => {
     if (!ready || !onScreen || document.hidden) return;
     const moving = performance.now() < activeUntil;
-    if (fresh || !video.requestVideoFrameCallback) { frame.needsUpdate = true; fresh = false; }
+    if (fresh || !video.requestVideoFrameCallback) { upload(); fresh = false; }
     if (moving) {
       settled = false;
       const dt = Math.min(ratio / 60, 1 / 30);
@@ -649,7 +702,10 @@ function setupFluid({ look, video, loop }) {
     }
     draw();
   });
-  return { canvas: gl.canvas };
+  return {
+    canvas: gl.canvas,
+    image(img) { display.program.uniforms.uImage.value.set(img.w, img.h); resize(); },
+  };
 }
 
 function destroyTarget(gl, target) {

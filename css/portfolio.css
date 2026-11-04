@@ -232,22 +232,16 @@
 .pf-peek__more:hover b { translate: 5px 0; }
 
 /* ---------- hero: la bola de espejos (js/portfolio-hero.js) ----------
-   La bola no lleva el etalonado oscuro de los demás heroes (ya es negra). Encima del vídeo, el fluido (canvas de
-   OGL, con el vídeo de textura); el oscurecido final (#0b0909) sube con la salida. Los reflejos que se escapan van en
-   un canvas fijo (z-index 1: por encima de la sección siguiente y por debajo del texto del hero y de la nav). */
-[data-page-hero="portfolio"] .pgh__look { filter: brightness(0.92) contrast(1.04); transform-origin: var(--ball-x, 68%) var(--ball-y, 50%); will-change: transform; }
-[data-page-hero="portfolio"] .pgh__grade {
-  background:
-    linear-gradient(to top, rgb(11 9 9 / 0.85) 0%, rgb(11 9 9 / 0) 38%),
-    linear-gradient(to bottom, rgb(11 9 9 / 0.5) 0%, rgb(11 9 9 / 0) 16%);
-}
+   El vídeo ya viene etalonado (negro → brasa → naranja → blanco cálido): nada encima que le quite calidad (sin
+   filtros ni velos de color), solo un degradado inferior suave para el texto del pie. Encuadre: el centro de la bola
+   (--ph-pos, js/config.js; horizontal y vertical). Encima del vídeo, el fluido (canvas de OGL, con el vídeo de
+   textura); el oscurecido final (#0b0909) sube con la salida. Los reflejos que se escapan van en un canvas fijo
+   (z-index 1: por encima de la sección siguiente y por debajo del texto del hero y de la nav). */
+[data-page-hero="portfolio"] .pgh__look { filter: none; transform-origin: var(--ball-x, 64%) var(--ball-y, 50%); will-change: transform; }
+[data-page-hero="portfolio"] .pgh__grade { background: linear-gradient(to top, rgb(11 9 9 / 0.85) 0%, rgb(11 9 9 / 0.35) 22%, transparent 40%); }
+/* el encendido: del póster (su primer fotograma, quieto) al vídeo, que arranca a girar */
+[data-page-hero="portfolio"] .pgh__media video { transition: opacity 0.9s cubic-bezier(0.32, 0.72, 0, 1); }
 .pgh__fluid { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .pgh__look.is-gl video { visibility: hidden; }
 .pgh__dark { position: absolute; inset: 0; background: var(--ink); opacity: 0; pointer-events: none; }
-/* en móvil (sin fluido: solo con ratón) la bola, encuadrada para que se vea entera */
-@media (max-width: 767px) {
-  [data-page-hero="portfolio"] .pgh__media img,
-  [data-page-hero="portfolio"] .pgh__media video { object-position: 74% 50%; }
-  [data-page-hero="portfolio"] .pgh__grade { background: linear-gradient(to top, rgb(11 9 9 / 0.94) 0%, rgb(11 9 9 / 0.6) 30%, rgb(11 9 9 / 0) 52%), linear-gradient(to bottom, rgb(11 9 9 / 0.5) 0%, rgb(11 9 9 / 0) 16%); }
-}
 .ball-dots { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
