@@ -15,7 +15,7 @@ const READY_MS = 3000;                           // el vídeo arranca con canpla
 const HINT = 3000;                               // ms sin tocar el destello: aparece "Arrastra el destello"
 const NARROW = '(max-width: 899px)';
 
-export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
+export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrived }) {
   const root = document.querySelector('[data-page-hero]');
   if (!root) return null;
   const still = reduced.matches;
@@ -139,8 +139,16 @@ export function initPageHero({ gsap, lenis, loop, reduced, arrived }) {
   const hideHint = () => gsap.to(hint, { opacity: 0, duration: 0.3, overwrite: true });
   // (portfolio: sin destello, la bola del vídeo es la protagonista: js/portfolio-hero.js)
   // (three y el GLB, después del load: no compiten con el primer pintado; sin GPU de verdad, ni se descargan)
-  const star = cfg.star === false || !gpuOK() ? Promise.resolve(null) : afterLoad().then(() => import('./hero-star.js'))
-    .then((m) => m.createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, onInteract: () => { interacted = true; hideHint(); } }))
+  // (servicios, con "Tres oficios" [data-star-gate]: el del hero viaja hasta el manifiesto y hace el relevo con el del
+  // recorrido; su sitio, de js/page-star.js: la misma función para los dos)
+  const gate = document.querySelector('[data-star-gate]');
+  const handoff = () => (gate ? import('./page-star.js').then((ps) => {
+    ScrollTrigger?.addEventListener('refresh', ps.maniMeasure);
+    window.addEventListener('resize', ps.maniMeasure);
+    return { target: () => ps.maniPose(lenis.scroll), relay: ps.relay, gate };
+  }) : Promise.resolve(null));
+  const star = cfg.star === false || !gpuOK() ? Promise.resolve(null) : afterLoad().then(() => Promise.all([import('./hero-star.js'), handoff()]))
+    .then(([m, h]) => m.createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, handoff: h, onInteract: () => { interacted = true; hideHint(); } }))
     .catch(() => null);
 
   if (still) {

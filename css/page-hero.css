@@ -267,6 +267,16 @@
   opacity: 0;
   pointer-events: none;
 }
+/* la de ENTRADA (servicios, con relevo): sale del borde superior de "Tres oficios" hacia arriba, en la X del
+   destello; la mitad de arriba de la de abajo (el mismo óvalo, cortado por el borde) */
+.ps-glow--top {
+  height: 15vmin;
+  margin: -15vmin 0 0 -42vw;
+  border-radius: 0;
+  background: radial-gradient(42vw 15vmin at 50% 100%, rgb(255 190 150 / 0.9), rgb(243 84 17 / 0.75) 38%, rgb(243 84 17 / 0));
+  transform-origin: 50% 100%;
+  will-change: transform, opacity; /* su capa, pintada una vez: encenderla no cuesta un fotograma */
+}
 .ps-ring {
   position: fixed;
   left: 0;

@@ -1,18 +1,24 @@
 import * as THREE from 'three';
 import { finStop } from './fin.js';
+import { dlog } from './gpu.js';
 import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studio, drift, mixEnv, compileScene } from './star-core.js';
 
 // Recorrido del destello 3D por las páginas interiores (después del hero, que tiene el suyo: js/hero-star.js).
 // Pinta en el canvas fijo compartido con el hero (sharedGL: un solo renderer por página; css/page-hero.css), con
 // su escena; z-index 1: por encima del fondo de las secciones y por debajo de su contenido. Un solo loop.
 // Servicios, el destello como GUÍA del proceso:
-//   · MANIFIESTO: cuando el hero lo suelta (sale por arriba a la derecha), vuelve por ahí y se queda a la DERECHA del
-//     texto, centrado con él (escala .26), girando despacio en Y y respondiendo al ratón. Cuando se iluminan las
-//     palabras clave ("idea", "imágenes"; evento "disco:manifest-hot" de js/servicios.js) da un giro extra y su
-//     reflejo se tiñe un instante de naranja. Al bajar se queda a media pantalla y "Tres oficios" lo tapa;
+//   · MANIFIESTO: el destello del hero VIAJA hasta aquí (js/hero-star.js, handoff) y hace el RELEVO (relay, arriba):
+//     en el mismo fotograma deja de pintar aquel y pinta este, en la misma pose (maniPose, la misma función para los
+//     dos), con los reflejos fundiéndose del vídeo al estudio (0.6 s). Se queda a la DERECHA del texto, centrado con
+//     él (escala .26), girando despacio en Y y respondiendo al ratón. Cuando se iluminan las palabras clave ("idea",
+//     "imágenes"; evento "disco:manifest-hot" de js/servicios.js) da un giro extra y su reflejo se tiñe un instante
+//     de naranja. Al bajar se queda a media pantalla y, cuando el borde superior de "Tres oficios" lo alcanza, SE
+//     METE detrás (baja y da media vuelta, 0.45 s) con una luz naranja en ese borde, en su X; al subir, sale igual.
+//     (Sin el destello del hero, como antes: entra por arriba a la derecha);
 //   · espera escondido detrás de "Tres oficios" (z-index 2, fondo opaco: le hace de tapa). Cuando su borde inferior
 //     pasa del 70 % de la pantalla, una luz naranja se filtra por debajo del borde (0.3 s, luz detrás de una
-//     puerta) y salta con rebote dando una vuelta entera, hasta quedar junto a "En cada producción.";
+//     puerta; en la X por la que entró) y salta con rebote dando una vuelta entera, hasta quedar junto a "En cada
+//     producción.";
 //   · BENTO: va de tarjeta en tarjeta en el orden del proceso, con un salto en arco entre ellas (como una moneda,
 //     se inclina 90° en X en lo alto), y aterriza en su esquina superior derecha: esa tarjeta se enciende (borde
 //     naranja, halo desde el destello y su animación: js/bento.js, evento "disco:light") y la anterior se apaga. En
@@ -74,6 +80,9 @@ const TAU = Math.PI * 2;
 // el manifiesto: escala, hueco con el texto, altura a la que se queda (× pantalla), giro lento (rad/s), entrada y
 // salida (s), el giro extra y el reflejo naranja de las palabras clave; el hero lo suelta con su bottom en el 15 %
 const MANI = { s: 0.26, gap: 48, stick: 0.42, spin: 0.5, enter: 1.1, leave: 0.45, hotTurn: Math.PI, hotDur: 0.9, glow: 0.7, glowDur: 0.9, heroOff: 0.15, follow: 10 };
+// con relevo: la zambullida detrás de "Tres oficios" (s; baja 0.35 de su alto; histéresis en px), su luz (entra,
+// se apaga) y el fundido de reflejos del vídeo del hero al estudio
+const DIVE = { dur: 0.45, drop: 0.35, hyst: 24, light: 0.3, fade: 0.6, env: 0.6 };
 const TILT = { x: 0.22, y: 0.35, z: 0.06, lerp: 0.06 };
 const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07 };
 // nosotros: paradas quietas (× alto de pantalla), escalas, el pin de "Cómo trabajamos" (js/about.js), el giro rápido
@@ -84,6 +93,36 @@ const ABOUT = {
   idle: { amp: 0.32, speed: 0.45 }, lean: { y: 0.5, z: 0.18, lerp: 0.08 },
   enter: { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180), fade: 0.6 },
 };
+
+// ---------- servicios: el sitio del manifiesto y el RELEVO con el destello del hero ----------
+// maniPose es la ÚNICA fuente de "dónde está su sitio": la usan este recorrido y el destello del hero, que viaja
+// hasta ahí (js/hero-star.js, opción handoff; js/page-hero.js). A la derecha del texto, centrado con él; si no cabe
+// (móvil), encima, a la derecha; nunca más abajo de la pantalla (si el texto aún no ha llegado, espera en el borde).
+// relay: el estado compartido. step(time) lo pone el hero (decide una vez por fotograma, lo llame quien lo llame
+// primero); done: el hero ha llegado y pinta este; look(): la orientación de este en su sitio (para que el hero
+// acabe en ella); drawn: dónde pintó este lo último (el hero sale de ahí al subir); held: se está arrastrando aquí.
+export const relay = { step: null, done: false, fresh: false, ready: false, look: null, env: null, drawn: null, held: false };
+const maniSite = { geo: null };
+export function maniMeasure() {
+  const m = document.querySelector('[data-manifest]');
+  maniSite.geo = m ? { top: docTop(m), h: m.offsetHeight, right: docLeft(m) + wordsWidth(m) } : null;
+  return maniSite.geo;
+}
+export function maniPose(px) {
+  const geo = maniSite.geo || maniMeasure();
+  if (!geo) return null;
+  const H = innerHeight;
+  const hPx = MANI.s * UNIT * (matchMedia('(max-width: 767px)').matches ? MOBILE_K : 1) * H;
+  const half = (WIDTH * hPx) / 2;
+  let cx = geo.right + MANI.gap + half;
+  let cy = geo.top + geo.h / 2 - px;
+  if (cx + half > innerWidth - 16) {
+    cx = innerWidth - 20 - half;
+    cy = geo.top - px - 18 - hPx / 2;
+  } else cy = Math.max(cy, MANI.stick * H); // se queda a media pantalla: "Tres oficios" sube y lo tapa
+  cy = Math.min(cy, H - 16 - hPx / 2);
+  return { cx, cy, hPx };
+}
 
 export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   if (reduced.matches) return null;
@@ -209,7 +248,11 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const ring = document.createElement('i');
   ring.className = 'ps-ring';
   ring.setAttribute('aria-hidden', 'true');
-  if (gate) document.body.append(glow, ring);
+  // la luz del borde superior de "Tres oficios" cuando se mete (solo con relevo)
+  const glowTop = document.createElement('i');
+  glowTop.className = 'ps-glow ps-glow--top';
+  glowTop.setAttribute('aria-hidden', 'true');
+  if (gate) document.body.append(glow, glowTop, ring);
   else if (about) document.body.append(ring);
 
   // ---------- tamaño ----------
@@ -235,7 +278,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     // una parada quieta (until > at) son dos puntos iguales: entre ellos, la curva se queda en su sitio
     stops = stops.flatMap((p) => (p.until > p.at ? [p, { ...p, at: p.until, twin: true }] : [p]));
     // el manifiesto, en coordenadas de la página (sin lecturas en cada fotograma)
-    maniGeo = manifest ? { top: docTop(manifest), h: manifest.offsetHeight, right: docLeft(manifest) + wordsWidth(manifest) } : null;
+    maniGeo = manifest ? maniMeasure() : null;
     dirty = true;
   };
   const footerStop = (max) => {
@@ -624,30 +667,37 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   // ---------- servicios: el manifiesto ----------
   const mani = { k: 0, on: false, tw: null, x: 0, y: 0, init: false, base: 0 };
   const hot = { spin: 0, glow: 0 };
+  let handing = false; // con relevo: el del hero viaja hasta aquí (relay.step lo pone js/hero-star.js)
+  if (gate) { relay.look = () => maniLook(1); relay.ready = true; }
   document.addEventListener('disco:manifest-hot', () => {
     if (!mani.on) return;
     gsap.to(hot, { spin: hot.spin + MANI.hotTurn, duration: MANI.hotDur, ease: 'power3.out' });
     gsap.fromTo(hot, { glow: MANI.glow }, { glow: 0, duration: MANI.glowDur, ease: 'power2.out' });
   });
-  // a la derecha del texto, centrado con él; si no cabe (móvil), encima, a la derecha (y va con el texto)
-  const maniPose = (px) => {
-    const H = innerHeight;
-    const hPx = MANI.s * unit() * H;
-    const half = (WIDTH * hPx) / 2;
-    let cx = maniGeo.right + MANI.gap + half;
-    let cy = maniGeo.top + maniGeo.h / 2 - px;
-    if (cx + half > innerWidth - 16) {
-      cx = innerWidth - 20 - half;
-      cy = maniGeo.top - px - 18 - hPx / 2;
-    } else cy = Math.max(cy, MANI.stick * H); // se queda a media pantalla: "Tres oficios" sube y lo tapa
-    return { cx, cy, hPx };
+  // con relevo (servicios, con el destello del hero: relay.step), la orientación en su sitio: la misma que pintará
+  // maniFrame en el siguiente fotograma (el giro lento y el ratón avanzan después de pintar)
+  const maniLook = (k = 1) => ({ rx: mouse.y * TILT.x, ry: mani.base + drag.spin + hot.spin + (1 - k) * TAU + mouse.x * TILT.y + dive.d * Math.PI, rz: -mouse.x * TILT.z });
+  // "Tres oficios" llega por abajo: el destello se mete detrás de su borde (baja un poco y da media vuelta) y una
+  // luz naranja sale del borde superior, en su X; al subir, al revés. Histéresis de 24 px en el umbral
+  const dive = { d: 0, in: false, tw: null };
+  const dip = (on, x, edge) => {
+    dive.in = on;
+    dive.tw?.kill();
+    dive.tw = gsap.to(dive, { d: on ? 1 : 0, duration: DIVE.dur, ease: on ? 'power2.in' : 'power2.out' });
+    if (edge < 0 || edge > innerHeight) return; // el borde, fuera de pantalla: sin luz
+    gsap.set(glowTop, { x, y: edge });
+    glowTop.tl?.kill();
+    glowTop.tl = gsap.timeline()
+      .fromTo(glowTop, { opacity: 0, scaleX: 0.5 }, { opacity: 1, scaleX: 1, duration: DIVE.light, ease: 'power2.out' })
+      .to(glowTop, { opacity: 0, duration: DIVE.fade, ease: 'power2.inOut' });
+    dlog(`destello: ${on ? 'entra en' : 'sale de'} "Tres oficios" (x ${x.toFixed(0)}, borde ${edge.toFixed(0)})`);
   };
   const maniFrame = (ratio, px, gateTop) => {
     const dt = ratio / 60;
     const H = innerHeight;
     const p = maniPose(px);
     const k = mani.k;
-    // llega (y se va) por arriba a la derecha, por donde salió el del hero
+    // llega (y se va) por arriba a la derecha, por donde salió el del hero (con relevo, k = 1: ya está en su sitio)
     let tx = innerWidth * 1.15 + (p.cx - innerWidth * 1.15) * k;
     let ty = -0.25 * H + (p.cy + 0.25 * H) * k;
     if (drag.on) { drag.frozen ||= { x: mani.x, y: mani.y }; tx = drag.frozen.x; ty = drag.frozen.y; }
@@ -657,33 +707,43 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     mani.y += (ty - mani.y) * a;
     // el giro: lento en Y, el de la mano, el de las palabras clave y, al llegar, una vuelta; inclinado hacia el ratón
     dragStep(ratio);
+    const look = maniLook(k);
+    if (handing) {
+      const bottom = mani.y + p.hPx / 2;
+      if (!dive.in && gateTop <= bottom) dip(true, mani.x, gateTop);
+      else if (dive.in && gateTop > bottom + DIVE.hyst) dip(false, mani.x, gateTop);
+    }
+    // (baja 0.35 de su alto o, si el borde se ha parado justo ahí, lo que haga falta para quedar detrás de él)
+    const y = mani.y + dive.d * Math.max(DIVE.drop * p.hPx, gateTop - mani.y + p.hPx / 2 + 2);
     mani.base += MANI.spin * dt;
     const ta = 1 - Math.pow(1 - TILT.lerp, ratio);
     mouse.x += (mouse.tx - mouse.x) * ta;
     mouse.y += (mouse.ty - mouse.y) * ta;
-    const ry = mani.base + drag.spin + hot.spin + (1 - k) * TAU + mouse.x * TILT.y;
     // el reflejo naranja de las palabras clave (encima del estudio)
     if (orangeTex && scene.environment === studioTex && !env.tw?.isActive()) { env.b = orangeTex; env.mix = hot.glow; applyMix(); }
     cur.init = false;
     lift(false);
-    drag.can = mani.on && k > 0.99;
+    drag.can = mani.on && k > 0.99 && !dive.in;
     // tapado del todo por "Tres oficios" o fuera de pantalla: no se pinta
-    if (gateTop <= mani.y - p.hPx / 2 || mani.y + p.hPx / 2 < 0 || mani.y - p.hPx / 2 > H || mani.x - p.hPx > innerWidth) {
+    if (gateTop <= y - p.hPx / 2 || y + p.hPx / 2 < 0 || y - p.hPx / 2 > H || mani.x - p.hPx > innerWidth) {
       drag.can = false;
       show(false);
       return;
     }
     star.visible = true;
-    star.position.set(((mani.x / innerWidth) * 2 - 1) * view.halfW, (1 - (mani.y / H) * 2) * view.halfH, 0);
+    star.position.set(((mani.x / innerWidth) * 2 - 1) * view.halfW, (1 - (y / H) * 2) * view.halfH, 0);
     star.scale.setScalar(Math.max(0.0001, worldScale(MANI.s)));
-    star.rotation.set(mouse.y * TILT.x, ry, -mouse.x * TILT.z);
+    star.rotation.set(look.rx, look.ry, look.rz);
     gl.draw(scene, 'page');
     drawn = true;
+    relay.drawn = { cx: mani.x, cy: y, hPx: p.hPx };
     seen();
   };
 
   // el salto: primero la luz se filtra por debajo del borde (0.3 s) y después sale con rebote y una vuelta entera
-  const openGate = (edge) => {
+  // (con relevo, la luz y la espera en la X por la que entró: el mismo destello atravesando la sección)
+  const waitX = (px) => (handing ? maniPose(px).cx : innerWidth / 2);
+  const openGate = (edge, x = innerWidth / 2) => {
     jump.open = true;
     jump.tl?.kill();
     cur.init = false; // empieza en su punto del recorrido, sin arrastrar una pose vieja
@@ -691,7 +751,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       .fromTo(glow, { opacity: 0, scaleX: 0.5 }, { opacity: 1, scaleX: 1, duration: JUMP.light, ease: 'power1.in' }, 0)
       .to(jump, { j: 1, duration: JUMP.duration, ease: JUMP.ease }, JUMP.light)
       .to(glow, { opacity: 0, duration: 0.5, ease: 'power2.out' }, JUMP.light);
-    gsap.set(glow, { x: innerWidth / 2, y: edge });
+    gsap.set(glow, { x, y: edge });
   };
   const closeGate = () => {
     jump.open = false;
@@ -747,29 +807,63 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       const gr = gate.getBoundingClientRect();
       edge = gr.bottom;
       gateTop = gr.top;
-      if (!jump.open && edge < JUMP.at * H) openGate(edge);
+      if (!jump.open && edge < JUMP.at * H) openGate(edge, waitX(px));
       else if (jump.open && edge > JUMP.at * H + 2) closeGate();
       if (+glow.style.opacity > 0) gsap.set(glow, { y: edge });
+      if (+glowTop.style.opacity > 0) gsap.set(glowTop, { y: gateTop }); // la luz de arriba, pegada al borde
     }
     // servicios: el manifiesto, entre el hero (cuando ya ha soltado su destello) y "Tres oficios"
     const heroBottom = hero ? hero.getBoundingClientRect().bottom : -1;
     if (maniGeo) {
-      const armed = heroBottom <= MANI.heroOff * H && !jump.open && jump.j <= 0.0005;
+      // con relevo, el hero decide (una vez por fotograma, lo llame quien lo llame primero): ha llegado y este sigue
+      handing = !!relay.step;
+      if (handing) { relay.held = drag.on; relay.step(time); }
+      // (con relevo, al subir desde "Tres oficios" no espera a que acabe el regreso del salto si su sitio ya se
+      // destapa: sale de detrás del borde)
+      const spot = handing ? maniPose(px) : null;
+      const spotSeen = handing && spot.cy + spot.hPx / 2 > 0;
+      const unjumped = jump.j <= 0.0005 || (spotSeen && gateTop > spot.cy - spot.hPx / 2);
+      const armed = (handing ? relay.done : heroBottom <= MANI.heroOff * H) && !jump.open && unjumped;
       if (armed && !mani.on) {
         mani.on = true;
         mani.tw?.kill();
         const p = maniPose(px);
-        // vuelve desde "Tres oficios" (estaba tapado): ya está en su sitio; si no, entra desde arriba a la derecha
-        if (gateTop <= p.cy - p.hPx / 2) mani.k = 1;
-        else mani.tw = gsap.to(mani, { k: 1, duration: MANI.enter * (1 - mani.k), ease: 'expo.out' });
+        if (handing) {
+          // el relevo: en el mismo fotograma, en su sitio exacto (donde lo ha dejado el del hero); si vuelve de
+          // "Tres oficios", detrás de su borde (y sale con la zambullida al revés)
+          const fresh = relay.fresh;
+          relay.fresh = false;
+          if (jump.j > 0) { jump.tl?.kill(); jump.j = 0; }
+          mani.k = 1;
+          mani.x = p.cx;
+          mani.y = p.cy;
+          mani.init = true;
+          dive.tw?.kill();
+          dive.in = gateTop <= p.cy + p.hPx / 2 || (!fresh && spotSeen);
+          dive.d = dive.in ? 1 : 0;
+          // los reflejos: del vídeo del hero al estudio, con un fundido
+          const from = relay.env?.();
+          if (fresh && !dive.in && from && from !== studioTex) {
+            env.tw?.kill();
+            scene.environment = from;
+            env.b = studioTex;
+            env.mix = 0;
+            applyMix();
+            env.tw = gsap.to(env, { mix: 1, duration: DIVE.env, ease: 'power1.inOut', onUpdate: applyMix, onComplete: () => { scene.environment = studioTex; env.mix = 0; applyMix(); } });
+          }
+          if (fresh) dlog('relevo hero → manifiesto (recorrido)', { x: +p.cx.toFixed(1), y: +p.cy.toFixed(1), h: +p.hPx.toFixed(1), ry: +maniLook(1).ry.toFixed(3) });
+        } else if (gateTop <= p.cy - p.hPx / 2) mani.k = 1; // vuelve desde "Tres oficios" (estaba tapado): ya está en su sitio
+        else mani.tw = gsap.to(mani, { k: 1, duration: MANI.enter * (1 - mani.k), ease: 'expo.out' }); // entra desde arriba a la derecha
         if (mani.k === 0) mani.init = false;
       } else if (!armed && mani.on) {
         mani.on = false;
         mani.tw?.kill();
         drop();
-        // vuelve al hero: sale por arriba a la derecha; se abre la puerta de "Tres oficios": ya estaba tapado
-        if (heroBottom > MANI.heroOff * H) mani.tw = gsap.to(mani, { k: 0, duration: MANI.leave, ease: 'power2.in' });
+        // vuelve al hero: sale por arriba a la derecha (con relevo, el del hero lo recoge aquí mismo); se abre la
+        // puerta de "Tres oficios": ya estaba tapado
+        if (!handing && heroBottom > MANI.heroOff * H) mani.tw = gsap.to(mani, { k: 0, duration: MANI.leave, ease: 'power2.in' });
         else mani.k = 0;
+        if (handing && !relay.done) { show(false); star.visible = false; }
       }
       if (mani.on || mani.k > 0.001) { maniFrame(ratio, px, gateTop); return; }
       mani.init = false;
@@ -909,7 +1003,8 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       const ws = JUMP.wait;
       const hPx = ws * unit() * H;
       const wy = 1 - (2 * (edge - hPx / 2 - JUMP.gap)) / H; // centro: justo por encima del borde (tapado)
-      x = 0 + (x - 0) * j;
+      const wx = nx(waitX(px));
+      x = wx + (x - wx) * j;
       y = wy + (y - wy) * j;
       s = ws + (s - ws) * j;
       ryAll = JUMP.edgeTurn + (cur.ry - JUMP.edgeTurn) * j;
