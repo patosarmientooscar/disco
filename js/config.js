@@ -43,13 +43,15 @@ export const config = {
   // (object-position); fps: los del vídeo (el timecode del hero es el real); star: false = sin el destello 3D.
   pageHeroes: {
     servicios: { video: 'assets/paginas/servicios-bg-hq.mp4', videoSm: 'assets/paginas/servicios-bg-hq-1280.mp4', poster: 'assets/paginas/servicios-poster-hq.webp', pos: '50% 50%', start: 0, fps: 30 },
-    // la bola real etalonada en naranja (bucle perfecto de 4,5 s): 2560 en horizontal (1280 solo con ahorro de datos o
-    // conexión lenta) y su versión vertical; pos: el centro de la bola en cada una (nunca se sale del encuadre). Sin
-    // destello (js/portfolio-hero.js). Los vídeos azules de antes, en legacy/portfolio-hero-bola-azul/
+    // la bola real etalonada en naranja, v3 (solo la parte oscura, grande, estabilizada y con la exposición constante;
+    // bucle perfecto de 3,17 s): 2560 en horizontal (1280 solo con ahorro de datos o conexión lenta) y su versión
+    // vertical; pos: el centro de la bola en cada una, medido en su póster (nunca se sale del encuadre). always: gira
+    // siempre (js/page-hero.js). Sin destello (js/portfolio-hero.js). Los de antes, en legacy/portfolio-hero-bola-v2/
+    // y legacy/portfolio-hero-bola-azul/
     portfolio: {
-      video: 'assets/portfolio/hero/bola-v2.mp4', videoSm: 'assets/portfolio/hero/bola-v2-1280.mp4', poster: 'assets/portfolio/hero/bola-v2-poster-1920.webp',
-      videoPortrait: 'assets/portfolio/hero/bola-v2-vertical.mp4', posterPortrait: 'assets/portfolio/hero/bola-v2-vertical-poster.webp',
-      pos: '64% 50%', posPortrait: '52% 49%', start: 0, fps: 24, star: false,
+      video: 'assets/portfolio/hero/bola-v3.mp4', videoSm: 'assets/portfolio/hero/bola-v3-1280.mp4', poster: 'assets/portfolio/hero/bola-v3-poster-1920.webp',
+      videoPortrait: 'assets/portfolio/hero/bola-v3-vertical.mp4', posterPortrait: 'assets/portfolio/hero/bola-v3-vertical-poster.webp',
+      pos: '64% 53%', posPortrait: '47% 42%', start: 0, fps: 24, star: false, always: true,
     },
   },
 

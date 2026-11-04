@@ -88,7 +88,7 @@ export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrive
   hint.textContent = 'Arrastra el destello';
   if (cfg.star !== false) stage.append(hint);
 
-  // ---------- vídeo (con movimiento reducido, solo el póster). El póster se ve al instante; el vídeo pide solo los
+  // ---------- vídeo (con movimiento reducido, solo el póster; salvo con always, abajo). El póster se ve al instante; el vídeo pide solo los
   // metadatos y, ya cargada la página, se pone a cargar; arranca cuando puede reproducir sin cortes
   // (canplaythrough o 3 s) con un fundido de 0.4 s desde el póster (css). La fuente, por ancho y por conexión ----------
   // (con versión vertical, portfolio: en pantallas en vertical, la vertical; en horizontal, la grande siempre y la
@@ -104,12 +104,15 @@ export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrive
   let version = pick();
   root.dataset.heroVersion = version.v;
   if (version.pos) root.style.setProperty('--ph-pos', version.pos);
+  // (always, portfolio: el vídeo ES el hero; se pide ya y se reproduce desde el principio, sin esperar a la carga ni
+  // a canplaythrough, también con movimiento reducido y durante la intro; solo se pausa fuera de pantalla o con la
+  // pestaña oculta)
   let video = null;
   let canPlay = false;
-  if (!still && cfg.video) {
+  if ((!still || cfg.always) && cfg.video) {
     const small = matchMedia(NARROW).matches || slow;
     video = document.createElement('video');
-    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: cfg.videoPortrait && !slow ? 'auto' : 'metadata' });
+    Object.assign(video, { muted: true, loop: true, playsInline: true, preload: cfg.always || (cfg.videoPortrait && !slow) ? 'auto' : 'metadata' });
     video.setAttribute('muted', '');
     video.setAttribute('playsinline', '');
     video.setAttribute('aria-hidden', 'true');
@@ -152,10 +155,16 @@ export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrive
     });
   }
   // en bucle mientras el hero se ve (y nadie lo ha parado); fuera de pantalla o con la pestaña oculta, en pausa
+  // (si el navegador no deja reproducir solo, otra vez con el primer gesto)
+  const GESTURES = ['pointerdown', 'touchstart', 'keydown', 'wheel', 'scroll'];
+  const retry = () => { GESTURES.forEach((g) => window.removeEventListener(g, retry)); play(); };
   const play = () => {
     if (!video || !canPlay) return;
-    if (state.inView && !document.hidden && !state.held) { if (video.paused) video.play().catch(() => {}); } else if (!video.paused) video.pause();
+    if (state.inView && !document.hidden && !state.held) {
+      if (video.paused) video.play().catch(() => { if (cfg.always) GESTURES.forEach((g) => window.addEventListener(g, retry, { passive: true })); });
+    } else if (!video.paused) video.pause();
   };
+  if (video && cfg.always) { canPlay = true; play(); }
   new IntersectionObserver(([e]) => { state.inView = e.isIntersecting; play(); }).observe(root);
   document.addEventListener('visibilitychange', play);
   document.addEventListener('disco:hero-hold', (e) => { state.held = !!e.detail; play(); });

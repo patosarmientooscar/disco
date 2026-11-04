@@ -232,16 +232,20 @@
 .pf-peek__more:hover b { translate: 5px 0; }
 
 /* ---------- hero: la bola de espejos (js/portfolio-hero.js) ----------
-   El vídeo ya viene etalonado (negro → brasa → naranja → blanco cálido): nada encima que le quite calidad (sin
-   filtros ni velos de color), solo un degradado inferior suave para el texto del pie. Encuadre: el centro de la bola
-   (--ph-pos, js/config.js; horizontal y vertical). Encima del vídeo, el fluido (canvas de OGL, con el vídeo de
-   textura); el oscurecido final (#0b0909) sube con la salida. Los reflejos que se escapan van en un canvas fijo
-   (z-index 1: por encima de la sección siguiente y por debajo del texto del hero y de la nav). */
-[data-page-hero="portfolio"] .pgh__look { filter: none; transform-origin: var(--ball-x, 64%) var(--ball-y, 50%); will-change: transform; }
-[data-page-hero="portfolio"] .pgh__grade { background: linear-gradient(to top, rgb(11 9 9 / 0.85) 0%, rgb(11 9 9 / 0.35) 22%, transparent 40%); }
-/* el encendido: del póster (su primer fotograma, quieto) al vídeo, que arranca a girar */
-[data-page-hero="portfolio"] .pgh__media video { transition: opacity 0.9s cubic-bezier(0.32, 0.72, 0, 1); }
-.pgh__fluid { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-.pgh__look.is-gl video { visibility: hidden; }
+   El vídeo ya viene etalonado y fuera del charco de luz es #0b0909 exacto, el negro de la página: nada encima que le
+   quite calidad (sin filtros, velos ni fluido), solo el degradado inferior para el texto del pie, que acaba en
+   #0b0909 opaco. Detrás, también #0b0909 (si el vídeo tarda o sobra caja). Encuadre: el centro de la bola (--ph-pos,
+   js/config.js; horizontal y vertical). El oscurecido final (#0b0909) sube con la salida. Los reflejos que se escapan
+   van en un canvas fijo (z-index 1: por encima de la sección siguiente y por debajo del texto del hero y de la nav). */
+[data-page-hero="portfolio"] .pgh__media { background: var(--ink); }
+[data-page-hero="portfolio"] .pgh__look { filter: none; transform-origin: var(--ball-x, 64%) var(--ball-y, 53%); will-change: transform; }
+[data-page-hero="portfolio"] .pgh__grade { background: linear-gradient(to top, rgb(11 9 9) 0%, rgb(11 9 9 / 0.35) 22%, rgb(11 9 9 / 0) 40%); }
+/* horizontal bajo (móvil girado: el hero mide 600 px, más que la pantalla): el vídeo ocupa solo la primera pantalla,
+   con la bola entera; debajo, el texto sobre el mismo #0b0909 */
+@media (orientation: landscape) and (max-height: 599px) {
+  [data-page-hero="portfolio"] .pgh__look { bottom: auto; height: 100vh; height: 100svh; }
+}
+/* del póster (su primer fotograma) al vídeo, que ya gira: corto, y solo la primera vez (al volver, sigue al instante) */
+[data-page-hero="portfolio"] .pgh__media video { transition: opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
 .pgh__dark { position: absolute; inset: 0; background: var(--ink); opacity: 0; pointer-events: none; }
 .ball-dots { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
