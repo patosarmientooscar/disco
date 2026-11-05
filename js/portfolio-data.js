@@ -11,7 +11,8 @@ export const showreel = { src: 'assets/paginas/disco-manifiesto.mp4', poster: 'a
 // media: lo que se ve en la ficha: fotos { type: 'img', src, thumb, w, h, alt } (src: la grande, para el visor;
 //   thumb: la de 1000 px, para la rejilla) y vídeos { type: 'video', src, poster, alt }
 // bw: true en las fotos en blanco y negro (filtro "B/N" de la galería del proyecto).
-// project: lo de su página (proyecto.html#slug): frase, ficha, encargo / idea / resultado, reels y secuencia.
+// project: lo de su página (proyecto.html#slug): frase, ficha, encargo / idea / resultado, reels y secuencia (reels:
+//   [] = proyecto solo de fotos: la portada lleva la foto en vez del móvil y no hay sección de reels).
 // Con UN solo trabajo, el portfolio lo enseña como proyecto destacado; con 2 o más, la rejilla. Cada uno abre su página.
 export const works = [
   {
@@ -79,6 +80,68 @@ export const works = [
         ['13', '23:40 · Karaoke'],
         ['15', '00:15 · El micro'],
         ['17', '01:30 · La última'],
+      ],
+    },
+  },
+  {
+    slug: 'esb',
+    title: 'E, S, B',                                   // BORRADOR: Oscar confirma el nombre del cliente
+    client: 'E, S, B · Noche en Madrid',                 // BORRADOR: Oscar confirma lugar y fecha
+    category: 'noche',
+    kind: 'foto',
+    cover: 'assets/portfolio/esb/esb-01-1000.webp',
+    coverLarge: 'assets/portfolio/esb/esb-01.webp',
+    ratio: '16/9',
+    media: [
+      { type: 'img', src: 'assets/portfolio/esb/esb-01.webp', thumb: 'assets/portfolio/esb/esb-01-1000.webp', w: 2000, h: 1125, alt: 'Chico con sudadera bajo el letrero luminoso de Desperados en un bar con luz azul y violeta' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-02.webp', thumb: 'assets/portfolio/esb/esb-02-1000.webp', w: 2000, h: 1333, alt: 'Bola de espejos iluminada en violeta en el techo del bar' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-03.webp', thumb: 'assets/portfolio/esb/esb-03-1000.webp', w: 2000, h: 1500, alt: 'Chico de pie en la barra, bajo el neón de Desperados y la luz azul del mostrador' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-04.webp', thumb: 'assets/portfolio/esb/esb-04-1000.webp', w: 1333, h: 2000, alt: 'Chico con gorra de los Rockies y cadena, de perfil, con una botella en la mano' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-05.webp', thumb: 'assets/portfolio/esb/esb-05-1000.webp', w: 2000, h: 1500, alt: 'Chico con gorra sonriendo a cámara delante de la barra llena de luces' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-06.webp', thumb: 'assets/portfolio/esb/esb-06-1000.webp', w: 1250, h: 2000, alt: 'Chica sonriendo junto a la diana, con luz violeta' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-07.webp', thumb: 'assets/portfolio/esb/esb-07-1000.webp', w: 2000, h: 1500, alt: 'Tres amigos sentados en el sofá hablando, con luz rosa y azulejos detrás' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-08.webp', thumb: 'assets/portfolio/esb/esb-08-1000.webp', w: 2000, h: 2000, alt: 'Chico con gorra de los Rockies sentado en el sofá bajo luz azul intensa' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-09.webp', thumb: 'assets/portfolio/esb/esb-09-1000.webp', w: 2000, h: 1125, alt: 'Grupo en los sofás entre velas y luces cálidas, con carteles antiguos en la pared' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-10.webp', thumb: 'assets/portfolio/esb/esb-10-1000.webp', w: 2000, h: 1125, alt: 'Dos chicas y un chico con gorra posando juntos en el sofá' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-11.webp', thumb: 'assets/portfolio/esb/esb-11-1000.webp', w: 2000, h: 1125, alt: 'Chica rubia sonriendo mientras habla con un chico con gorra' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-12.webp', thumb: 'assets/portfolio/esb/esb-12-1000.webp', w: 2000, h: 1125, alt: 'Chico de perfil a contraluz, con un fondo amarillo y rosa desenfocado' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-13.webp', thumb: 'assets/portfolio/esb/esb-13-1000.webp', w: 2000, h: 1125, alt: 'Dos chicos charlando en el sofá con luz roja, bajo un cartel de Marilyn Monroe' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-14.webp', thumb: 'assets/portfolio/esb/esb-14-1000.webp', w: 1500, h: 2000, alt: 'Dos amigos abrazados sonriendo a cámara en el bar' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-15.webp', thumb: 'assets/portfolio/esb/esb-15-1000.webp', w: 1500, h: 2000, alt: 'Tres amigos posando juntos, uno con los brazos cruzados delante' },
+      { type: 'img', src: 'assets/portfolio/esb/esb-16.webp', thumb: 'assets/portfolio/esb/esb-16-1000.webp', w: 2000, h: 1500, alt: 'Chica de espaldas haciendo una foto con el móvil en la calle de noche' },
+      { type: 'img', bw: true, src: 'assets/portfolio/esb/esb-17.webp', thumb: 'assets/portfolio/esb/esb-17-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chica con el pelo largo riendo en la calle' },
+      { type: 'img', bw: true, src: 'assets/portfolio/esb/esb-18.webp', thumb: 'assets/portfolio/esb/esb-18-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chico con gorra de los Rockies y pendientes, de perfil' },
+      { type: 'img', bw: true, src: 'assets/portfolio/esb/esb-19.webp', thumb: 'assets/portfolio/esb/esb-19-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: dos chicos con chaquetas de cuero junto a la estatua de la entrada del bar' },
+      { type: 'img', bw: true, src: 'assets/portfolio/esb/esb-20.webp', thumb: 'assets/portfolio/esb/esb-20-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chica y chico con gorra sonriendo juntos a cámara' },
+    ],
+    year: 2026,
+    deliverables: ['+130 fotos editadas', 'Color y blanco y negro'],
+    // la página del proyecto (proyecto.html#esb). Solo fotos: sin reels (js/proyecto.js pinta la portada con la foto
+    // en vez del móvil y no pinta la sección de reels). Textos: BORRADOR (Oscar los confirma)
+    project: {
+      tagline: 'Una noche entre neones, sofás y amigos. La contamos en más de 130 fotos, en color y en blanco y negro.',
+      facts: [
+        ['Cliente', 'E, S, B [CONFIRMAR]'],
+        ['Tipo', 'Sesión nocturna'],
+        ['Lugar', 'Madrid [CONFIRMAR]'],
+        ['Año', '2026'],
+        ['Entregables', '+130 fotos'],
+        ['Equipo', 'Luna López, Bruno Marín'],
+      ],
+      story: [
+        ['El encargo', 'Retratar una noche con amigos tal como se vive: la barra, los sofás y la calle a la salida.'],
+        ['La idea', 'Dejar que mande la luz del local: neones violetas, velas y rojos dentro, y un blanco y negro duro fuera, con flash directo.'],
+        ['El resultado', 'Una serie de más de 130 fotos editadas, en color y en blanco y negro, lista para redes y para el recuerdo.'],
+      ],
+      reels: [],
+      // "La noche en secuencia": 6 fotos con su pie (sin horas: no las tenemos)
+      sequence: [
+        ['02', 'La bola'],
+        ['01', 'Desperados'],
+        ['07', 'El sofá'],
+        ['09', 'Velas'],
+        ['14', 'Los de siempre'],
+        ['17', 'Fuera'],
       ],
     },
   },

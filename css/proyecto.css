@@ -96,6 +96,25 @@
 }
 .pj-cover__phone .pj-phone { height: min(70svh, 700px); }
 .pj-cover__phone .pj-sound { order: -1; }
+/* proyecto solo de fotos: en el sitio del móvil, la portada como foto grande (su proporción, --r = alto / ancho), con
+   el borde y la sombra del móvil y el radio de la web; la imagen, un 12 % más alta que el marco para su parallax */
+.pj-cover__photo {
+  --pw: min(44vw, 760px, calc(62svh / var(--r)));
+  position: absolute;
+  right: clamp(96px, 10vw, 180px);
+  top: 50%;
+  width: var(--pw);
+  aspect-ratio: 1 / var(--r);
+  margin: calc(var(--pw) * var(--r) * -0.62) 0 0; /* (algo por encima del centro: abajo va el título) */
+  overflow: hidden;
+  border: 1px solid rgb(244 242 239 / 0.2);
+  border-radius: 4px;
+  background: #000;
+  box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.85);
+}
+.pj-cover__photo img { position: absolute; left: 0; top: -6%; display: block; width: 100%; height: 112%; object-fit: cover; will-change: transform; }
+/* sin reels, la ficha va directa a "La noche": su padding inferior ya es el hueco entre secciones */
+.pj-sheet + .pj-seq { padding-top: 0; }
 .pj-cover__text { position: absolute; left: var(--pj-x); bottom: clamp(32px, 7vh, 72px); max-width: min(58vw, 820px); }
 .pj-tag {
   display: flex;
@@ -274,11 +293,13 @@
   .pj-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pj-fact:nth-child(4) { padding-left: 0; border-left: 0; }
   .pj-fact:nth-child(n + 4) { border-top: 1px solid var(--line); }
-  .pj-cover__phone { right: var(--pj-x); }
+  .pj-cover__phone,
+  .pj-cover__photo { right: var(--pj-x); }
 }
 @media (max-width: 767px) {
   .pj-cover__phone { top: 92px; right: 16px; margin-top: 0; gap: 10px; }
   .pj-cover__phone .pj-phone { height: min(44svh, 380px); }
+  .pj-cover__photo { --pw: calc(100vw - 32px); top: 92px; right: 16px; margin-top: 0; }
   .pj-cover__text { right: var(--pj-x); max-width: none; }
   .pj-lede { margin-top: 16px; }
   .pj-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }

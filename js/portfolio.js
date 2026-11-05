@@ -60,6 +60,8 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
       </a>
     </li>`;
   }).join('');
+  // con menos trabajos que columnas (2), tantas columnas como trabajos: sin una columna vacía
+  if (works.length < 3) grid.style.columns = String(works.length);
   initPlaceholders(grid);
 
   // vídeo mudo en bucle al pasar el ratón (solo si hay preview)

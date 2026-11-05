@@ -12,6 +12,8 @@ import { afterLoad } from './gpu.js';
 //   F) hoja de contactos: las fotos en masonry con filtros Todas / Color / B/N y el visor a pantalla completa
 //      (flechas, Esc, swipe, contador, miniaturas y la siguiente precargada);
 //   G) cierre: "¿El siguiente es el tuyo?".
+// Proyecto SOLO DE FOTOS (project.reels vacío): en la portada, la foto grande enmarcada en vez del móvil (con parallax
+// suave; de fondo, otra foto de la secuencia), sin sección D ni su entrada en el índice.
 // Índice lateral fijo en escritorio (la sección activa en naranja; clic = scroll suave, sin tocar el #slug).
 // ?ver=galeria baja directamente a la galería. Movimiento reducido: sin zoom, la tira se desliza a mano y los
 // vídeos no arrancan solos.
@@ -39,16 +41,30 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
   const photos = (w.media || []).filter((m) => m.type === 'img');
   const byN = Object.fromEntries(photos.map((m) => [photoN(m), m]));
   const cover = photos[0];
+  const reels = p.reels || [];
   document.title = `${w.title} — Proyecto de disco.`;
+  // con reels, en la portada el móvil con el primero; solo fotos, la portada como foto grande enmarcada (sin marco de
+  // teléfono) y, para no repetirla detrás, de fondo la primera foto de la secuencia que no es la portada
+  const bgN = reels.length ? null : (p.sequence || []).map(([n]) => n).find((n) => byN[n] && byN[n] !== cover);
+  const bg = (bgN && byN[bgN]) || cover;
+  const bgSrc = bg === cover ? w.coverLarge || cover.src : bg.src;
+  const bgSet = bg === cover ? `${esc(w.cover)} 1000w, ${esc(bgSrc)} 2000w` : `${esc(bg.thumb)} 1000w, ${esc(bg.src)} ${bg.w}w`;
+  const front = reels.length ? `
+      <div class="pj-cover__phone" data-pj-slide>
+        <div class="pj-phone"><video src="${esc(reels[0].src)}" poster="${esc(reels[0].poster)}" muted loop playsinline preload="metadata" aria-label="${esc(reels[0].alt)}" data-pj-cover-video></video></div>
+        <button class="pj-sound" type="button" aria-pressed="false" aria-label="Sonido del reel" data-pj-cover-sound>${SOUND}</button>
+      </div>` : `
+      <figure class="pj-cover__photo" data-pj-slide style="--r: ${(cover.h / cover.w).toFixed(4)}">
+        <img src="${esc(w.coverLarge || cover.src)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || cover.src)} 2000w" sizes="(min-width: 768px) 46vw, 92vw" width="${cover.w}" height="${cover.h}" alt="${esc(cover.alt)}" fetchpriority="high" decoding="async" data-pj-parallax>
+      </figure>`;
+
+  // el índice, con las secciones que tiene este proyecto (sin reels, sin su entrada)
+  const index = INDEX.filter(([id]) => id !== 'reels' || reels.length);
 
   main.innerHTML = `
-    <section class="pj-cover" id="portada" aria-labelledby="pj-title">
-      <div class="pj-cover__bg" data-pj-zoom><img src="${esc(w.coverLarge || cover.src)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || cover.src)} 2000w" sizes="100vw" width="${cover.w}" height="${cover.h}" alt="${esc(cover.alt)}" fetchpriority="high" decoding="async"></div>
-      <i class="pj-cover__shade" aria-hidden="true"></i>
-      <div class="pj-cover__phone" data-pj-slide>
-        <div class="pj-phone"><video src="${esc(p.reels[0].src)}" poster="${esc(p.reels[0].poster)}" muted loop playsinline preload="metadata" aria-label="${esc(p.reels[0].alt)}" data-pj-cover-video></video></div>
-        <button class="pj-sound" type="button" aria-pressed="false" aria-label="Sonido del reel" data-pj-cover-sound>${SOUND}</button>
-      </div>
+    <section class="pj-cover${reels.length ? '' : ' pj-cover--photo'}" id="portada" aria-labelledby="pj-title">
+      <div class="pj-cover__bg" data-pj-zoom><img src="${esc(bgSrc)}" srcset="${bgSet}" sizes="100vw" width="${bg.w}" height="${bg.h}" alt="${reels.length ? esc(cover.alt) : ''}" fetchpriority="high" decoding="async"></div>
+      <i class="pj-cover__shade" aria-hidden="true"></i>${front}
       <div class="pj-cover__text">
         <p class="pj-tag" data-pj-enter><span class="pj-tag__star">${STAR}</span>Proyecto</p>
         <h1 class="pj-title" id="pj-title"><span class="pj-mask"><span data-pj-rise>${esc(w.title)}</span></span></h1>
@@ -61,10 +77,10 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
       <div class="pj-story">${p.story.map(([k, v]) => `<div class="pj-story__col" data-pj-reveal><h2 class="pj-story__title">${esc(k)}</h2><p class="pj-story__text">${esc(v)}</p></div>`).join('')}</div>
     </section>
 
-    <section class="pj-reels" id="reels" aria-labelledby="pj-reels-title">
+    ${reels.length ? `<section class="pj-reels" id="reels" aria-labelledby="pj-reels-title">
       <div class="ip-wrap">
         <h2 class="pj-h2" id="pj-reels-title">Los reels<b class="pj-dot">.</b></h2>
-        <div class="pj-reels__row">${p.reels.map((r, i) => `
+        <div class="pj-reels__row">${reels.map((r, i) => `
           <figure class="pj-reel" data-pj-reel>
             <div class="pj-phone pj-phone--reel">
               <video src="${esc(r.src)}" poster="${esc(r.poster)}" muted playsinline preload="none" aria-label="${esc(r.alt)}"></video>
@@ -73,7 +89,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
             <figcaption class="pj-reel__cap"><span class="pj-reel__title">${esc(r.title)}</span><span class="pj-reel__time" data-pj-dur="${i}">${esc(r.duration)}</span></figcaption>
           </figure>`).join('')}</div>
       </div>
-    </section>
+    </section>` : ''}
 
     <section class="pj-seq" id="la-noche" aria-labelledby="pj-seq-title">
       <div class="ip-wrap"><h2 class="pj-h2" id="pj-seq-title">La noche, en secuencia<b class="pj-dot">.</b></h2></div>
@@ -107,7 +123,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
     </section>
 
     <nav class="pj-index" aria-label="Secciones del proyecto">
-      <ul>${INDEX.map(([id, t]) => `<li><button type="button" data-pj-to="${id}">${t}</button></li>`).join('')}</ul>
+      <ul>${index.map(([id, t]) => `<li><button type="button" data-pj-to="${id}">${t}</button></li>`).join('')}</ul>
     </nav>`;
 
   initCover({ gsap, ScrollTrigger, main, still, arrived });
@@ -115,7 +131,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
   initSequence({ gsap, ScrollTrigger, main, still });
   const viewer = initViewer({ lenis, photos, main });
   initGallery({ gsap, ScrollTrigger, main, still, viewer });
-  initIndex({ lenis, main, still, ScrollTrigger });
+  initIndex({ lenis, main, still, ScrollTrigger, index });
   if (!still) {
     gsap.utils.toArray('[data-pj-reveal]', main).forEach((el, i) => {
       gsap.from(el, { y: 40, opacity: 0, duration: 1, ease: 'expo.out', delay: (i % 3) * 0.08, scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
@@ -135,13 +151,22 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
 function initCover({ gsap, ScrollTrigger, main, still, arrived }) {
   const rise = main.querySelectorAll('[data-pj-rise]');
   const enter = main.querySelectorAll('[data-pj-enter]');
-  const slide = main.querySelectorAll('[data-pj-slide]'); // el móvil del reel: sube sin fundido (se ve desde el principio)
+  const slide = main.querySelectorAll('[data-pj-slide]'); // el móvil del reel (o la foto): sube sin fundido (se ve desde el principio)
   if (still) return;
   gsap.fromTo(main.querySelector('[data-pj-zoom]'), { scale: 1 }, {
     scale: ZOOM,
     ease: 'none',
     scrollTrigger: { trigger: '#portada', start: 'top top', end: 'bottom top', scrub: true },
   });
+  // solo fotos: la foto de la portada, con un parallax suave dentro de su marco (±5 %: el marco le deja un 6 % de margen)
+  const par = main.querySelector('[data-pj-parallax]');
+  if (par) {
+    gsap.fromTo(par, { yPercent: -5 }, {
+      yPercent: 5,
+      ease: 'none',
+      scrollTrigger: { trigger: '#portada', start: 'top top', end: 'bottom top', scrub: true },
+    });
+  }
   gsap.set(rise, { yPercent: 105 });
   gsap.set(enter, { opacity: 0, y: 24 });
   gsap.set(slide, { y: 24 });
@@ -155,6 +180,7 @@ function initCover({ gsap, ScrollTrigger, main, still, arrived }) {
 // ---------- el sonido: solo suena uno a la vez (el reel de la portada o uno de los dos de abajo) ----------
 function initSound({ main, still }) {
   const coverV = main.querySelector('[data-pj-cover-video]');
+  if (!coverV) return { stop: () => {} }; // proyecto solo de fotos: ni reel en la portada ni sección de reels
   const coverB = main.querySelector('[data-pj-cover-sound]');
   const section = main.querySelector('#reels');
   const reels = [...main.querySelectorAll('[data-pj-reel]')].map((fig) => ({ fig, v: fig.querySelector('video'), b: fig.querySelector('.pj-reel__hit') }));
@@ -307,14 +333,14 @@ function initViewer({ lenis, photos, main }) {
 }
 
 // ---------- índice lateral (escritorio): la sección activa en naranja; clic = scroll suave ----------
-function initIndex({ lenis, main, still, ScrollTrigger }) {
+function initIndex({ lenis, main, still, ScrollTrigger, index }) {
   const btns = [...main.querySelectorAll('[data-pj-to]')];
   btns.forEach((b) => b.addEventListener('click', () => {
     lenis.scrollTo(`#${b.dataset.pjTo}`, { offset: b.dataset.pjTo === 'portada' ? 0 : -72, duration: still ? 0 : 1.4, immediate: still });
   }));
   const on = (id) => btns.forEach((b) => { const a = b.dataset.pjTo === id; b.classList.toggle('is-on', a); if (a) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
   on('portada');
-  INDEX.forEach(([id]) => {
+  index.forEach(([id]) => {
     ScrollTrigger.create({ trigger: `#${id}`, start: 'top 50%', end: 'bottom 50%', onToggle: (s) => { if (s.isActive) on(id); } });
   });
 }
