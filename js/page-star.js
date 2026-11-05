@@ -399,16 +399,23 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     out.push({ x: nx(r.left + r.width / 2), y: 1 - (2 * (r.top + sy + r.height / 2)) / H, s: r.height / (unit() * H), at: 0, until: ABOUT.heroHold * H, hold: true, turn: 0 });
     // B: se suelta y baja en curva hacia la izquierda encogiendo, sin tapar el logo (escritorio)
     if (!view.mobile) out.push({ x: 0.3, y: -0.34, s: 0.55, at: 0.38 * aboutH, turn: 1.25 });
-    // C: acompaña la lectura del manifiesto, a su derecha (si no cabe, encima, a la derecha)
+    // C: acompaña la lectura del manifiesto: GRANDE, centrado en el hueco entre el final del texto y el borde derecho y
+    // en vertical con el texto (como en servicios: MANI.big); al seguir, encoge hacia la parada siguiente. Si no cabe
+    // (móvil), encima del texto, a la derecha, con la escala de siempre
     const m = document.querySelector('[data-manifesto]');
     if (m) {
       const at = Math.max(0.62 * aboutH, docTop(m) + m.offsetHeight / 2 - 0.5 * H);
-      const s = ABOUT.mani;
-      let x = nx(docLeft(m) + wordsWidth(m) + 48 + hx(s));
+      let s = ABOUT.mani;
+      const right = docLeft(m) + wordsWidth(m);
+      let x = nx(right + 48 + hx(s));
       let y = ny(m, at);
       if (x + (2 * hx(s)) / W > 0.98) {
         x = nx(W - 20 - hx(s));
         y += (m.offsetHeight / 2 + (s * unit() * H) / 2 + 18) / (H / 2);
+      } else {
+        const room = W - right;
+        s = Math.max(s, Math.min(MANI.big.k * m.offsetHeight, MANI.big.max * H, (MANI.big.room * room) / WIDTH) / (unit() * H));
+        x = nx(right + room / 2);
       }
       out.push({ x, y, s, at, until: at + ABOUT.maniHold * H, hold: true, turn: 2 });
     }

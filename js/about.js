@@ -1,4 +1,5 @@
 import { initNosotrosHero } from './nosotros-hero.js';
+import { litWords } from './interior.js';
 
 // Nosotros: el hero "Somos disco." (js/nosotros-hero.js), manifiesto que se ilumina palabra a palabra con el scroll, fotos de B/N a color (hover; en
 // móvil al entrar en pantalla), "cómo trabajamos" con un cabezal que recorre la línea (pin de 200vh en
@@ -8,23 +9,14 @@ const PIN = 2; // × alto de pantalla
 export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   initNosotrosHero({ gsap, lenis, loop, reduced });
   const main = document.querySelector('main.ip');
-  const manifesto = document.querySelector('[data-manifesto]');
-  // palabras del manifiesto: el texto entero para lectores de pantalla, las palabras animadas ocultas para ellos
-  const text = manifesto.textContent.trim();
-  manifesto.innerHTML = `<span class="sr-only">${text}</span>${text.split(/\s+/).map((w) => `<span class="mw" aria-hidden="true">${w}</span>`).join(' ')}`;
+  // el manifiesto, palabra a palabra con el scroll (js/interior.js → litWords)
+  litWords(document.querySelector('[data-manifesto]'), { gsap, reduced });
 
   if (reduced.matches) {
     main.classList.add('ip-static');
     document.querySelectorAll('[data-person]').forEach((p) => p.classList.add('is-color'));
     return;
   }
-
-  gsap.to(manifesto.querySelectorAll('.mw'), {
-    opacity: 1,
-    ease: 'none',
-    stagger: 0.1,
-    scrollTrigger: { trigger: manifesto, start: 'top 80%', end: 'bottom 45%', scrub: 0.6 },
-  });
 
   const mm = gsap.matchMedia();
 
