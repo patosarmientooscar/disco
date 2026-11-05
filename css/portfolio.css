@@ -29,6 +29,9 @@
   text-wrap: balance;
 }
 .reel__lead .mw { opacity: 0.4; } /* apagadas, pero legibles (≥ 3:1, texto grande) */
+/* "Madrid." (con su punto) en el naranja de la web, como el punto de los titulares */
+.reel__lead em { font-style: normal; color: var(--orange); }
+.reel__lead .mw--hot { color: var(--orange); }
 .reel__text { max-width: 42ch; margin: 0 0 clamp(20px, 3vh, 28px); font: 400 clamp(17px, 1.25vw, 19px) / 1.5 var(--font-display); color: #d9d2cd; text-wrap: pretty; }
 .reel__play {
   position: absolute;
