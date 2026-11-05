@@ -46,6 +46,8 @@ export function initCore() {
 
   // "sigue bajando": aviso discreto abajo si el visitante se para
   initScrollHint({ lenis });
+  // y, en los tramos donde pasan cosas solas (la home: de "Dale al REC." al final del estudio), uno fijo en el lateral
+  initSideHint({ ScrollTrigger });
 
   return { gsap, ScrollTrigger, lenis, loop, reduced, transitions };
 }
@@ -72,7 +74,7 @@ function initScrollHint({ lenis }) {
     // la página ya tiene su propio aviso en pantalla (el "Scroll to explore" del hero de la home): no se repite
     const own = document.querySelector('[data-hero-scroll]')?.getBoundingClientRect();
     const ownOn = own && y < innerHeight * 0.5 && own.top < innerHeight && own.bottom > 0; // (el hero se queda fijo debajo: solo arriba)
-    if (done || ownOn || max < innerHeight * 0.5 || y > max - HINT.end * innerHeight || busy) return;
+    if (done || ownOn || side.on || max < innerHeight * 0.5 || y > max - HINT.end * innerHeight || busy) return;
     // nunca encima de un botón, un enlace o texto (mira 5 puntos de su sitio; escondido está 8 px más abajo)
     const r = el.getBoundingClientRect();
     const pts = [[0.5, 0.5], [0.05, 0.2], [0.95, 0.2], [0.05, 0.8], [0.95, 0.8]];
@@ -90,6 +92,52 @@ function initScrollHint({ lenis }) {
   });
   window.addEventListener('pageshow', arm);
   arm();
+}
+
+// "Sigue bajando" lateral (.side-hint, css/base.css): SIEMPRE visible entre [data-side-hint="start"] (desde que llega a
+// media pantalla) y el final de [data-side-hint="end"], en el lateral derecho y centrado en vertical: el texto girado
+// (de abajo arriba) junto a una línea fina que se rellena con el progreso del tramo (scaleY) y por la que baja el
+// punto naranja. Sobre secciones claras (data-nav-ink="dark", el mismo sistema de la nav, a media pantalla), en negro.
+// Mientras se ve, el aviso de abajo (initScrollHint) no sale. Decorativo: aria-hidden.
+const side = { on: false };
+function initSideHint({ ScrollTrigger }) {
+  const from = document.querySelector('[data-side-hint="start"]');
+  const to = document.querySelector('[data-side-hint="end"]');
+  if (!from || !to) return;
+  const el = document.createElement('div');
+  el.className = 'side-hint';
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = '<span class="side-hint__txt">Sigue bajando</span><i class="side-hint__line"><b></b><s></s></i>';
+  document.body.append(el);
+  const fill = el.querySelector('b');
+  ScrollTrigger.create({
+    trigger: from,
+    start: 'top 50%',
+    endTrigger: to,
+    end: 'bottom bottom',
+    refreshPriority: -1,
+    onToggle: (st) => {
+      side.on = st.isActive;
+      el.classList.toggle('is-on', st.isActive);
+      if (st.isActive) document.querySelector('.scroll-hint')?.classList.remove('is-on');
+    },
+    onUpdate: (st) => { fill.style.transform = `scaleY(${st.progress.toFixed(4)})`; },
+  });
+  // tinta: negra en los mismos puntos que la nav (js/nav.js → watchInk: la línea de la barra; el fondo de "Dale al
+  // REC." es fijo y cambia con el progreso, no por zonas). Se cuentan: las secciones pueden solaparse
+  const nav = document.querySelector('[data-nav]');
+  const line = () => (nav ? nav.getBoundingClientRect().top + nav.offsetHeight / 2 : 40);
+  let dark = 0;
+  document.querySelectorAll('[data-nav-ink="dark"]').forEach((s) => ScrollTrigger.create({
+    trigger: s,
+    start: () => `top ${line()}px`,
+    end: () => `bottom ${line()}px`,
+    refreshPriority: -1,
+    onToggle: (st) => {
+      dark = Math.max(0, dark + (st.isActive ? 1 : -1));
+      el.classList.toggle('is-ink-dark', dark > 0);
+    },
+  }));
 }
 
 // CTA principal (.cta-pill, css/base.css): con ratón, el botón se acerca al cursor hasta 6 px (lerp .15, con
