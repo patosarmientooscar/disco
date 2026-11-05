@@ -28,6 +28,17 @@ export function splitWords(el) {
   return [...el.querySelectorAll('.w__in')];
 }
 
+// litWords: el texto que se ilumina palabra a palabra con el scroll (los manifiestos de la web): el texto entero para
+// el lector de pantalla y las palabras (.mw, apagadas al .4 por su CSS) ocultas para él, que pasan a 1 de una en una
+// con el scroll (scrub). Movimiento reducido: solo el marcado (el CSS de cada página las deja a 1).
+export function litWords(el, { gsap, reduced, start = 'top 80%', end = 'bottom 45%' }) {
+  const text = el.textContent.replace(/\s+/g, ' ').trim();
+  el.innerHTML = `<span class="sr-only">${text}</span>${text.split(' ').map((w) => `<span class="mw" aria-hidden="true">${w}</span>`).join(' ')}`;
+  const words = el.querySelectorAll('.mw');
+  if (!reduced.matches) gsap.to(words, { opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: { trigger: el, start, end, scrub: 0.6 } });
+  return words;
+}
+
 export function enterHeader({ gsap, reduced, arrived }) {
   const words = [...document.querySelectorAll('.ip [data-words]')].flatMap(splitWords);
   if (reduced.matches || !words.length) return;

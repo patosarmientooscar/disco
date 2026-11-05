@@ -193,15 +193,18 @@
       </div>
     </section>
 
-    <!-- B) showreel: visor 16:9 (vacío = hueco) -->
-    <section class="ip-wrap reel" id="showreel" aria-label="Showreel">
+    <!-- B) showreel, a la izquierda (vacío = hueco), y a la derecha quiénes somos: la primera frase se ilumina palabra
+         a palabra con el scroll (js/interior.js → litWords). En el DOM, primero el texto (en móvil va encima) -->
+    <section class="ip-wrap reel" id="showreel" aria-labelledby="reel-title">
+      <div class="reel__copy">
+        <h2 class="reel__lead" id="reel-title" data-reel-lead>Somos una agencia de producción creativa en Madrid.</h2>
+        <p class="reel__text">Foto, vídeo y edición para marcas, negocios y eventos que quieren contarse bien: pensamos la idea, la rodamos y la entregamos lista para cada pantalla, con el mismo equipo de principio a fin.</p>
+        <a class="reel__link" href="contacto.html">Cuéntanos tu idea <b aria-hidden="true">→</b></a>
+      </div>
       <div class="reel__viewer" data-reel>
         <figure class="ph" data-kind="video" data-ratio="16/9" data-ph="assets/portfolio/showreel.mp4" data-label="FALTA SHOWREEL · 16:9 · 30–60 s"></figure>
-        <span class="reel__safe" aria-hidden="true"></span>
-        <p class="reel__hud reel__hud--tl" aria-hidden="true"><i class="reel__rec"></i>SHOWREEL 2026</p>
-        <p class="reel__hud reel__hud--tr" aria-hidden="true" data-reel-tc>00:00:00:00</p>
         <button class="reel__play" type="button" data-reel-play aria-label="Reproducir el showreel" hidden>
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
         </button>
         <button class="reel__mute" type="button" data-reel-mute aria-pressed="true" hidden>Sonido: no</button>
       </div>

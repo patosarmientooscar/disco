@@ -1,6 +1,7 @@
 import { showreel, works } from './portfolio-data.js';
 import { initPlaceholders } from './placeholder.js';
 import { initManifesto } from './manifesto.js';
+import { litWords } from './interior.js';
 
 // Portfolio: el hero de la bola (js/portfolio-hero.js), contador, showreel, filtros con Flip y la rejilla "hoja de
 // contactos". Cada trabajo lleva a SU página (proyecto.html#slug, js/proyecto.js), con la transición entre páginas;
@@ -11,7 +12,6 @@ import { initManifesto } from './manifesto.js';
 const LABEL = { restaurantes: 'Restaurante', noche: 'Noche', eventos: 'Evento', marcas: 'Marca' };
 const RATIOS = ['4/5', '1/1', '9/16'];
 const EMPTY = 6;
-const FPS = 25;
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = (n) => String(n).padStart(2, '0');
@@ -24,6 +24,8 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   if (old && works.some((w) => w.slug === old)) { location.replace(page(old)); return; }
   setCount(works.length);
   initReel({ gsap, reduced });
+  // junto al showreel, la primera frase se ilumina palabra a palabra (como los manifiestos)
+  litWords(document.querySelector('[data-reel-lead]'), { gsap, reduced, start: 'top 85%', end: 'bottom 55%' });
   initManifesto({ gsap, lenis, reduced });
   import('./portfolio-hero.js').then((m) => m.initBallHero({ gsap, lenis, loop, reduced })).catch(() => {});
 
@@ -98,6 +100,8 @@ function initFilters({ gsap, grid, reduced }) {
 }
 
 // --- showreel: hueco si no hay vídeo; con vídeo: póster, play, sonido opcional y timecode ---
+// el visor limpio: el vídeo (o el hueco) con un solo play redondo en el centro; el sonido, pequeño abajo a la derecha
+// y solo mientras se reproduce. Clic en el vídeo: pausa (vuelve el play)
 function initReel({ reduced }) {
   const viewer = document.querySelector('[data-reel]');
   if (!showreel.src) return;
@@ -112,23 +116,20 @@ function initReel({ reduced }) {
 
   const play = viewer.querySelector('[data-reel-play]');
   const mute = viewer.querySelector('[data-reel-mute]');
-  const tc = viewer.querySelector('[data-reel-tc]');
   play.hidden = false;
   play.addEventListener('click', () => {
     video.play();
-    play.hidden = true;
-    mute.hidden = false;
     video.controls = reduced.matches;
   });
-  video.addEventListener('click', () => { if (!video.paused) { video.pause(); play.hidden = false; } });
+  video.addEventListener('play', () => { play.hidden = true; mute.hidden = false; });
+  const stop = () => { play.hidden = false; mute.hidden = true; };
+  video.addEventListener('pause', stop);
+  video.addEventListener('ended', stop);
+  video.addEventListener('click', () => { if (!video.paused) video.pause(); });
   mute.addEventListener('click', () => {
     video.muted = !video.muted;
     mute.setAttribute('aria-pressed', String(video.muted));
     mute.textContent = video.muted ? 'Sonido: no' : 'Sonido: sí';
-  });
-  video.addEventListener('timeupdate', () => {
-    const t = video.currentTime;
-    tc.textContent = `00:${pad(Math.floor(t / 60))}:${pad(Math.floor(t % 60))}:${pad(Math.floor((t % 1) * FPS))}`;
   });
 }
 

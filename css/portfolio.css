@@ -7,67 +7,68 @@
   color: var(--orange);
 }
 
-/* --- showreel: visor 16:9 con guías de zona segura, timecode y play --- */
-.reel__viewer {
-  position: relative;
-  max-width: 1280px;
-  margin: 0 auto;
-  border-radius: 4px;
-  overflow: hidden;
-  background: #141111;
+/* --- showreel: a la izquierda (7 de 12 columnas) y, a la derecha (4, con 1 de aire), quiénes somos, alineado arriba
+   con el visor. El visor limpio: el vídeo (o el hueco) con el radio de la web y un solo play redondo; el sonido,
+   pequeño abajo a la derecha y solo mientras se reproduce. Móvil: primero el texto y debajo el visor a todo el ancho --- */
+.reel {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 32px);
+  align-items: start;
+  padding-top: clamp(72px, 12vh, 140px);
+  padding-bottom: clamp(24px, 4vh, 48px);
 }
+.reel__viewer { grid-column: 1 / span 7; grid-row: 1; position: relative; overflow: hidden; border-radius: 4px; background: #141111; }
+.reel__copy { grid-column: 9 / span 4; grid-row: 1; }
 .reel__viewer > .ph { width: 100%; }
 .reel__viewer > video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-.reel__safe {
-  position: absolute;
-  inset: 10% 10%;
-  border: 1px dashed rgb(244 242 239 / 0.22);
-  pointer-events: none;
+.reel__lead {
+  margin: 0 0 clamp(20px, 3vh, 28px);
+  font: 600 clamp(32px, 3.4vw, 56px) / 1.02 var(--font-display);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
 }
-.reel__safe::before {
-  content: "";
-  position: absolute;
-  inset: -5.5% -5.5%;
-  border: 1px solid rgb(244 242 239 / 0.1);
-}
-.reel__hud {
-  position: absolute;
-  top: 18px;
-  margin: 0;
-  font: 400 11px / 1 var(--font-mono);
-  letter-spacing: 0.1em;
-  color: #e8e1dc;
-  pointer-events: none;
-}
-.reel__hud--tl { left: 40px; display: flex; align-items: center; gap: 8px; }
-.reel__hud--tr { right: 40px; font-variant-numeric: tabular-nums; }
-.reel__rec { width: 7px; height: 7px; border-radius: 50%; background: #ff2b2b; }
+.reel__lead .mw { opacity: 0.4; } /* apagadas, pero legibles (≥ 3:1, texto grande) */
+.reel__text { max-width: 42ch; margin: 0 0 clamp(20px, 3vh, 28px); font: 400 clamp(17px, 1.25vw, 19px) / 1.5 var(--font-display); color: #d9d2cd; text-wrap: pretty; }
 .reel__play {
   position: absolute;
   left: 50%;
   top: 50%;
   display: grid;
   place-items: center;
-  width: 84px;
-  height: 84px;
-  margin: -42px 0 0 -42px;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
   border-radius: 50%;
-  background: var(--orange);
+  background: rgb(244 242 239 / 0.92);
   color: var(--ink);
-  transition: transform 0.25s ease;
+  box-shadow: 0 0 0 1px rgb(11 9 9 / 0.18), 0 12px 32px -12px rgb(11 9 9 / 0.7); /* (se separa del póster aunque detrás haya blanco) */
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.reel__play:hover { transform: scale(1.06); }
+.reel__play svg { margin-left: 3px; } /* el triángulo, centrado a ojo */
+.reel__play:hover { transform: scale(1.06); background: #f4f2ef; }
+.reel__play:active { transform: scale(0.97); }
 .reel__mute {
   position: absolute;
-  right: 18px;
-  bottom: 16px;
-  min-height: 44px;
-  padding: 0 16px;
+  right: 12px;
+  bottom: 12px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
-  background: rgb(11 9 9 / 0.7);
-  font: 400 11px / 1 var(--font-mono);
-  letter-spacing: 0.08em;
+  background: rgb(11 9 9 / 0.62);
+  font: 400 10px / 1 var(--font-mono);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+/* (área táctil de 44 px aunque se vea pequeño) */
+.reel__mute::before { content: ""; position: absolute; inset: -6px; }
+@media (max-width: 899px) {
+  .reel__copy, .reel__viewer { grid-column: 1 / -1; }
+  .reel__copy { grid-row: 1; margin-bottom: clamp(28px, 5vh, 40px); }
+  .reel__viewer { grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reel__lead .mw { opacity: 1; }
 }
 
 /* --- filtros --- */
@@ -116,8 +117,6 @@
 
 @media (max-width: 767px) {
   .pf__grid { columns: 2; }
-  .reel__play { width: 64px; height: 64px; margin: -32px 0 0 -32px; }
-  .reel__hud { font-size: 10px; }
   /* móvil: el aviso encima de los huecos, sin taparlos */
   .pf__stage { display: flex; flex-direction: column-reverse; }
   .pf__empty { position: relative; inset: auto; margin-bottom: 32px; padding: 8px 0 0; background: none; }
@@ -215,7 +214,8 @@
 .pf-peek__row a { display: block; overflow: hidden; border-radius: 3px; background: #141111; }
 .pf-peek__row img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
 .pf-peek__row a:hover img { transform: scale(1.04); }
-.pf-peek__more {
+.pf-peek__more,
+.reel__link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -227,9 +227,12 @@
   background: linear-gradient(currentColor, currentColor) 0 calc(100% - 8px) / 100% 1px no-repeat;
   transition: color 0.25s ease;
 }
-.pf-peek__more:hover { color: var(--orange); }
-.pf-peek__more b { font-weight: 500; transition: translate 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
-.pf-peek__more:hover b { translate: 5px 0; }
+.pf-peek__more:hover,
+.reel__link:hover { color: var(--orange); }
+.pf-peek__more b,
+.reel__link b { font-weight: 500; transition: translate 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+.pf-peek__more:hover b,
+.reel__link:hover b { translate: 5px 0; }
 
 /* ---------- hero: la bola de espejos (js/portfolio-hero.js) ----------
    El vídeo ya viene etalonado y fuera del charco de luz es #0b0909 exacto, el negro de la página: nada encima que le
