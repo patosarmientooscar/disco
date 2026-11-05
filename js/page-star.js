@@ -9,8 +9,8 @@ import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studi
 // Servicios, el destello como GUÍA del proceso:
 //   · MANIFIESTO: el destello del hero VIAJA hasta aquí (js/hero-star.js, handoff) y hace el RELEVO (relay, arriba):
 //     en el mismo fotograma deja de pintar aquel y pinta este, en la misma pose (maniPose, la misma función para los
-//     dos), con los reflejos fundiéndose del vídeo al estudio (0.6 s). Se queda a la DERECHA del texto, centrado con
-//     él (escala .26), girando despacio en Y y respondiendo al ratón. Cuando se iluminan las palabras clave ("idea",
+//     dos), con los reflejos fundiéndose del vídeo al estudio (0.6 s). Se queda GRANDE en el hueco a la DERECHA del
+//     texto, centrado con él (maniPose), y al seguir bajando encoge hasta su escala .26, girando despacio en Y y respondiendo al ratón. Cuando se iluminan las palabras clave ("idea",
 //     "imágenes"; evento "disco:manifest-hot" de js/servicios.js) da un giro extra y su reflejo se tiñe un instante
 //     de naranja. Al bajar se queda a media pantalla y, cuando el borde superior de "Tres oficios" lo alcanza, SE
 //     METE detrás (baja y da media vuelta, 0.45 s) con una luz naranja en ese borde, en su X; al subir, sale igual.
@@ -79,7 +79,10 @@ const VELOCITY_MUTE = 600;
 const TAU = Math.PI * 2;
 // el manifiesto: escala, hueco con el texto, altura a la que se queda (× pantalla), giro lento (rad/s), entrada y
 // salida (s), el giro extra y el reflejo naranja de las palabras clave; el hero lo suelta con su bottom en el 15 %
-const MANI = { s: 0.26, gap: 48, stick: 0.42, spin: 0.5, enter: 1.1, leave: 0.45, hotTurn: Math.PI, hotDur: 0.9, glow: 0.7, glowDur: 0.9, heroOff: 0.15, follow: 10 };
+// (big: en el propio manifiesto, grande: × alto del texto, máximo × pantalla, × hueco; encoge en shrink pantallas
+// desde que el texto se le va hacia arriba: con "Tres oficios" tan cerca, si esperase a que el texto saliera por arriba
+// ya estaría tapado; mob: sin hueco, × la escala de siempre)
+const MANI = { s: 0.26, gap: 48, stick: 0.42, spin: 0.5, enter: 1.1, leave: 0.45, hotTurn: Math.PI, hotDur: 0.9, glow: 0.7, glowDur: 0.9, heroOff: 0.15, follow: 10, big: { k: 1.1, max: 0.55, room: 0.8, shrink: 0.2, mob: 1.3 } };
 // con relevo: la zambullida detrás de "Tres oficios" (s; baja 0.35 de su alto; histéresis en px), su luz (entra,
 // se apaga) y el fundido de reflejos del vídeo del hero al estudio
 const DIVE = { dur: 0.45, drop: 0.35, hyst: 24, light: 0.3, fade: 0.6, env: 0.6 };
@@ -108,19 +111,30 @@ export function maniMeasure() {
   maniSite.geo = m ? { top: docTop(m), h: m.offsetHeight, right: docLeft(m) + wordsWidth(m) } : null;
   return maniSite.geo;
 }
+// En el manifiesto, GRANDE (MANI.big): centrado en el hueco entre el final del texto y el borde derecho, y en vertical
+// con el texto; alto 1,1 × el bloque (máximo 0,55 de pantalla y su ancho, el 80 % del hueco). Desde que el bloque
+// se le va hacia arriba (deja de seguirlo), encoge ligado al scroll (en MANI.big.shrink pantallas) hasta la pose de siempre: escala
+// .26 a la derecha del texto, quieto a media pantalla hasta que "Tres oficios" lo tapa. Sin hueco (móvil), encima
+// del texto a la derecha, MANI.big.mob × el tamaño de siempre.
 export function maniPose(px) {
   const geo = maniSite.geo || maniMeasure();
   if (!geo) return null;
   const H = innerHeight;
-  const hPx = MANI.s * UNIT * (matchMedia('(max-width: 767px)').matches ? MOBILE_K : 1) * H;
-  const half = (WIDTH * hPx) / 2;
-  let cx = geo.right + MANI.gap + half;
-  let cy = geo.top + geo.h / 2 - px;
-  if (cx + half > innerWidth - 16) {
-    cx = innerWidth - 20 - half;
-    cy = geo.top - px - 18 - hPx / 2;
-  } else cy = Math.max(cy, MANI.stick * H); // se queda a media pantalla: "Tres oficios" sube y lo tapa
-  cy = Math.min(cy, H - 16 - hPx / 2);
+  const W = innerWidth;
+  const small = MANI.s * UNIT * (matchMedia('(max-width: 767px)').matches ? MOBILE_K : 1) * H;
+  const top = geo.top - px;
+  if (geo.right + MANI.gap + WIDTH * small > W - 16) {
+    const hPx = small * MANI.big.mob;
+    return { cx: W - 20 - (WIDTH * hPx) / 2, cy: Math.min(top - 18 - hPx / 2, H - 16 - hPx / 2), hPx };
+  }
+  const room = W - geo.right;
+  const big = Math.max(small, Math.min(MANI.big.k * geo.h, MANI.big.max * H, (MANI.big.room * room) / WIDTH));
+  // (encoge desde que el texto se le va hacia arriba: su centro pasa la altura a la que él se queda)
+  const k = THREE.MathUtils.smoothstep(MANI.stick * H - (top + geo.h / 2), 0, MANI.big.shrink * H);
+  const hPx = big + (small - big) * k;
+  const cx = geo.right + room / 2 + (MANI.gap + (WIDTH * small) / 2 - room / 2) * k;
+  // se queda a media pantalla: "Tres oficios" sube y lo tapa
+  const cy = Math.min(Math.max(top + geo.h / 2, MANI.stick * H), H - 16 - hPx / 2);
   return { cx, cy, hPx };
 }
 
@@ -732,7 +746,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     }
     star.visible = true;
     star.position.set(((mani.x / innerWidth) * 2 - 1) * view.halfW, (1 - (y / H) * 2) * view.halfH, 0);
-    star.scale.setScalar(Math.max(0.0001, worldScale(MANI.s)));
+    star.scale.setScalar(Math.max(0.0001, worldScale(p.hPx / (unit() * H)))); // (el tamaño de su pose: grande o encogiendo)
     star.rotation.set(look.rx, look.ry, look.rz);
     gl.draw(scene, 'page');
     drawn = true;
