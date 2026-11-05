@@ -1,9 +1,11 @@
 import { config } from './config.js';
+import { dlog } from './gpu.js';
 
 // Contacto (contacto.html, css/contact.css): sin hero. El titular y los canales (copiar el email, Instagram) y un
-// formulario corto que ENVÍA EL CORREO DIRECTAMENTE con EmailJS (sin abrir el programa de correo): js/config.js →
-// emailjs; la plantilla del correo y los pasos, en docs/emailjs/. Con las claves vacías, el formulario lo dice y da
-// el email. Anti-spam: campo trampa, 3 s mínimos desde que se abre la página y 30 s entre envíos.
+// formulario corto que manda a disco un AVISO por correo con los datos (sin abrir el programa de correo), según
+// js/config.js → contactForm: por defecto FormSubmit (sin cuenta ni claves; la primera vez hay que activar el email:
+// docs/contacto.md); con provider 'emailjs' y sus claves puestas, EmailJS (su plantilla, en docs/emailjs/). Si falla,
+// el error da el email para escribir directamente. Con ?debug, la consola muestra lo que se envía. Anti-spam: campo trampa, 3 s mínimos desde que se abre la página y 30 s entre envíos.
 // Animaciones: el titular sube y los campos entran en cascada; mientras se escribe, el REC late más rápido; al
 // enviar, el botón se vuelve una barra fina; al terminar, flash y "Recibido, {nombre}.".
 // (LEGACY: la claqueta y el formulario largo, en legacy/contacto-hoja-rodaje/)
@@ -65,7 +67,8 @@ export function init({ gsap, lenis, reduced }) {
   const done = document.querySelector('[data-done]');
   const flash = document.querySelector('[data-ct-flash]');
   const keys = config.emailjs || {};
-  const ready = !!(keys.publicKey && keys.serviceId && keys.templateId);
+  const cf = config.contactForm || {};
+  const ready = cf.provider === 'emailjs' && !!(keys.publicKey && keys.serviceId && keys.templateId); // EmailJS; si no, FormSubmit
   const fallback = `<a href="mailto:${email}">${email}</a>`;
 
   // con las claves puestas, EmailJS se descarga en cuanto se toca el formulario
@@ -116,18 +119,14 @@ export function init({ gsap, lenis, reduced }) {
     if (data.web) { finish(data); return; }
     if (performance.now() - loaded < MIN_MS) { say('Un segundo… vuelve a pulsar Enviar.'); return; }
     if (now - last < LOCK_MS) { say(`Ya nos ha llegado tu mensaje. Si quieres añadir algo, espera unos segundos o escríbenos a ${fallback}.`); return; }
-    // sin claves: el formulario aún no envía
-    let emailjs = null;
-    if (ready) { try { emailjs = await loadEmailjs(); } catch { /* sin red o bloqueado */ } }
-    if (!ready || !emailjs) {
-      say(`Formulario en configuración: escríbenos a ${fallback}.`, true);
-      return;
-    }
     const params = buildParams(data);
     sending(true);
     try {
-      await emailjs.send(keys.serviceId, keys.templateId, params, { publicKey: keys.publicKey });
-      if (keys.autoReplyTemplateId) emailjs.send(keys.serviceId, keys.autoReplyTemplateId, params, { publicKey: keys.publicKey }).catch(() => {});
+      if (ready) {
+        const emailjs = await loadEmailjs();
+        await emailjs.send(keys.serviceId, keys.templateId, params, { publicKey: keys.publicKey });
+        if (keys.autoReplyTemplateId) emailjs.send(keys.serviceId, keys.autoReplyTemplateId, params, { publicKey: keys.publicKey }).catch(() => {});
+      } else await formsubmit(cf.alias || cf.to || email, params, data.web || '');
       try { localStorage.setItem(LOCK_KEY, String(Date.now())); } catch { /* sin almacenamiento */ }
       await gsap.to(bar, { scaleX: 1, duration: 0.25, ease: 'power2.out' });
       finish(data);
@@ -163,6 +162,35 @@ export function init({ gsap, lenis, reduced }) {
   }
 
   initFaq({ gsap, reduced });
+}
+
+// FormSubmit: el aviso a disco, una tabla con los datos (AJAX: sin salir de la página). _replyto: al darle a
+// Responder, se contesta al interesado. Vale si responde success "true"
+const FORMSUBMIT = 'https://formsubmit.co/ajax/';
+async function formsubmit(to, p, honey) {
+  const body = {
+    _subject: `Nuevo interesado en la web · ${p.negocio} · ${p.nombre}`,
+    _template: 'table',
+    _captcha: 'false',
+    _replyto: p.email,
+    _honey: honey,
+    Nombre: p.nombre,
+    Negocio: p.negocio,
+    Email: p.email,
+    'Teléfono': p.telefono,
+    Mensaje: p.mensaje,
+    Enviado: p.fecha,
+    'Página': p.pagina,
+  };
+  dlog('contacto: aviso a FormSubmit', FORMSUBMIT + to, body);
+  const res = await fetch(FORMSUBMIT + encodeURI(to), { // (la @ tal cual, como la documenta FormSubmit)
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const out = await res.json().catch(() => ({}));
+  dlog('contacto: respuesta de FormSubmit', res.status, out);
+  if (!res.ok || String(out.success) !== 'true') throw new Error(out.message || `FormSubmit ${res.status}`);
 }
 
 // los parámetros que recibe la plantilla de EmailJS (docs/emailjs/email-nuevo-contacto.html), con estos nombres

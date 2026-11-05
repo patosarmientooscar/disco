@@ -1,6 +1,8 @@
-# Formulario de contacto: envío directo con EmailJS
+# Formulario de contacto: envío directo con EmailJS (opcional)
 
-El formulario de `contacto.html` envía el correo desde el navegador con EmailJS, sin abrir el programa de correo. Hasta que se rellenen las claves de `js/config.js` → `emailjs`, el formulario no envía: dice "Formulario en configuración" y da el email `equipo@discoproduccion.com`.
+> **Ahora el formulario envía con FormSubmit** (sin cuenta ni claves): ver `docs/contacto.md`, incluida la activación de la primera vez. EmailJS solo se usa si se rellenan estas claves **y** se pone `contactForm.provider: 'emailjs'` en `js/config.js`.
+
+El formulario de `contacto.html` puede enviar el correo desde el navegador con EmailJS, sin abrir el programa de correo, con la plantilla de esta carpeta.
 
 ## Pasos (una sola vez, unos 10 minutos)
 
