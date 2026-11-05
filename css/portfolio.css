@@ -74,18 +74,6 @@
   .reel__lead .mw { opacity: 1; }
 }
 
-/* --- filtros --- */
-.pf__filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: clamp(28px, 4vh, 48px); }
-.pf__filter {
-  min-height: 44px;
-  padding: 0 20px;
-  border: 1px solid rgb(244 242 239 / 0.28);
-  border-radius: 999px;
-  font: 400 15px / 1 var(--font-display);
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-.pf__filter:hover { border-color: var(--paper); }
-.pf__filter[aria-pressed="true"] { background: var(--paper); border-color: var(--paper); color: var(--ink); }
 
 /* --- rejilla "hoja de contactos": columnas desiguales --- */
 .pf__stage { position: relative; }

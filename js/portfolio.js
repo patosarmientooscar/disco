@@ -3,7 +3,7 @@ import { initPlaceholders } from './placeholder.js';
 import { initManifesto } from './manifesto.js';
 import { litWords } from './interior.js';
 
-// Portfolio: el hero de la bola (js/portfolio-hero.js), contador, showreel, filtros con Flip y la rejilla "hoja de
+// Portfolio: el hero de la bola (js/portfolio-hero.js), contador, showreel y la rejilla "hoja de
 // contactos". Cada trabajo lleva a SU página (proyecto.html#slug, js/proyecto.js), con la transición entre páginas;
 // los enlaces viejos (portfolio.html#slug) también. Sin trabajos: 6 huecos al .55 y el aviso "Estamos rodando...".
 // Con UN solo trabajo, en vez de la rejilla, el proyecto destacado: portada grande (toda ella, el enlace), 3 fotos de
@@ -37,7 +37,6 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     grid.innerHTML = Array.from({ length: EMPTY }, (_, i) => `<li class="pf__item"><figure class="ph" data-ratio="${RATIOS[i % 3]}" data-ph="assets/portfolio/proyecto-${pad(i + 1)}/cover.webp"></figure></li>`).join('');
     initPlaceholders(grid);
     document.querySelector('[data-empty]').hidden = false;
-    document.querySelector('[data-filters]').hidden = true;
     return;
   }
 
@@ -74,32 +73,8 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     });
   }
 
-  initFilters({ gsap, grid, reduced });
 }
 
-// --- filtros: Flip de gsap (el plugin se carga en portfolio.html) ---
-function initFilters({ gsap, grid, reduced }) {
-  const buttons = [...document.querySelectorAll('[data-filter]')];
-  const items = [...grid.children];
-  const Flip = window.Flip;
-  if (Flip) gsap.registerPlugin(Flip);
-  buttons.forEach((b) => b.addEventListener('click', () => {
-    const f = b.dataset.filter;
-    buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    const state = Flip && !reduced.matches ? Flip.getState(items) : null;
-    items.forEach((li) => li.classList.toggle('is-out', f !== 'all' && li.dataset.cat !== f));
-    if (state) {
-      Flip.from(state, {
-        duration: 0.6,
-        ease: 'power3.inOut',
-        absolute: true,
-        onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.5 }),
-        onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.94, duration: 0.35 }),
-      });
-    }
-    setCount(items.filter((li) => !li.classList.contains('is-out')).length);
-  }));
-}
 
 // --- showreel: hueco si no hay vídeo; con vídeo: póster, play, sonido opcional y timecode ---
 // el visor limpio: el vídeo (o el hueco) con un solo play redondo en el centro; el sonido, pequeño abajo a la derecha
@@ -139,7 +114,6 @@ function initReel({ reduced }) {
 // Portada grande con el título encima (toda ella, el enlace a la página del proyecto); debajo, 3 fotos de adelanto en
 // fila y "Ver las 20 fotos" (a la galería del proyecto); al final, la tarjeta del próximo proyecto.
 function initFeatured({ work: w }) {
-  document.querySelector('[data-filters]').hidden = true;
   const stage = document.querySelector('[data-stage]');
   stage.classList.add('is-featured');
   const photos = (w.media || []).filter((m) => m.type === 'img');
