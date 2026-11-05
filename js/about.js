@@ -1,8 +1,9 @@
 import { initNosotrosHero } from './nosotros-hero.js';
 import { litWords } from './interior.js';
 
-// Nosotros: el hero "Somos disco." (js/nosotros-hero.js), manifiesto que se ilumina palabra a palabra con el scroll, fotos de B/N a color (hover; en
-// móvil al entrar en pantalla), "cómo trabajamos" con un cabezal que recorre la línea (pin de 200vh en
+// Nosotros: el hero "Somos disco." (js/nosotros-hero.js), manifiesto que se ilumina palabra a palabra con el scroll,
+// Luna y Bruno en zigzag (cada foto entra desde su lado; sus textos, palabra a palabra; de B/N a color con el ratón
+// encima, en móvil al entrar en pantalla), "cómo trabajamos" con un cabezal que recorre la línea (pin de 200vh en
 // escritorio) y la franja del estudio con parallax suave. Movimiento reducido: todo visible y quieto.
 const PIN = 2; // × alto de pantalla
 
@@ -11,6 +12,21 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   const main = document.querySelector('main.ip');
   // el manifiesto, palabra a palabra con el scroll (js/interior.js → litWords)
   litWords(document.querySelector('[data-manifesto]'), { gsap, reduced });
+  // Luna y Bruno: sus textos, igual; y cada foto se abre desde su borde al entrar en pantalla (1 s, css/about.css).
+  // Solo se esconden las que aún no han llegado y si hay observador: si no, se ven
+  document.querySelectorAll('[data-person-bio]').forEach((el) => litWords(el, { gsap, reduced, start: 'top 85%', end: 'bottom 55%' }));
+  if (!reduced.matches && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.remove('is-pending');
+      io.unobserve(e.target);
+    }), { rootMargin: '0px 0px -12% 0px' });
+    document.querySelectorAll('[data-person-photo]').forEach((p) => {
+      if (p.getBoundingClientRect().top < innerHeight * 0.88) return;
+      p.classList.add('is-pending');
+      io.observe(p);
+    });
+  }
 
   if (reduced.matches) {
     main.classList.add('ip-static');

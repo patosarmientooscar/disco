@@ -11,15 +11,25 @@
 .ab-manifesto__text .mw { opacity: 0.4; } /* apagadas, pero legibles (≥ 3:1, texto grande) */
 .ip-static .ab-manifesto__text .mw { opacity: 1; }
 
-/* Luna y Bruno */
-.ab-lead { max-width: 30ch; margin: calc(-1 * clamp(8px, 2vh, 24px)) 0 clamp(32px, 6vh, 56px); font: 400 clamp(19px, 1.7vw, 26px) / 1.35 var(--font-display); color: rgb(244 242 239 / 0.86); }
-/* fichas pequeñas y editoriales: máx. 340 px, centradas, con el hueco del destello entre ellas (js/page-star.js);
-   la de Bruno, 64 px más abajo */
-.ab-team { display: flex; justify-content: center; align-items: flex-start; gap: clamp(48px, 8vw, 140px); }
-.ab-person { flex: 0 1 340px; min-width: 0; }
-.ab-person + .ab-person { margin-top: 64px; }
-.ab-person__photo { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 4px; background: #141111; box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.7); }
+/* Luna y Bruno, en zigzag y con el MISMO peso: cada bloque ocupa todo el ancho de la pantalla (sale del .ip-wrap) en 12
+   columnas; la foto (5 columnas, 4:5) sangra por su lado (Luna, izquierda; Bruno, derecha) con el radio de la web en
+   las demás esquinas, y el texto (5 columnas) al otro lado, centrado en vertical con la foto. Mismo hueco G del
+   título a Luna y de Luna a Bruno (el de las secciones). Móvil: foto a todo el ancho y el texto debajo */
+.ab-team { --g: clamp(72px, 12vh, 140px); display: grid; gap: var(--g); margin-inline: calc(50% - 50vw); }
+.ab-lead { max-width: 30ch; margin: calc(-1 * clamp(8px, 2vh, 24px)) 0 var(--g, clamp(72px, 12vh, 140px)); font: 400 clamp(19px, 1.7vw, 26px) / 1.35 var(--font-display); color: rgb(244 242 239 / 0.86); }
+.ab-person {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 32px);
+  align-items: center;
+}
+.ab-person__photo { position: relative; grid-row: 1; aspect-ratio: 4 / 5; overflow: hidden; background: #141111; }
 .ab-person__photo::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(244 242 239 / 0.1); pointer-events: none; }
+.ab-person--luna .ab-person__photo { grid-column: 1 / span 5; border-radius: 0 4px 4px 0; }
+.ab-person--luna .ab-person__text { grid-column: 7 / span 5; }
+.ab-person--bruno .ab-person__photo { grid-column: 8 / span 5; border-radius: 4px 0 0 4px; }
+.ab-person--bruno .ab-person__text { grid-column: 2 / span 5; }
+.ab-person__text { grid-row: 1; }
 /* escuadras de autofoco: al pasar el ratón se cierran sobre la cara */
 .ab-person__af {
   --c: rgb(244 242 239 / 0.9);
@@ -55,11 +65,27 @@
 }
 .ab-person:hover .ab-person__photo img,
 .ab-person.is-color .ab-person__photo img { filter: none; transform: scale(1.02); }
-.ab-person__name { margin: 22px 0 8px; font: 600 26px / 1.05 var(--font-display); letter-spacing: -0.015em; }
-.ab-person__role { margin: 0 0 12px; font: 500 11px / 1.45 var(--font-mono); letter-spacing: 0.1em; color: var(--orange); }
-.ab-person__bio { max-width: 30ch; margin: 0 0 12px; font: 400 15px / 1.5 var(--font-display); color: #d9d2cd; }
-.ab-person__kit { margin: 0; font: 400 11px / 1.4 var(--font-mono); letter-spacing: 0.08em; color: var(--muted); }
-.ab-person__ig { display: inline-block; margin-top: 12px; color: var(--paper); font: 400 15px / 1 var(--font-display); }
+.ab-person__name { margin: 0 0 12px; font: 600 clamp(40px, 4.6vw, 76px) / 0.95 var(--font-display); letter-spacing: -0.03em; }
+.ab-person__role { margin: 0 0 clamp(20px, 3vh, 32px); font: 400 clamp(17px, 1.3vw, 20px) / 1.4 var(--font-display); color: rgb(244 242 239 / 0.86); }
+.ab-person__bio { max-width: 40ch; margin: 0; font: 400 clamp(17px, 1.3vw, 20px) / 1.55 var(--font-display); color: #d9d2cd; text-wrap: pretty; }
+/* palabra a palabra (js/interior.js → litWords): apagadas al .56, que en texto de cuerpo aún da 4,5:1 */
+.ab-person__bio .mw { opacity: 0.56; }
+.ip-static .ab-person__bio .mw { opacity: 1; }
+/* la entrada: cada foto se abre hacia dentro desde su borde (js/about.js pone .is-pending a las que aún no han
+   entrado; sin observador, se ven) */
+.ab-person__photo { clip-path: inset(0 0 0 0); transition: clip-path 1s cubic-bezier(0.32, 0.72, 0, 1); }
+.ab-person--luna .ab-person__photo.is-pending { clip-path: inset(0 100% 0 0); }
+.ab-person--bruno .ab-person__photo.is-pending { clip-path: inset(0 0 0 100%); }
+@media (max-width: 899px) {
+  .ab-person { row-gap: clamp(24px, 4vh, 36px); }
+  .ab-person .ab-person__photo,
+  .ab-person .ab-person__text { grid-column: 1 / -1; }
+  .ab-person .ab-person__photo { grid-row: 1; border-radius: 0; }
+  .ab-person .ab-person__text { grid-row: 2; padding: 0 var(--gutter); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-person__photo { transition: none; }
+}
 
 /* cómo trabajamos: regla con cabezal naranja (como el del footer) */
 .ab-how { position: relative; }
@@ -121,9 +147,6 @@
 }
 /* sin pin (móvil y movimiento reducido): lista vertical, todos encendidos */
 @media (max-width: 899px) {
-  .ab-team { flex-direction: column; align-items: center; gap: 104px; } /* entre las dos, el destello */
-  .ab-person { flex: none; width: 78vw; }
-  .ab-person + .ab-person { margin-top: 0; }
   .ab-how__ruler { display: none; }
   .ab-how__steps { grid-template-columns: 1fr; }
   .ab-how__steps li { opacity: 1; padding-top: 20px; border-top: 1px solid var(--line); }

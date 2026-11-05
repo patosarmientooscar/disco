@@ -185,33 +185,38 @@
       <p class="ab-manifesto__text" data-manifesto>Somos expertos titulados en comunicación audiovisual y sabemos que cada negocio tiene una energía propia. Nuestro trabajo es encontrarla, grabarla y convertirla en contenido que la gente quiera ver.</p>
     </section>
 
-    <!-- C) Luna y Bruno (roles y bios: BORRADOR, Oscar confirma) -->
+    <!-- C) Luna y Bruno, en zigzag y con el mismo peso (css/about.css): la foto de Luna sangra por la izquierda y su
+         texto va a la derecha; la de Bruno, por la derecha, con el texto a la izquierda. Cada foto entra desde su lado
+         y cada texto se ilumina palabra a palabra (js/about.js). El destello se coloca en el hueco entre los dos
+         (js/page-star.js → teamPoint) -->
     <section class="ip-section ip-wrap" id="equipo" data-malla="quiet" data-malla-calm="0.36" aria-labelledby="team-title">
       <h2 class="ip-h2" id="team-title">Quién está detrás</h2>
       <p class="ab-lead">Un equipo, un responsable de principio a fin.</p>
       <div class="ab-team" data-team>
-        <article class="ab-person" data-person>
-          <div class="ab-person__photo"><i class="ab-person__af" aria-hidden="true"></i>
+        <article class="ab-person ab-person--luna" data-person>
+          <div class="ab-person__photo" data-person-photo><i class="ab-person__af" aria-hidden="true"></i>
             <img src="assets/team/luna-lopez-1280.webp" srcset="assets/team/luna-lopez-720.webp 720w, assets/team/luna-lopez-1280.webp 1280w"
-                 sizes="(min-width: 900px) 340px, 78vw" width="1280" height="1600" loading="lazy" decoding="async"
+                 sizes="(min-width: 900px) 42vw, 100vw" width="1280" height="1600" loading="lazy" decoding="async"
                  alt="Retrato de Luna López, cofundadora de disco">
           </div>
-          <h3 class="ab-person__name">Luna López</h3>
-          <p class="ab-person__role">COFUNDADORA · DIRECCIÓN Y EDICIÓN DE VÍDEO</p>
-          <p class="ab-person__bio" data-draft>[BORRADOR: dos líneas sobre Luna: de dónde viene, qué le gusta grabar y qué aporta a cada rodaje.]</p>
-          <p class="ab-person__kit" data-draft>KIT FAVORITO: [cámara / objetivo]</p>
+          <div class="ab-person__text">
+            <h3 class="ab-person__name">Luna López</h3>
+            <p class="ab-person__role">Cofundadora. Dirección y edición de vídeo.</p>
+            <p class="ab-person__bio" data-person-bio>Nació en Costa Rica y se graduó en Comunicación Audiovisual en Madrid. Le gusta grabar a la gente en su momento, sin posar: la cocina en pleno servicio, el ensayo antes de salir, la última hora de una fiesta. Dirige cada rodaje pensando ya en el montaje, y en la edición busca el ritmo hasta que la pieza se siente como estar ahí.</p>
+          </div>
         </article>
         <!-- TODO: foto real de Bruno (assets/team/bruno-marin-*.webp es provisional, ver PENDIENTES.md) -->
-        <article class="ab-person" data-person>
-          <div class="ab-person__photo"><i class="ab-person__af" aria-hidden="true"></i>
+        <article class="ab-person ab-person--bruno" data-person>
+          <div class="ab-person__photo" data-person-photo><i class="ab-person__af" aria-hidden="true"></i>
             <img src="assets/team/bruno-marin-1280.webp" srcset="assets/team/bruno-marin-720.webp 720w, assets/team/bruno-marin-1280.webp 1280w"
-                 sizes="(min-width: 900px) 340px, 78vw" width="1280" height="1600" loading="lazy" decoding="async"
+                 sizes="(min-width: 900px) 42vw, 100vw" width="1280" height="1600" loading="lazy" decoding="async"
                  alt="Retrato de Bruno Marín, cofundador de disco">
           </div>
-          <h3 class="ab-person__name">Bruno Marín</h3>
-          <p class="ab-person__role">COFUNDADOR · FOTO, VÍDEO Y EDICIÓN DE FOTO</p>
-          <p class="ab-person__bio" data-draft>[BORRADOR: dos líneas sobre Bruno: de dónde viene, qué le gusta grabar y qué aporta a cada rodaje.]</p>
-          <p class="ab-person__kit" data-draft>KIT FAVORITO: [cámara / objetivo]</p>
+          <div class="ab-person__text">
+            <h3 class="ab-person__name">Bruno Marín</h3>
+            <p class="ab-person__role">Cofundador. Foto, vídeo y edición de foto.</p>
+            <p class="ab-person__bio" data-person-bio>Madrileño y graduado en Comunicación Audiovisual en Madrid. Hace foto y vídeo, y le gusta encontrar la luz buena de cada sitio: el producto que se ve como es, los espacios con su ambiente y las personas cuando se olvidan de la cámara. Cuida cada imagen hasta el último retoque.</p>
+          </div>
         </article>
       </div>
     </section>

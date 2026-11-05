@@ -35,7 +35,7 @@ import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studi
 // Nosotros, el destello RECORRE TODA LA PÁGINA (como en la home): empieza en el hero, grande a la derecha del logo
 // (el hueco .nh__star; gira lento de frente, se inclina con el ratón y se arrastra; sus reflejos llevan los planos
 // naranja y blanco de la aurora); al bajar se suelta, gira 1,25 vueltas y baja en curva hacia la izquierda encogiendo;
-// acompaña el manifiesto a su derecha; se coloca ENTRE las fotos de Luna y Bruno (en vivo, inclinándose hacia la que
+// acompaña el manifiesto, grande a su derecha; se coloca en el hueco ENTRE Luna y Bruno (en vivo, inclinándose hacia la foto que
 // tiene el ratón encima); recorre los pasos de "Cómo trabajamos" (sobre la regla, de paso en paso, y el paso se
 // ilumina: .is-lit); en el estudio, a la derecha girando más rápido; en el cierre, centrado arriba con la onda; y
 // cae en el footer. Arrastrable en las paradas quietas.
@@ -363,15 +363,10 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     return { left, top, right: left + el.offsetWidth, bottom: top + el.offsetHeight, width: el.offsetWidth, height: el.offsetHeight };
   };
   const live = (el) => el.getBoundingClientRect();
-  // entre las dos fotos (escritorio: en el hueco, a media altura de las dos; móvil: entre la ficha de Luna y la foto
-  // de Bruno)
+  // en el hueco entre el bloque de Luna y el de Bruno (van en zigzag, uno debajo del otro), en el centro de la pantalla
   const teamPoint = (get) => {
-    const ph = team.querySelectorAll('.ab-person__photo');
-    const a = get(ph[0]);
-    const b = get(ph[1]);
-    if (a.right < b.left - 8) return { x: (a.right + b.left) / 2, y: (a.top + a.bottom + b.top + b.bottom) / 4 };
-    const card = get(team.querySelector('[data-person]'));
-    return { x: innerWidth / 2, y: (card.bottom + b.top) / 2 };
+    const [a, b] = [...team.querySelectorAll('[data-person]')].map(get);
+    return { x: innerWidth / 2, y: (a.bottom + b.top) / 2 };
   };
   // un paso: escritorio (fijado), sobre la regla al principio de su columna; si no, a la derecha de su número
   const stepPoint = (card, get) => {
@@ -421,7 +416,9 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     }
     // D: entre las fotos de Luna y Bruno (en vivo: teamPoint en cada fotograma)
     if (team) {
-      const at = docTop(team) + team.offsetHeight / 2 - 0.5 * H;
+      // (con el hueco a media pantalla; mientras el hueco está en pantalla, lo sigue en vivo: teamG)
+      const [pa, pb] = team.querySelectorAll('[data-person]');
+      const at = (docTop(pa) + pa.offsetHeight + docTop(pb)) / 2 - 0.5 * H;
       out.push({ ...ndc(teamPoint((el) => rectAt(el, at))), s: ABOUT.team, at: at - ABOUT.teamHold * H, until: at + ABOUT.teamHold * H, hold: true, turn: 2 });
       teamG = { start: at - 0.5 * H, end: at + 0.5 * H };
     }
@@ -680,7 +677,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   };
 
   // nosotros: hacia qué foto se inclina (la que tiene el ratón encima)
-  team?.querySelectorAll('[data-person]').forEach((p, i) => {
+  team?.querySelectorAll('[data-person-photo]').forEach((p, i) => {
     p.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') side = i ? 1 : -1; });
     p.addEventListener('pointerleave', () => { side = 0; });
   });
