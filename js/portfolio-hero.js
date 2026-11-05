@@ -1,3 +1,5 @@
+import { initBallColor } from './portfolio-ball-color.js';
+
 // Hero de portfolio: la bola de espejos real, etalonada en naranja (el vídeo de js/config.js → pageHeroes.portfolio,
 // en dos versiones: horizontal 2560 y vertical, VERSIONS; el hero común, en js/page-hero.js, que elige la versión,
 // sin el destello 3D). La bola SIEMPRE gira: el vídeo no se para mientras el hero se ve (js/page-hero.js → always) y
@@ -14,6 +16,8 @@
 //     fondo acaba en #0b0909.
 // Todo en el loop único (gsap.ticker). Movimiento reducido: la bola gira igual (es el vídeo, no una animación de la
 // interfaz) a 0.8, sin acelerar con el scroll; los puntos, quietos sobre ella y sin salida.
+// Al hacer clic sobre la bola, cambia de color (naranja, oscura, blanca, gris): js/portfolio-ball-color.js; aquí, el
+// botón encima de la bola (place), su pulso (con el zoom) y los reflejos de la paleta (onTint).
 // las dos versiones del vídeo (js/config.js; elige js/page-hero.js → root.dataset.heroVersion): tamaño, centro de la
 // bola (fracción de la imagen) y radio (del ancho), medidos sobre su póster
 const VERSIONS = {
@@ -24,7 +28,8 @@ const ZOOM = 1.18;
 const RATE = { max: 1.8, speed: 30, lerp: 0.06, still: 0.8 }; // playbackRate: 1 + |velocidad de Lenis| / speed (hasta 1.8); reducido: 0.8 fijo
 const TITLE = { x: 160, fade: 1.6 };              // px a la izquierda al final de la salida; se va antes de acabar
 const DOTS = { n: 140, min: 3, max: 14, aMin: 0.15, aMax: 0.7, parallax: 12, glow: 150, glowGain: 1.4, dpr: 2, dprMob: 1.25 };
-// los reflejos, del color del vídeo: núcleo cálido y halo naranja (uno de cada cinco, todo naranja)
+// los reflejos, del color del vídeo: núcleo cálido y halo naranja (uno de cada cinco, todo naranja); con otro color de
+// la bola, los de su paleta (js/portfolio-ball-color.js → COLORS)
 const DOT_CORE = '255 214 187';                   // #ffd6bb
 const DOT_HALO = '243 84 17';                     // #F35411
 // la dispersión, en pantallas de scroll (s): se sueltan, se encienden, giran, se abren, caen y se apagan
@@ -66,8 +71,8 @@ export function initBallHero({ lenis, loop, reduced }) {
     g.fillRect(0, 0, 64, 64);
     return c;
   };
-  const warm = sprite(DOT_CORE, DOT_HALO);
-  const orange = sprite(DOT_HALO, DOT_HALO);
+  let warm = sprite(DOT_CORE, DOT_HALO);
+  let orange = sprite(DOT_HALO, DOT_HALO);
   let dots = makeDots(ver);
   const view = { w: 1, h: 1, dpr: 1, k: 1 };
   const resize = () => {
@@ -105,6 +110,16 @@ export function initBallHero({ lenis, loop, reduced }) {
     look.style.setProperty('--ball-x', `${(((cover.x + ver.ball.x * cover.w - r.left) / r.width) * 100).toFixed(2)}%`);
     look.style.setProperty('--ball-y', `${(((cover.y + ver.ball.y * cover.h - r.top) / r.height) * 100).toFixed(2)}%`);
   };
+
+  // el color de la bola: el botón encima de ella (en px del escenario) y los reflejos de su paleta
+  let redraw = null;
+  const color = initBallColor({ root, look, video, loop, reduced, onTint: (core, halo) => {
+    const c = core.map(Math.round).join(' '), h = halo.map(Math.round).join(' ');
+    warm = sprite(c, h);
+    orange = sprite(h, h);
+    redraw?.();
+  } });
+  const place = (ox, oy) => color?.place(cover.x + ver.ball.x * cover.w - ox, cover.y + ver.ball.y * cover.h - oy, ver.ball.r * cover.w);
 
   // ratón: parallax de los puntos y los cercanos brillan más
   const mouse = { x: -9999, y: -9999, mx: 0, my: 0, tx: 0, ty: 0 };
@@ -151,7 +166,8 @@ export function initBallHero({ lenis, loop, reduced }) {
   // puntos quietos sobre ella, sin salida ----------
   if (still) {
     if (video) video.defaultPlaybackRate = video.playbackRate = RATE.still;
-    const once = () => { measure(); draw(0, 0); };
+    const once = () => { measure(); place(0, 0); draw(0, 0); };
+    redraw = () => draw(0, 0);
     window.addEventListener('resize', once);
     root.addEventListener('disco:hero-version', (e) => { ver = VERSIONS[e.detail] || VERSIONS.land; dots = makeDots(ver); once(); });
     if (document.fonts) document.fonts.ready.then(once);
@@ -181,10 +197,12 @@ export function initBallHero({ lenis, loop, reduced }) {
     mouse.mx += (mouse.tx - mouse.mx) * a;
     mouse.my += (mouse.ty - mouse.my) * a;
     if (sr.bottom > 0) {
-      if (Math.abs(p - lastP) > 0.0005) {
-        lastP = p;
+      // (con el pulso del clic, la escala por el pulso; mientras dura, cada fotograma)
+      const pulse = color?.busy();
+      if (Math.abs(p - lastP) > 0.0005 || pulse) {
+        lastP = pulse ? -1 : p;
         const e = p * p * (3 - 2 * p);
-        look.style.transform = `scale(${(1 + (ZOOM - 1) * e).toFixed(4)})`;
+        look.style.transform = `scale(${((1 + (ZOOM - 1) * e) * (pulse ? color.scale() : 1)).toFixed(4)})`;
         dark.style.opacity = smooth(0.35, 1, p).toFixed(3);
         block.style.transform = `translate3d(${(-p * TITLE.x).toFixed(1)}px, 0, 0)`;
         block.style.opacity = Math.max(0, 1 - p * TITLE.fade).toFixed(3);
@@ -202,6 +220,7 @@ export function initBallHero({ lenis, loop, reduced }) {
       return;
     }
     measure();
+    place(sr.left, sr.top);
     draw(s, time);
     dirty = false;
   });
