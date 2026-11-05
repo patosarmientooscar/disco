@@ -11,6 +11,7 @@ import { dlog } from './gpu.js';
 // (LEGACY: la claqueta y el formulario largo, en legacy/contacto-hoja-rodaje/)
 const MIN_MS = 3000;          // antes de esto, un envío es de un robot
 const LOCK_MS = 30000;        // entre dos envíos
+const SEND_MS = 12000;        // FormSubmit tiene este tiempo para contestar; después, error con el email
 const TYPING_MS = 1200;       // el REC late rápido hasta 1,2 s después de la última tecla
 const LOCK_KEY = 'disco_contact_sent';
 const MSG = {
@@ -119,6 +120,8 @@ export function init({ gsap, lenis, reduced }) {
     if (data.web) { finish(data); return; }
     if (performance.now() - loaded < MIN_MS) { say('Un segundo… vuelve a pulsar Enviar.'); return; }
     if (now - last < LOCK_MS) { say(`Ya nos ha llegado tu mensaje. Si quieres añadir algo, espera unos segundos o escríbenos a ${fallback}.`); return; }
+    // abierta como archivo (file://), el navegador no deja enviar: se dice en vez de fallar
+    if (location.protocol === 'file:') { say(`El formulario solo envía desde la web publicada. Escríbenos a ${fallback}.`, true); return; }
     const params = buildParams(data);
     sending(true);
     try {
@@ -130,9 +133,10 @@ export function init({ gsap, lenis, reduced }) {
       try { localStorage.setItem(LOCK_KEY, String(Date.now())); } catch { /* sin almacenamiento */ }
       await gsap.to(bar, { scaleX: 1, duration: 0.25, ease: 'power2.out' });
       finish(data);
-    } catch {
+    } catch (err) {
       sending(false);
-      say(`No se ha podido enviar. Escríbenos a ${fallback} y te respondemos igual.`, true);
+      dlog('contacto: no se ha enviado', err?.message);
+      say(`No hemos podido enviarlo. Escríbenos a ${fallback} y te respondemos igual.`, true);
     }
   });
 
@@ -183,11 +187,21 @@ async function formsubmit(to, p, honey) {
     'Página': p.pagina,
   };
   dlog('contacto: aviso a FormSubmit', FORMSUBMIT + to, body);
-  const res = await fetch(FORMSUBMIT + encodeURI(to), { // (la @ tal cual, como la documenta FormSubmit)
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(body),
-  });
+  // (si FormSubmit no contesta, no se espera para siempre: a los SEND_MS, error con el email)
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), SEND_MS);
+  let res;
+  try {
+    res = await fetch(FORMSUBMIT + encodeURI(to), { // (la @ tal cual, como la documenta FormSubmit)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctl.signal,
+    });
+  } catch (err) {
+    dlog('contacto: FormSubmit no responde', err.name === 'AbortError' ? `sin respuesta en ${SEND_MS / 1000} s` : err.message);
+    throw new Error(err.name === 'AbortError' ? 'timeout' : 'red');
+  } finally { clearTimeout(timer); }
   const out = await res.json().catch(() => ({}));
   dlog('contacto: respuesta de FormSubmit', res.status, out);
   if (!res.ok || String(out.success) !== 'true') throw new Error(out.message || `FormSubmit ${res.status}`);

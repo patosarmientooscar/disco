@@ -1,0 +1,46 @@
+# Publica la web en GitHub Pages en cada push a main (y a mano: Actions → «Publicar en GitHub Pages» → Run workflow).
+# Sustituye a la publicación automática de GitHub («pages build and deployment»), que fallaba o se quedaba en cola.
+# La web se copia a _site sin las carpetas de trabajo (no se publican) y se sube tal cual: sin Jekyll ni build.
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# una publicación detrás de otra, sin cancelar la que está en marcha
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar la web (sin carpetas de trabajo)
+        run: |
+          mkdir -p _site
+          rsync -a ./ _site/ \
+            --exclude='.git/' --exclude='.github/' --exclude='_site/' \
+            --exclude='_revision/' --exclude='legacy/' --exclude='docs/' --exclude='tools/' \
+            --exclude='node_modules/' --exclude='.agents/' --exclude='skills-lock.json' --exclude='*.md'
+          echo "Tamaño publicado: $(du -sh _site | cut -f1)"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-page-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
