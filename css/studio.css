@@ -144,10 +144,12 @@
 /* ---------- ficha de cámara: una sola, cambia de servicio con un cambio de foco ----------
    Cristal ahumado como la barra del menú, con 4 escuadras de encuadre por fuera (8px) de la misma familia
    que el recuadro AF. --spread separa las escuadras (entrada y cambio de foco, js/studio-ui.js).
-   --glass: opacidad del cristal; sube donde el estudio es más claro detrás (contraste ≥ 4.5:1). */
+   --glass: opacidad del cristal; sube donde el estudio es más claro detrás (contraste ≥ 4.5:1).
+   AR-C: más oscuras, con el tono del panel del formulario de contacto (#141111, css/contact.css): mismo blur,
+   borde y animación. Contraste medido sobre blanco puro (lo más claro del panorama): texto al 70 % ≥ 4.9:1. */
 .ficha {
   --spread: 0;
-  --glass: 0.42;
+  --glass: 0.76;
   position: absolute;
   right: clamp(24px, 5vw, 96px);
   bottom: 120px;
@@ -158,7 +160,7 @@
   padding: 24px 26px 22px;
   border: 1px solid rgb(244 242 239 / 0.14);
   border-radius: 18px;
-  background: rgb(11 9 9 / var(--glass));
+  background: rgb(20 17 17 / var(--glass));
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   backdrop-filter: blur(18px) saturate(1.2);
   box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.45);
@@ -166,8 +168,8 @@
   transition: background-color 0.4s ease;
 }
 /* contraste ≥ 4.5:1 con lo más claro que queda detrás en cada parada (medido): Foto va sobre la pared blanca */
-.ficha[data-scene="foto"] { --glass: 0.55; }
-.ficha[data-scene="edicion"] { --glass: 0.45; }
+.ficha[data-scene="foto"] { --glass: 0.82; }
+.ficha[data-scene="edicion"] { --glass: 0.78; }
 .ficha__c {
   position: absolute;
   width: 14px;
@@ -282,7 +284,7 @@
     width: auto;
   }
   .ficha__panel { padding: 20px 20px 18px; }
-  .ficha[data-scene="foto"] { --glass: 0.58; }
+  .ficha[data-scene="foto"] { --glass: 0.84; }
   .ficha__name { margin-top: 14px; }
   .ficha__text { margin-top: 10px; }
 }
