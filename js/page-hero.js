@@ -183,7 +183,8 @@ export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrive
   let interacted = false;
   const hideHint = () => gsap.to(hint, { opacity: 0, duration: 0.3, overwrite: true });
   // (portfolio: sin destello, la bola del vídeo es la protagonista: js/portfolio-hero.js)
-  // (three y el GLB, después del load: no compiten con el primer pintado; sin GPU de verdad, ni se descargan)
+  // (three y el GLB, EN PARALELO con el resto desde el principio (AR-D: antes, después del load; el GLB va con
+  // <link rel="preload"> en el <head>): el destello aparece casi a la vez que la página. Sin GPU de verdad, ni se descargan)
   // (servicios, con "Tres oficios" [data-star-gate]: el del hero viaja hasta el manifiesto y hace el relevo con el del
   // recorrido; su sitio, de js/page-star.js: la misma función para los dos)
   const gate = document.querySelector('[data-star-gate]');
@@ -192,7 +193,7 @@ export function initPageHero({ gsap, ScrollTrigger, lenis, loop, reduced, arrive
     window.addEventListener('resize', ps.maniMeasure);
     return { target: () => ps.maniPose(lenis.scroll), relay: ps.relay, gate };
   }) : Promise.resolve(null));
-  const star = cfg.star === false || !gpuOK() ? Promise.resolve(null) : afterLoad().then(() => Promise.all([import('./hero-star.js'), handoff()]))
+  const star = cfg.star === false || !gpuOK() ? Promise.resolve(null) : Promise.all([import('./hero-star.js'), handoff()])
     .then(([m, h]) => m.createHeroStar({ gsap, lenis, stage, video, state, loop, reduced, handoff: h, onInteract: () => { interacted = true; hideHint(); } }))
     .catch(() => null);
 

@@ -27,7 +27,7 @@ const MOBILE = '(max-width: 767px)';
 const SIZE = { desk: 0.62, mob: 0.42 };          // alto en el hero (fracción del alto del hero)
 const LIFT = 0.04;                               // centrado, un 4 % más arriba
 const ROOM = { top: 84, gap: 18 };               // px: deja libre la nav y no baja hasta el texto del pie
-const ENTER = { duration: 1.4, scale: 0.82, turn: -35 * (Math.PI / 180) };
+const ENTER = { duration: 0.8, scale: 0.82, turn: -35 * (Math.PI / 180) }; // (AR-D: de 1,4 s a 0,8 s)
 const IDLE = { amp: 0.32, speed: 0.45 };         // oscila ±0.32 rad en Y (fase a 0.45 rad/s), sin vueltas completas
 const TILT = { x: 0.22, y: 0.35, z: 0.06, lerp: 0.06 };
 const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07, idleBack: 1.2 };
@@ -470,10 +470,12 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
 
   return {
     canvas,
-    // entrada (como en la home): escala .82 → 1 y giro en Y de −35° → 0, 1.4 s expo.out, por tiempo real
+    // entrada (como en la home): escala .82 → 1 y giro en Y de −35° → 0, 0.8 s expo.out, por tiempo real; empieza en
+    // cuanto el modelo está listo
     enter() {
       if (entered) return;
       entered = true;
+      dlog(`destello del hero: entra a los ${Math.round(performance.now())} ms de la navegación`);
       canvas.style.opacity = '0';
       gsap.fromTo(entry, { p: 0 }, {
         p: 1,
