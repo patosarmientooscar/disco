@@ -19,6 +19,8 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
   initManifesto({ gsap, lenis, reduced }); // el vídeo completo con sonido, desde el botón del hero
   initOficios({ gsap, ScrollTrigger, loop, still });
   initBento({ gsap, ScrollTrigger, loop, still });
+  // "En cada producción.": el texto corto, palabra a palabra como el manifiesto (AR-F)
+  document.querySelectorAll('[data-manifest-lite]').forEach((el) => litWords(gsap, el, still));
   initSectors({ gsap, loop, still, desktop });
   initClose({ gsap, ScrollTrigger, still });
   // los titulares son enormes: al cargar la fuente la página cambia de alto (las posiciones de los pines y de la
@@ -28,15 +30,26 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
 
 // ---------- B) manifiesto: palabra a palabra (.15 → 1); "idea" e "imágenes" en naranja (y el destello, a su
 // derecha, lo celebra: js/page-star.js) ----------
-function initManifest(gsap, still) {
-  const el = document.querySelector('[data-manifest]');
-  if (!el) return;
+// (las palabras, una a una en spans .mw; las de <em>, .mw--hot. Lo comparten el manifiesto y el texto de "En cada
+// producción.")
+function splitWords(el) {
   const hot = new Set([...el.querySelectorAll('em')].map((e) => e.textContent.trim()));
   const text = el.textContent.replace(/\s+/g, ' ').trim();
   el.innerHTML = `<span class="sr-only">${text}</span>${text.split(' ').map((w) => {
     const bare = w.replace(/[.,]/g, '');
     return `<span class="mw${hot.has(bare) ? ' mw--hot' : ''}" aria-hidden="true">${w}</span>`;
   }).join(' ')}`;
+}
+// el texto de "En cada producción.": la misma animación que el manifiesto (sin las palabras clave del destello)
+function litWords(gsap, el, still) {
+  splitWords(el);
+  if (still) return;
+  gsap.to(el.querySelectorAll('.mw'), { opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: { trigger: el, start: 'top 75%', end: 'bottom 40%', scrub: 0.6 } });
+}
+function initManifest(gsap, still) {
+  const el = document.querySelector('[data-manifest]');
+  if (!el) return;
+  splitWords(el);
   if (still) return;
   // cuando se ilumina una palabra clave, aviso al destello (js/page-star.js: giro extra y reflejo naranja)
   const hotWords = [...el.querySelectorAll('.mw--hot')].map((w) => ({ w, lit: false }));

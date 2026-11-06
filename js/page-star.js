@@ -58,14 +58,16 @@ const FRONT = 0.6;                 // × alto de pantalla: tras el salto sigue d
 const FOOTER_FRONT = 0.5;          // × alto de pantalla antes del final: de frente
 // el salto desde detrás de "Tres oficios": borde inferior por encima del 70 % de la pantalla; antes, 0.3 s de luz
 const JUMP = { at: 0.7, light: 0.3, duration: 0.9, ease: 'back.out(1.6)', back: 0.55, wait: 0.4, edgeTurn: -Math.PI * 2, gap: 14 };
-// el bento: tarjetas en el orden del proceso; escala al aterrizar; reposo / salto dentro de cada tramo; arco
+// la hoja de producción (AR-F; antes el bento grande): tarjetas en el orden del proceso; escala al aterrizar (en
+// proporción a las tarjetas compactas: ~⅓ de su alto); reposo / salto dentro de cada tramo; arco
 const TOUR = {
-  desk: ['marca', 'idea', 'plan', 'prod', 'rodaje', 'post', 'entrega', 'sost'],
-  mob: ['marca', 'rodaje', 'plan', 'post'], // en una columna, en el orden en que aparecen
-  s: 0.22,
+  desk: ['marca', 'idea', 'plan', 'prod', 'rodaje', 'sost', 'post', 'entrega'],
+  mob: ['marca', 'plan', 'rodaje', 'post'], // (en filas de 2: la primera de cada fila, en el orden en que aparecen)
+  s: 0.13,
   rest: 0.3,       // de cada tramo: 30 % quieto en la tarjeta, 40 % saltando, 30 % quieto en la siguiente
-  gap: 0.16,       // × alto de pantalla entre paradas (como mínimo)
-  arc: 0.11,       // alto del arco (× alto de pantalla)
+  gap: 0.16,       // × alto de pantalla entre paradas (como mínimo; nosotros)
+  row: 0.11,       // servicios: × alto de pantalla entre paradas de una misma fila (repartidas alrededor de su centro)
+  arc: 0.07,       // alto del arco (× alto de pantalla)
   tilt: Math.PI / 2,
   smooth: 7,       // suavizado del progreso (1/s)
   k: 14,           // filtro de posición mientras salta (rápido: el arco se ve)
@@ -348,10 +350,14 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     if (bento) {
       const cards = (view.mobile ? TOUR.mob : TOUR.desk).map((k) => bento.querySelector(`[data-card="${k}"]`)).filter(Boolean);
       if (cards.length > 1) {
+        // (las tarjetas de una misma fila, con la fila en el centro de la pantalla: sus paradas, repartidas alrededor)
         const ats = [];
+        const rowOf = cards.map((c) => Math.round(docTop(c)));
         cards.forEach((c, i) => {
-          const ideal = docTop(c) + c.offsetHeight / 2 - 0.5 * H;
-          ats.push(i ? Math.max(ats[i - 1] + TOUR.gap * H, ideal) : Math.max(aAt + 0.45 * H, ideal));
+          const mates = cards.filter((_, j) => Math.abs(rowOf[j] - rowOf[i]) < 8);
+          const k = mates.indexOf(c);
+          const ideal = docTop(c) + c.offsetHeight / 2 - 0.5 * H + (k - (mates.length - 1) / 2) * TOUR.row * H;
+          ats.push(i ? Math.max(ats[i - 1] + 0.06 * H, ideal) : Math.max(aAt + 0.45 * H, ideal));
         });
         tour = { cards, ats, s: TOUR.s, arc: TOUR.arc, pos: (c) => cornerNow(c) };
         out.push({ ...cornerAt(cards[0], ats[0]), at: ats[0] }, { ...cornerAt(cards[cards.length - 1], ats[ats.length - 1]), at: ats[ats.length - 1] });
@@ -999,7 +1005,9 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       const dd = dodge.step(((t.x + 1) / 2) * innerWidth, ((1 - t.y) / 2) * H, px, dt, dw);
       if (dd.x || dd.y) t = { ...t, x: t.x + (2 * dd.x) / innerWidth, y: t.y - (2 * dd.y) / H };
     }
-    lift(tw > 0.5); // en el bento salta por encima de las tarjetas
+    // nosotros: en "Cómo trabajamos" salta por encima de los pasos. (Servicios, AR-F: las tarjetas de la hoja no crean
+    // contexto, sus fondos ya quedan debajo del canvas; subirlo taparía "Tres oficios" mientras aún se ve)
+    lift(tw > 0.5 && !gate);
     // posición y tamaño: un solo filtro según dt (con el scroll rápido se queda algo atrás; en el bento, rápido)
     const kTo = fin.returning ? RETURN_K : guide > 0.5 ? TOUR.k : POS_K / (1 + Math.abs(velocity) * LAG);
     posK += (kTo - posK) * (1 - Math.exp(-K_EASE * dt));
