@@ -247,6 +247,62 @@
     ]
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Qué incluye un rodaje?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Todo lo que hace falta para que salga bien: la idea, el plan, el equipo técnico, la luz y la dirección de arte, el rodaje y la edición. Te lo entregamos listo para publicar."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto tardáis en entregar?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Depende de lo que rodemos. La fecha de entrega va en la propuesta, antes de empezar: [CONFIRMAR plazo habitual de foto y de vídeo]."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Os movéis fuera de Madrid?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Trabajamos sobre todo en Madrid y en la Comunidad de Madrid. [CONFIRMAR: fuera de Madrid, cómo y con qué condiciones]."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿En qué formatos lo entregáis?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "En el de cada sitio donde se vaya a ver: vertical para reels y stories, horizontal para la web y las pantallas, y fotos listas para redes, web o impresión."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Hacéis solo foto o solo vídeo?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. Podemos encargarnos solo de la foto, solo del vídeo o solo de la edición, o de todo a la vez con el mismo equipo."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo pido presupuesto?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Escríbenos desde la página de contacto: cuéntanos qué necesitas y te mandamos una propuesta clara con todo lo que incluye."
+        }
+      }
+    ]
+  }
+  </script>
   <!-- /seo:ld -->
 </head>
 <body data-page="servicios">
@@ -435,6 +491,22 @@
     </section>
 
     <!-- G) cierre: la luz naranja entra con un degradado de ~40vh y se queda -->
+    <!-- AS-I) Preguntas frecuentes: respuestas directas (BORRADOR: data-draft; lo que lleva [CONFIRMAR], Oscar lo completa).
+         Su FAQPage (JSON-LD) la genera tools/seo-ld.mjs con este mismo texto -->
+    <section class="sv-faq" id="preguntas" data-malla="quiet" aria-labelledby="faq-title" data-draft>
+      <div class="sv-wrap">
+        <h2 class="sv-big" id="faq-title">Preguntas<b class="sv-dot">.</b></h2>
+        <div class="faq__list">
+          <details class="faq__item"><summary>¿Qué incluye un rodaje?</summary><div class="faq__a"><p>Todo lo que hace falta para que salga bien: la idea, el plan, el equipo técnico, la luz y la dirección de arte, el rodaje y la edición. Te lo entregamos listo para publicar.</p></div></details>
+          <details class="faq__item"><summary>¿Cuánto tardáis en entregar?</summary><div class="faq__a"><p>Depende de lo que rodemos. La fecha de entrega va en la propuesta, antes de empezar: [CONFIRMAR plazo habitual de foto y de vídeo].</p></div></details>
+          <details class="faq__item"><summary>¿Os movéis fuera de Madrid?</summary><div class="faq__a"><p>Trabajamos sobre todo en Madrid y en la Comunidad de Madrid. [CONFIRMAR: fuera de Madrid, cómo y con qué condiciones].</p></div></details>
+          <details class="faq__item"><summary>¿En qué formatos lo entregáis?</summary><div class="faq__a"><p>En el de cada sitio donde se vaya a ver: vertical para reels y stories, horizontal para la web y las pantallas, y fotos listas para redes, web o impresión.</p></div></details>
+          <details class="faq__item"><summary>¿Hacéis solo foto o solo vídeo?</summary><div class="faq__a"><p>Sí. Podemos encargarnos solo de la foto, solo del vídeo o solo de la edición, o de todo a la vez con el mismo equipo.</p></div></details>
+          <details class="faq__item"><summary>¿Cómo pido presupuesto?</summary><div class="faq__a"><p>Escríbenos desde la <a href="contacto.html">página de contacto</a>: cuéntanos qué necesitas y te mandamos una propuesta clara con todo lo que incluye.</p></div></details>
+        </div>
+      </div>
+    </section>
+
     <section class="sv-close" aria-labelledby="close-title" data-close>
       <i class="sv-close__light" data-close-light aria-hidden="true"></i>
       <div class="sv-wrap sv-close__in" data-nav-ink="dark">

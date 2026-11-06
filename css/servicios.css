@@ -595,6 +595,41 @@
 }
 @keyframes b-blink { 50% { opacity: 0.15; } }
 
+/* ---------- AS-I) Preguntas: acordeón sencillo (el mismo que el de contacto: css/contact.css), sin cajas ---------- */
+.sv-faq { position: relative; padding: clamp(96px, 16vh, 180px) 0 clamp(96px, 16vh, 180px); }
+.sv-faq .faq__list { max-width: 980px; margin-top: clamp(40px, 6vh, 64px); border-top: 1px solid rgb(244 242 239 / 0.12); }
+.sv-faq .faq__item { border-bottom: 1px solid rgb(244 242 239 / 0.12); }
+.sv-faq .faq__item summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 72px;
+  padding: 18px 56px 18px 0;
+  font: 500 clamp(20px, 2vw, 28px) / 1.2 var(--font-display);
+  color: var(--paper);
+  list-style: none;
+  cursor: pointer;
+}
+.sv-faq .faq__item summary::-webkit-details-marker { display: none; }
+.sv-faq .faq__item summary::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  background:
+    linear-gradient(var(--orange), var(--orange)) 50% 50% / 100% 2px no-repeat,
+    linear-gradient(var(--orange), var(--orange)) 50% 50% / 2px 100% no-repeat;
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.sv-faq .faq__item[open] summary::after { transform: rotate(45deg); }
+.sv-faq .faq__item summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
+.sv-faq .faq__a p { max-width: 60ch; margin: 0; padding: 0 0 24px; font: 400 18px / 1.55 var(--font-display); color: #d9d2cd; }
+.sv-faq .faq__a a { color: var(--paper); text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .sv-faq .faq__item summary::after { transition: none; } }
+
 /* ---------- F) Para quién ---------- */
 .sv-for { padding: clamp(120px, 20vh, 220px) 0 clamp(96px, 16vh, 180px); }
 .sv-for__list { margin: clamp(40px, 6vh, 64px) 0 0; padding: 0; list-style: none; }
