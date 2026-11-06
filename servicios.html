@@ -66,41 +66,6 @@
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
     try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
   </script>
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Service",
-      "name": "Fotografía",
-      "serviceType": "Fotografía de producto, espacios, eventos y retratos",
-      "description": "Fotografía de producto, espacios, ambiente y personas, con dirección de arte, iluminación y retoque.",
-      "provider": {
-        "@type": "ProfessionalService",
-        "name": "disco."
-      },
-      "areaServed": {
-        "@type": "City",
-        "name": "Madrid"
-      }
-    },
-    {
-      "@type": "Service",
-      "name": "Vídeo y edición",
-      "serviceType": "Reels, vídeo de marca, aftermovies y edición",
-      "description": "Reels, vídeos de marca y cobertura de eventos, con montaje, color y sonido.",
-      "provider": {
-        "@type": "ProfessionalService",
-        "name": "disco."
-      },
-      "areaServed": {
-        "@type": "City",
-        "name": "Madrid"
-      }
-    }
-  ]
-}
-  </script>
   <!-- los módulos de esta página, pedidos a la vez desde el principio (sin cascada de imports) -->
   <!-- versiones (tools/version.mjs): three y cada módulo de js/ con ?v=, también en sus import entre ellos -->
   <script type="importmap">
@@ -175,6 +140,111 @@
   <link rel="modulepreload" href="js/oficios.js?v=387c311">
   <link rel="modulepreload" href="js/bento.js?v=387c311">
   <link rel="modulepreload" href="js/manifesto.js?v=387c311">
+  <!-- seo:ld (tools/site.mjs: no editar a mano) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Foto, vídeo y edición para negocios en Madrid",
+    "serviceType": "Producción audiovisual",
+    "provider": {
+      "@id": "https://[DOMINIO]/#disco",
+      "@type": "ProfessionalService",
+      "name": "disco."
+    },
+    "areaServed": {
+      "@type": "City",
+      "name": "Madrid"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Servicios de disco.",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Fotografía",
+            "description": "Producto, espacios y personas, con dirección de arte, luz y retoque.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Vídeo",
+            "description": "Reels, vídeo de marca y eventos rodados con ritmo y calidad de cine.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Edición y postproducción",
+            "description": "Montaje, color y sonido.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Contenido para redes sociales",
+            "description": "Piezas listas para cada red: reels, fotos y formatos verticales.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Cobertura de eventos",
+            "description": "Fiestas, noches y eventos: foto de ambiente, aftermovies y reels.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        }
+      ]
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://[DOMINIO]/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Servicios",
+        "item": "https://[DOMINIO]/servicios.html"
+      }
+    ]
+  }
+  </script>
+  <!-- /seo:ld -->
 </head>
 <body data-page="servicios">
   <canvas id="malla" aria-hidden="true"></canvas>

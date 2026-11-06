@@ -64,54 +64,6 @@
     try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
   </script>
   <!-- FAQ para buscadores: las mismas preguntas que en la página (si cambias una, cambia las dos; PENDIENTES.md) -->
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "¿Cuánto cuesta?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Depende de lo que necesites. Tras la lluvia de ideas contigo te damos un precio cerrado. [Si queréis: sesiones desde X €]."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Cuánto tardáis en entregar?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "[X días] para foto y [X días] para vídeo, normalmente."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Venís a mi local?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Sí, grabamos en tu negocio en Madrid. [Fuera de Madrid, consúltanos]."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Puedo usar el contenido donde quiera?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Sí, para tus redes, web y publicidad. [Confirmar condiciones]."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Qué tengo que preparar?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Nada especial: te mandamos una pequeña lista antes del rodaje."
-      }
-    }
-  ]
-}
-  </script>
   <!-- los módulos de esta página, pedidos a la vez desde el principio (sin cascada de imports) -->
   <!-- versiones (tools/version.mjs): three y cada módulo de js/ con ?v=, también en sus import entre ellos -->
   <script type="importmap">
@@ -182,6 +134,87 @@
   <link rel="modulepreload" href="js/placeholder.js?v=387c311">
   <link rel="modulepreload" href="js/page-hero.js?v=387c311">
   <link rel="modulepreload" href="js/contact.js?v=387c311">
+  <!-- seo:ld (tools/site.mjs: no editar a mano) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "name": "Contacto — disco.",
+    "url": "https://[DOMINIO]/contacto.html",
+    "about": {
+      "@id": "https://[DOMINIO]/#disco"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://[DOMINIO]/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Contacto",
+        "item": "https://[DOMINIO]/contacto.html"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cuánto cuesta?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Depende de lo que necesites. Tras la lluvia de ideas contigo te damos un precio cerrado. [Si queréis: sesiones desde X €]."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto tardáis en entregar?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "[X días] para foto y [X días] para vídeo, normalmente."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Venís a mi local?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, grabamos en tu negocio en Madrid. [Fuera de Madrid, consúltanos]."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo usar el contenido donde quiera?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, para tus redes, web y publicidad. [Confirmar condiciones]."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué tengo que preparar?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nada especial: te mandamos una pequeña lista antes del rodaje."
+        }
+      }
+    ]
+  }
+  </script>
+  <!-- /seo:ld -->
 </head>
 <body data-page="contacto">
   <canvas id="malla" aria-hidden="true"></canvas>

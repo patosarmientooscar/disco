@@ -100,28 +100,6 @@
       if (nav) nav.removeAttribute('data-nav-wait');
     }, 10000);
   </script>
-  <!-- datos de la empresa para buscadores (sin url hasta que haya dominio: config.siteUrl; ver PENDIENTES.md) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "name": "disco.",
-    "description": "Productora de foto, vídeo y edición para restaurantes, bares, discotecas, eventos y marcas en Madrid.",
-    "email": "equipo@discoproduccion.com",
-    "areaServed": {
-      "@type": "City",
-      "name": "Madrid"
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Madrid",
-      "addressCountry": "ES"
-    },
-    "sameAs": [
-      "https://www.instagram.com/disco.es/"
-    ]
-  }
-  </script>
   <!-- los módulos de esta página, pedidos a la vez desde el principio (sin cascada de imports) -->
   <!-- versiones (tools/version.mjs): three y cada módulo de js/ con ?v=, también en sus import entre ellos -->
   <script type="importmap">
@@ -199,6 +177,136 @@
   <link rel="modulepreload" href="js/fin-physics.js?v=387c311">
   <link rel="modulepreload" href="js/home-close.js?v=387c311">
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm">
+  <!-- seo:ld (tools/site.mjs: no editar a mano) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": "https://[DOMINIO]/#disco",
+    "name": "disco.",
+    "url": "https://[DOMINIO]/",
+    "logo": "https://[DOMINIO]/assets/brand/icon-512.png",
+    "image": "https://[DOMINIO]/assets/brand/og.jpg",
+    "description": "Productora audiovisual en Madrid: foto, vídeo y edición para restaurantes, bares, discotecas, eventos y marcas.",
+    "email": "equipo@discoproduccion.com",
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "Madrid"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Comunidad de Madrid"
+      }
+    ],
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Madrid",
+      "addressCountry": "ES"
+    },
+    "knowsAbout": [
+      "Fotografía",
+      "Vídeo",
+      "Edición de vídeo",
+      "Postproducción",
+      "Contenido para redes sociales",
+      "Cobertura de eventos",
+      "Dirección de arte"
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Servicios de disco.",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Fotografía",
+            "description": "Producto, espacios y personas, con dirección de arte, luz y retoque.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Vídeo",
+            "description": "Reels, vídeo de marca y eventos rodados con ritmo y calidad de cine.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Edición y postproducción",
+            "description": "Montaje, color y sonido.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Contenido para redes sociales",
+            "description": "Piezas listas para cada red: reels, fotos y formatos verticales.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Cobertura de eventos",
+            "description": "Fiestas, noches y eventos: foto de ambiente, aftermovies y reels.",
+            "provider": {
+              "@id": "https://[DOMINIO]/#disco"
+            },
+            "areaServed": "Madrid"
+          }
+        }
+      ]
+    },
+    "founder": [
+      {
+        "@type": "Person",
+        "name": "Luna López"
+      },
+      {
+        "@type": "Person",
+        "name": "Bruno Marín"
+      }
+    ],
+    "sameAs": [
+      "https://www.instagram.com/disco.es/"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "disco.",
+    "url": "https://[DOMINIO]/",
+    "inLanguage": "es-ES",
+    "publisher": {
+      "@id": "https://[DOMINIO]/#disco"
+    }
+  }
+  </script>
+  <!-- /seo:ld -->
 </head>
 <body class="is-loading">
   <canvas id="malla" aria-hidden="true"></canvas>

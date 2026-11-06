@@ -141,6 +141,61 @@
   <link rel="modulepreload" href="js/manifesto.js?v=387c311">
   <link rel="modulepreload" href="js/portfolio-hero.js?v=387c311">
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm">
+  <!-- seo:ld (tools/site.mjs: no editar a mano) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": "Manifiesto de disco.",
+    "description": "El manifiesto de disco., productora de foto y vídeo en Madrid: lo que hacemos y cómo lo contamos.",
+    "thumbnailUrl": "https://[DOMINIO]/assets/paginas/disco-manifiesto-poster.webp",
+    "contentUrl": "https://[DOMINIO]/assets/paginas/disco-manifiesto.mp4",
+    "uploadDate": "2026-10-29T15:20:50+01:00",
+    "duration": "PT38S"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Proyectos de disco.",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Cachondeo Group",
+        "url": "https://[DOMINIO]/proyecto-cachondeo-group.html"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "E, S, B",
+        "url": "https://[DOMINIO]/proyecto-esb.html"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://[DOMINIO]/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Portfolio",
+        "item": "https://[DOMINIO]/portfolio.html"
+      }
+    ]
+  }
+  </script>
+  <!-- /seo:ld -->
 </head>
 <body data-page="portfolio">
   <canvas id="malla" aria-hidden="true"></canvas>

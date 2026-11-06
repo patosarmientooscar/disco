@@ -76,13 +76,13 @@ ${canon}
 function putHead(html, block) {
   if (html.includes('<!-- seo (tools/site.mjs')) return html.replace(/<!-- seo \(tools\/site\.mjs[\s\S]*?<!-- \/seo -->/, block);
   html = html
-    .replace(/[ \t]*<title>[\s\S]*?<\/title>\n/, '')
-    .replace(/[ \t]*<meta name="description"[^>]*>\n/, '')
-    .replace(/[ \t]*<meta name="robots"[^>]*>\n/, '')
-    .replace(/[ \t]*<!-- canonical y og:url:[\s\S]*?-->\n/, '')
-    .replace(/[ \t]*<link rel="canonical"[^>]*>\n/g, '')
-    .replace(/[ \t]*<meta (?:property="og:|name="twitter:)[^>]*>\n/g, '');
-  return html.replace(/(<meta name="viewport"[^>]*>\n)/, `$1  ${block}\n`);
+    .replace(/[ \t]*<title>[\s\S]*?<\/title>\r?\n/, '')
+    .replace(/[ \t]*<meta name="description"[^>]*>\r?\n/, '')
+    .replace(/[ \t]*<meta name="robots"[^>]*>\r?\n/, '')
+    .replace(/[ \t]*<!-- canonical y og:url:[\s\S]*?-->\r?\n/, '')
+    .replace(/[ \t]*<link rel="canonical"[^>]*>\r?\n/g, '')
+    .replace(/[ \t]*<meta (?:property="og:|name="twitter:)[^>]*>\r?\n/g, '');
+  return html.replace(/(<meta name="viewport"[^>]*>\r?\n)/, `$1  ${block}\n`);
 }
 // el bloque de datos estructurados: antes de </head>
 export function putLd(html, items) {
@@ -110,9 +110,14 @@ export async function buildSite({ quiet = false } = {}) {
     let html = readFileSync(file, 'utf8');
     html = putHead(html, headBlock(page, m));
     if (ld) {
-      // (la primera vez, fuera los JSON-LD sueltos de antes)
-      if (!html.includes('<!-- seo:ld')) html = html.replace(/[ \t]*<!-- datos de la empresa[^\n]*-->\n/, '').replace(/[ \t]*<script type="application\/ld\+json">[\s\S]*?<\/script>\n/g, '');
-      html = putLd(html, await ld.ldFor(page, { html, abs, BASE, projects }));
+      // (cada vez: fuera el bloque anterior y cualquier JSON-LD suelto; el bloque se vuelve a poner entero)
+      html = html
+        .replace(/[ \t]*<!-- seo:ld[\s\S]*?<!-- \/seo:ld -->(?:\r?\n)?/, '')
+        .replace(/[ \t]*<!-- datos de la empresa[^\n]*?-->\r?\n/, '')
+        .replace(/[ \t]*<script type="application\/ld\+json">[\s\S]*?<\/script>\r?\n/g, '');
+      const items = await ld.ldFor(page, { html, abs, BASE, projects });
+      ld.validate(page, items).forEach((w) => console.warn(`  aviso JSON-LD: ${w}`));
+      html = putLd(html, items);
     }
     writeFileSync(file, html);
   }
