@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
+  <script src="js/file-guard.js?v=387c311" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- seo (tools/site.mjs: no editar a mano) -->
+  <title>Cachondeo Group: fiesta en Madrid — disco.</title>
+  <meta name="description" content="Karaoke, fútbol y camisetas naranjas: la fiesta de Cachondeo Group en Madrid, contada en dos reels verticales y más de 80 fotos editadas.">
+  <!-- canonical y og:url: se activan solos al poner SITE_URL en tools/site.mjs
+  <link rel="canonical" href="https://[DOMINIO]/proyecto-cachondeo-group.html">
+  <meta property="og:url" content="https://[DOMINIO]/proyecto-cachondeo-group.html">
+  -->
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="disco.">
+  <meta property="og:title" content="Cachondeo Group: fiesta en Madrid — disco.">
+  <meta property="og:description" content="Karaoke, fútbol y camisetas naranjas: la fiesta de Cachondeo Group en Madrid, contada en dos reels verticales y más de 80 fotos editadas.">
+  <meta property="og:image" content="assets/og/proyecto-cachondeo-group.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Grupo de amigos con camisetas naranjas de Cachondeo Group posando juntos en la fiesta">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cachondeo Group: fiesta en Madrid — disco.">
+  <meta name="twitter:description" content="Karaoke, fútbol y camisetas naranjas: la fiesta de Cachondeo Group en Madrid, contada en dos reels verticales y más de 80 fotos editadas.">
+  <meta name="twitter:image" content="assets/og/proyecto-cachondeo-group.jpg">
+  <meta name="twitter:image:alt" content="Grupo de amigos con camisetas naranjas de Cachondeo Group posando juntos en la fiesta">
+  <!-- /seo -->
+  <meta name="theme-color" content="#0b0909">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <!-- fuentes locales (assets/fonts): Clash Display (Fontshare, ITF Free Font License) e IBM Plex Mono (OFL). Se
+       precargan los dos pesos de Clash del primer pantallazo; mientras llegan, Arial / Courier New con las métricas
+       ajustadas (size-adjust y ascent/descent) para que el texto no salte al cambiar -->
+  <link rel="preload" href="assets/fonts/clash-display-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/clash-display-600.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-400.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-500.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-600.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Display';src:url(assets/fonts/clash-display-700.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap}
+    @font-face{font-family:'IBM Plex Mono';src:url(assets/fonts/ibm-plex-mono-400.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
+    @font-face{font-family:'IBM Plex Mono';src:url(assets/fonts/ibm-plex-mono-500.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+    @font-face{font-family:'Clash Fallback';src:local('Arial');size-adjust:106.9%;ascent-override:83.3%;descent-override:23.4%;line-gap-override:8.4%}
+    @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
+  </style>
+
+  <link rel="stylesheet" href="css/tokens.css?v=387c311">
+  <link rel="stylesheet" href="css/base.css?v=387c311">
+  <link rel="stylesheet" href="css/interior.css?v=387c311">
+  <link rel="stylesheet" href="css/page-hero.css?v=387c311">
+  <link rel="stylesheet" href="css/proyecto.css?v=387c311">
+  <link rel="stylesheet" href="css/nav.css?v=387c311">
+  <link rel="stylesheet" href="css/fin.css?v=387c311">
+  <link rel="stylesheet" href="css/transition.css?v=387c311">
+  <link rel="stylesheet" href="css/malla.css?v=387c311">
+  <script>
+    document.documentElement.classList.add('js');
+    // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
+    try { if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); } } catch (e) {}
+  </script>
+  <!-- los módulos de esta página, pedidos a la vez desde el principio (sin cascada de imports) -->
+  <!-- versiones (tools/version.mjs): three y cada módulo de js/ con ?v=, también en sus import entre ellos -->
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/",
+      "./js/about.js": "./js/about.js?v=387c311",
+      "./js/aurora.js": "./js/aurora.js?v=387c311",
+      "./js/bento.js": "./js/bento.js?v=387c311",
+      "./js/config.js": "./js/config.js?v=387c311",
+      "./js/contact.js": "./js/contact.js?v=387c311",
+      "./js/core.js": "./js/core.js?v=387c311",
+      "./js/file-guard.js": "./js/file-guard.js?v=387c311",
+      "./js/fin-physics.js": "./js/fin-physics.js?v=387c311",
+      "./js/fin.js": "./js/fin.js?v=387c311",
+      "./js/gpu.js": "./js/gpu.js?v=387c311",
+      "./js/hero-exposure.js": "./js/hero-exposure.js?v=387c311",
+      "./js/hero-star.js": "./js/hero-star.js?v=387c311",
+      "./js/hero.js": "./js/hero.js?v=387c311",
+      "./js/home-close.js": "./js/home-close.js?v=387c311",
+      "./js/interior.js": "./js/interior.js?v=387c311",
+      "./js/intro-loader.js": "./js/intro-loader.js?v=387c311",
+      "./js/intro-shot.js": "./js/intro-shot.js?v=387c311",
+      "./js/main.js": "./js/main.js?v=387c311",
+      "./js/malla.js": "./js/malla.js?v=387c311",
+      "./js/manifesto.js": "./js/manifesto.js?v=387c311",
+      "./js/nav.js": "./js/nav.js?v=387c311",
+      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=387c311",
+      "./js/oficios.js": "./js/oficios.js?v=387c311",
+      "./js/page-hero.js": "./js/page-hero.js?v=387c311",
+      "./js/page-star.js": "./js/page-star.js?v=387c311",
+      "./js/page.js": "./js/page.js?v=387c311",
+      "./js/placeholder.js": "./js/placeholder.js?v=387c311",
+      "./js/portfolio-ball-color.js": "./js/portfolio-ball-color.js?v=387c311",
+      "./js/portfolio-data.js": "./js/portfolio-data.js?v=387c311",
+      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=387c311",
+      "./js/portfolio.js": "./js/portfolio.js?v=387c311",
+      "./js/proyecto.js": "./js/proyecto.js?v=387c311",
+      "./js/rec.js": "./js/rec.js?v=387c311",
+      "./js/scroll-fx.js": "./js/scroll-fx.js?v=387c311",
+      "./js/servicios-data.js": "./js/servicios-data.js?v=387c311",
+      "./js/servicios.js": "./js/servicios.js?v=387c311",
+      "./js/star-core.js": "./js/star-core.js?v=387c311",
+      "./js/star-dodge.js": "./js/star-dodge.js?v=387c311",
+      "./js/star-trail.js": "./js/star-trail.js?v=387c311",
+      "./js/star.js": "./js/star.js?v=387c311",
+      "./js/studio-cross.js": "./js/studio-cross.js?v=387c311",
+      "./js/studio-ui.js": "./js/studio-ui.js?v=387c311",
+      "./js/studio.js": "./js/studio.js?v=387c311",
+      "./js/team.js": "./js/team.js?v=387c311",
+      "./js/transition.js": "./js/transition.js?v=387c311",
+      "./js/wa-float.js": "./js/wa-float.js?v=387c311",
+      "./js/water.js": "./js/water.js?v=387c311",
+      "./js/why.js": "./js/why.js?v=387c311"
+    } }
+  </script>
+  <link rel="modulepreload" href="js/page.js?v=387c311">
+  <link rel="modulepreload" href="js/core.js?v=387c311">
+  <link rel="modulepreload" href="js/transition.js?v=387c311">
+  <link rel="modulepreload" href="js/water.js?v=387c311">
+  <link rel="modulepreload" href="js/wa-float.js?v=387c311">
+  <link rel="modulepreload" href="js/config.js?v=387c311">
+  <link rel="modulepreload" href="js/nav.js?v=387c311">
+  <link rel="modulepreload" href="js/fin.js?v=387c311">
+  <link rel="modulepreload" href="js/fin-physics.js?v=387c311">
+  <link rel="modulepreload" href="js/gpu.js?v=387c311">
+  <link rel="modulepreload" href="js/interior.js?v=387c311">
+  <link rel="modulepreload" href="js/placeholder.js?v=387c311">
+  <link rel="modulepreload" href="js/page-hero.js?v=387c311">
+  <link rel="modulepreload" href="js/proyecto.js?v=387c311">
+  <link rel="modulepreload" href="js/portfolio-data.js?v=387c311">
+  <script>
+    // el póster del reel de la portada, pedido desde el principio (la ficha la pinta js/proyecto.js): uno por proyecto
+    // con página, el de js/portfolio-data.js → project.reels[0].poster. Al añadir un proyecto, añadirlo aquí.
+    (function () {
+      var covers = { 'cachondeo-group': 'assets/portfolio/cachondeo/reel-recap-poster.webp' };
+      var src = covers[location.hash.slice(1)];
+      if (!src) return;
+      var l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'image'; l.href = src; l.setAttribute('fetchpriority', 'high');
+      document.head.appendChild(l);
+    })();
+  </script>
+</head>
+<body data-page="proyecto">
+  <canvas id="malla" aria-hidden="true"></canvas>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+
+  <!-- Nav flotante de cristal (misma en todas las páginas; estilos en css/nav.css, lógica en js/nav.js) -->
+  <header class="nav" data-nav>
+    <div class="nav__float">
+      <nav class="nav__bar" aria-label="Principal">
+        <button class="nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-panel">
+          <span class="nav__burger" aria-hidden="true"><i></i><i></i></span>Menú
+        </button>
+        <a class="nav__logo" href="index.html" aria-label="disco.es, inicio">
+          <svg class="nav__logo-svg" viewBox="330 575 960 290" fill="currentColor" aria-hidden="true" focusable="false"><path d="M391.5,854.4C372.0,850.1 356.8,835.0 349.2,812.5C344.5,798.7 343.5,787.0 343.5,748.5C343.5,710.2 344.3,701.0 349.2,685.0C354.5,667.9 365.9,653.6 380.1,646.4C390.4,641.2 399.2,639.6 416.6,639.5L432.6,639.5L440.2,643.2C444.7,645.5 449.3,648.7 451.4,651.1C458.0,658.3 458.0,658.4 458.0,619.2C458.0,593.5 458.3,584.1 459.2,583.2C460.9,581.5 546.1,581.5 547.8,583.2C548.7,584.1 549.0,611.8 549.0,701.4C549.0,767.5 549.5,824.8 550.0,832.9C550.8,844.0 550.7,847.6 549.8,848.8C548.7,850.1 543.2,850.2 507.5,849.6C474.3,849.0 466.2,848.6 465.0,847.4C463.9,846.3 463.5,841.7 463.0,826.3C462.6,809.8 462.3,806.5 461.0,806.5C460.0,806.5 459.2,808.5 458.4,813.5C455.4,831.3 445.4,845.2 430.5,852.2C423.9,855.3 422.8,855.5 411.0,855.7C402.6,855.9 396.2,855.4 391.5,854.4ZM449.1,775.1L452.0,772.2L452.0,746.0L452.0,719.8L449.1,716.9C447.1,714.9 445.2,714.0 443.0,714.0C440.8,714.0 438.9,714.9 436.9,716.9L434.0,719.8L434.0,746.6C434.0,772.7 434.1,773.4 436.2,775.7C439.4,779.2 445.3,778.9 449.1,775.1Z"/><path d="M581.8,842.4C580.7,841.3 580.8,661.8 581.9,660.1C582.9,658.6 591.3,657.3 618.8,654.5C627.7,653.6 635.7,653.1 636.5,653.4C637.8,653.9 638.0,665.3 637.8,745.1C637.5,825.0 637.3,836.4 636.0,837.1C635.2,837.5 629.3,838.4 623.0,839.0C616.7,839.7 608.8,840.6 605.5,841.0C595.4,842.5 582.5,843.3 581.8,842.4ZM582.2,642.8C580.5,641.1 580.5,623.6 582.3,622.2C583.0,621.6 587.8,620.7 593.0,620.1C598.2,619.6 607.2,618.5 613.0,617.8C618.8,617.1 626.6,616.5 630.5,616.5L637.5,616.5L637.8,626.1C638.0,633.0 637.7,636.0 636.8,636.7C636.1,637.3 624.9,638.9 612.0,640.4C599.1,641.9 587.4,643.3 586.0,643.6C584.6,643.8 582.9,643.5 582.2,642.8Z"/><path d="M668.8,843.5C668.3,843.0 668.0,829.0 668.0,812.3C668.0,788.9 668.3,781.8 669.2,781.5C669.9,781.3 682.9,780.4 698.0,779.5C735.2,777.4 769.0,775.0 771.8,774.4C774.5,773.9 778.0,768.5 778.0,765.0C778.0,761.5 774.6,756.4 771.1,754.5C768.3,753.1 765.5,753.1 740.3,754.6C705.9,756.6 697.5,756.3 690.0,752.9C682.2,749.3 674.5,741.5 670.9,733.4L667.9,726.9L668.2,695.7L668.5,664.5L671.7,657.7C677.1,646.3 687.6,637.3 701.4,632.3C706.3,630.5 726.2,630.5 795.1,632.3C830.6,633.3 841.1,633.8 842.4,634.9C843.8,636.1 844.0,639.6 844.0,665.0C844.0,689.4 843.8,693.9 842.5,695.0C841.3,696.0 838.0,696.0 826.7,695.1C818.9,694.5 804.6,693.6 795.0,693.0C785.4,692.4 769.6,691.5 759.9,690.9C744.2,689.9 741.9,690.0 739.2,691.4C735.5,693.3 733.0,697.6 733.0,702.0C733.0,705.6 737.3,710.6 741.1,711.4C742.4,711.7 757.1,712.6 773.7,713.5C806.0,715.1 810.9,715.9 820.6,721.6C826.7,725.2 836.7,736.1 839.6,742.4C843.2,750.3 844.0,757.0 844.0,780.3C844.0,813.0 842.2,820.0 830.8,830.5C822.3,838.4 816.7,840.2 800.0,840.7C792.6,840.8 766.7,841.4 742.5,842.0C718.3,842.6 692.0,843.3 684.0,843.6C676.0,844.0 669.2,843.9 668.8,843.5Z"/><path d="M912.0,842.0C885.0,836.4 867.8,821.9 861.3,799.3C860.0,794.5 859.6,787.1 859.2,757.6C859.0,735.0 859.2,718.1 859.9,712.3C864.5,673.7 896.2,645.2 947.0,633.8C956.3,631.8 960.1,631.5 979.5,631.5C1004.0,631.5 1010.4,632.6 1023.3,639.1C1035.8,645.4 1046.6,659.3 1049.0,672.1C1050.5,679.8 1050.3,702.5 1048.8,703.8C1046.9,705.3 970.1,726.2 967.6,725.8C965.7,725.5 965.4,724.7 965.0,718.7C964.6,713.0 964.1,711.5 962.1,709.9C960.8,708.9 959.1,708.0 958.4,708.0C955.6,708.0 950.1,710.9 949.1,712.8C948.4,714.1 948.0,723.0 948.0,736.8C948.0,758.3 948.0,758.7 950.3,760.8C953.0,763.4 955.0,763.5 959.0,761.5C963.8,759.0 965.0,756.3 965.0,748.4C965.0,743.8 965.5,740.9 966.3,740.2C967.6,739.1 974.1,738.3 1004.5,735.4C1013.3,734.6 1026.6,733.3 1034.0,732.5C1043.5,731.5 1047.8,731.4 1048.7,732.2C1051.0,734.0 1050.4,764.9 1048.0,774.4C1044.6,787.7 1039.0,797.1 1027.5,808.5C1009.8,826.3 988.6,836.1 956.0,841.6C938.7,844.5 924.3,844.6 912.0,842.0Z"/><path d="M1142.5,850.9C1123.4,848.5 1106.8,839.8 1092.4,824.8C1081.6,813.5 1074.9,803.0 1070.6,790.3C1066.2,777.5 1065.8,771.9 1066.2,733.5L1066.5,697.5L1069.2,689.5C1074.1,675.1 1082.9,662.6 1095.8,651.9C1109.4,640.6 1124.0,633.2 1140.0,629.4C1150.9,626.9 1175.8,623.8 1189.4,623.3C1200.4,622.9 1203.7,623.1 1211.4,625.0C1220.4,627.2 1220.7,627.3 1239.2,641.0C1260.0,656.4 1262.4,659.0 1270.0,674.5C1278.5,691.8 1278.5,691.9 1278.5,737.0L1278.5,776.5L1275.7,784.5C1268.8,804.0 1256.5,818.8 1236.6,831.5C1221.4,841.2 1208.1,845.1 1177.0,849.0C1164.1,850.7 1152.6,851.9 1151.5,851.9C1150.4,851.8 1146.3,851.4 1142.5,850.9ZM1178.1,782.0C1192.5,779.8 1197.5,777.7 1202.5,771.8C1208.4,764.9 1208.5,764.0 1208.5,733.5L1208.5,705.5L1206.0,701.0C1200.0,690.4 1192.2,688.5 1168.8,691.9C1153.3,694.1 1147.0,696.7 1141.9,703.1C1136.4,710.0 1136.0,712.8 1136.0,740.5C1136.0,768.1 1136.6,771.8 1141.8,777.3C1148.6,784.5 1155.5,785.4 1178.1,782.0Z"/><path d="M1235.0,585.0 Q1242.7,632.6 1278.0,643.0 Q1242.7,654.0 1235.0,704.0 Q1227.6,654.0 1194.0,643.0 Q1227.6,632.6 1235.0,585.0 Z"/></svg>
+        </a>
+        <a class="nav__link" href="contacto.html">Contacto</a>
+      </nav>
+      <div class="nav__panel" id="nav-panel" hidden>
+        <ul class="nav__list">
+          <li><a class="nav__item" href="index.html">Home</a></li>
+          <li><a class="nav__item" href="servicios.html">Servicios</a></li>
+          <li><a class="nav__item" href="portfolio.html" aria-current="page">Portfolio</a></li>
+          <li><a class="nav__item" href="nosotros.html">Nosotros</a></li>
+          <li><a class="nav__item" href="contacto.html">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- Página de proyecto: UNA plantilla para todos (proyecto.html#slug). js/proyecto.js la pinta con los datos de
+       js/portfolio-data.js (works[].project); css/proyecto.css. Portada, ficha, encargo / idea / resultado, reels, la
+       noche en secuencia, hoja de contactos con visor y cierre; índice lateral en escritorio. -->
+  <main id="contenido" class="ip pj" data-project data-slug="cachondeo-group">
+    <section class="pj-cover" id="portada" aria-labelledby="pj-title">
+      <div class="pj-cover__bg" data-pj-zoom><img src="assets/portfolio/cachondeo/cachondeo-01.webp" srcset="assets/portfolio/cachondeo/cachondeo-01-1000.webp 1000w, assets/portfolio/cachondeo/cachondeo-01.webp 2000w" sizes="100vw" width="2000" height="1125" alt="Grupo de amigos con camisetas naranjas de Cachondeo Group posando juntos en la fiesta" fetchpriority="high" decoding="async"></div>
+      <i class="pj-cover__shade" aria-hidden="true"></i>
+      <div class="pj-cover__phone" data-pj-slide>
+        <div class="pj-phone"><video src="assets/portfolio/cachondeo/reel-recap.mp4" poster="assets/portfolio/cachondeo/reel-recap-poster.webp" muted loop playsinline preload="metadata" aria-label="Reel resumen de la fiesta de Cachondeo Group" data-pj-cover-video></video></div>
+        <button class="pj-sound" type="button" aria-pressed="false" aria-label="Sonido del reel" data-pj-cover-sound><svg class="pj-i-on" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="pj-i-off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="pj-cover__text">
+        <p class="pj-tag" data-pj-enter><span class="pj-tag__star"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>Proyecto</p>
+        <h1 class="pj-title" id="pj-title"><span class="pj-mask"><span data-pj-rise>Cachondeo Group</span></span></h1>
+        <p class="pj-lede" data-pj-enter>Una noche de karaoke, fútbol y camisetas naranjas. La contamos en dos reels y más de 80 fotos.</p>
+      </div>
+    </section>
+
+    <section class="pj-sheet ip-wrap" id="ficha" aria-label="Ficha del proyecto">
+      <dl class="pj-facts"><div class="pj-fact"><dt>Cliente</dt><dd>Cachondeo Group</dd></div><div class="pj-fact"><dt>Tipo</dt><dd>Evento nocturno</dd></div><div class="pj-fact"><dt>Lugar</dt><dd>Madrid [CONFIRMAR]</dd></div><div class="pj-fact"><dt>Año</dt><dd>2026</dd></div><div class="pj-fact"><dt>Entregables</dt><dd>2 reels, +80 fotos</dd></div><div class="pj-fact"><dt>Equipo</dt><dd>Luna López, Bruno Marín</dd></div></dl>
+      <div class="pj-story"><div class="pj-story__col" data-pj-reveal><h2 class="pj-story__title">El encargo</h2><p class="pj-story__text">Contar la fiesta de Cachondeo Group para sus redes, con la energía real de la noche.</p></div><div class="pj-story__col" data-pj-reveal><h2 class="pj-story__title">La idea</h2><p class="pj-story__text">Rodar sin interrumpir: cámara en mano entre la gente, flash directo y el naranja de la marca en cada plano.</p></div><div class="pj-story__col" data-pj-reveal><h2 class="pj-story__title">El resultado</h2><p class="pj-story__text">Dos reels verticales listos para Instagram y TikTok y una galería completa para el cliente al día siguiente.</p></div></div>
+    </section>
+
+    <section class="pj-reels" id="reels" aria-labelledby="pj-reels-title">
+      <div class="ip-wrap">
+        <h2 class="pj-h2" id="pj-reels-title">Los reels<b class="pj-dot">.</b></h2>
+        <div class="pj-reels__row">
+          <figure class="pj-reel" data-pj-reel>
+            <div class="pj-phone pj-phone--reel">
+              <video src="assets/portfolio/cachondeo/reel-recap.mp4" poster="assets/portfolio/cachondeo/reel-recap-poster.webp" muted playsinline preload="none" aria-label="Reel resumen de la fiesta de Cachondeo Group"></video>
+              <button class="pj-reel__hit" type="button" aria-pressed="false" aria-label="Sonido: Recap de la noche"><span class="pj-sound pj-sound--in"><svg class="pj-i-on" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="pj-i-off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span></button>
+            </div>
+            <figcaption class="pj-reel__cap"><span class="pj-reel__title">Recap de la noche</span><span class="pj-reel__time" data-pj-dur="0">0:19</span></figcaption>
+          </figure>
+          <figure class="pj-reel" data-pj-reel>
+            <div class="pj-phone pj-phone--reel">
+              <video src="assets/portfolio/cachondeo/reel-fiesta.mp4" poster="assets/portfolio/cachondeo/reel-fiesta-poster.webp" muted playsinline preload="none" aria-label="Reel de la fiesta de Cachondeo Group"></video>
+              <button class="pj-reel__hit" type="button" aria-pressed="false" aria-label="Sonido: La fiesta"><span class="pj-sound pj-sound--in"><svg class="pj-i-on" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="pj-i-off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span></button>
+            </div>
+            <figcaption class="pj-reel__cap"><span class="pj-reel__title">La fiesta</span><span class="pj-reel__time" data-pj-dur="1">0:23</span></figcaption>
+          </figure></div>
+      </div>
+    </section>
+
+    <section class="pj-seq" id="la-noche" aria-labelledby="pj-seq-title">
+      <div class="ip-wrap"><h2 class="pj-h2" id="pj-seq-title">La noche, en secuencia<b class="pj-dot">.</b></h2></div>
+      <div class="pj-seq__view" data-pj-seq-view>
+        <ol class="pj-seq__strip" data-pj-strip>
+          <li class="pj-seq__item"><figure><img src="assets/portfolio/cachondeo/cachondeo-01-1000.webp" srcset="assets/portfolio/cachondeo/cachondeo-01-1000.webp 1000w, assets/portfolio/cachondeo/cachondeo-01.webp 2000w" sizes="(min-width: 900px) 46vw, 80vw" width="2000" height="1125" alt="Grupo de amigos con camisetas naranjas de Cachondeo Group posando juntos en la fiesta" loading="lazy" decoding="async"><figcaption>21:47 · Foto de grupo</figcaption></figure></li>
+          <li class="pj-seq__item"><figure><img src="assets/portfolio/cachondeo/cachondeo-05-1000.webp" srcset="assets/portfolio/cachondeo/cachondeo-05-1000.webp 1000w, assets/portfolio/cachondeo/cachondeo-05.webp 2000w" sizes="(min-width: 900px) 46vw, 80vw" width="2000" height="1500" alt="Pareja abrazada y sonriendo; él con la camiseta naranja de Cachondeo Group" loading="lazy" decoding="async"><figcaption>22:20 · Abrazos</figcaption></figure></li>
+          <li class="pj-seq__item"><figure><img src="assets/portfolio/cachondeo/cachondeo-08-1000.webp" srcset="assets/portfolio/cachondeo/cachondeo-08-1000.webp 1000w, assets/portfolio/cachondeo/cachondeo-08.webp 2000w" sizes="(min-width: 900px) 46vw, 80vw" width="2000" height="1125" alt="Chico con camiseta naranja bailando con los brazos abiertos delante de un grupo de chicas" loading="lazy" decoding="async"><figcaption>23:05 · La pista</figcaption></figure></li>
+          <li class="pj-seq__item"><figure><img src="assets/portfolio/cachondeo/cachondeo-13-1000.webp" srcset="assets/portfolio/cachondeo/cachondeo-13-1000.webp 1000w, assets/portfolio/cachondeo/cachondeo-13.webp 2000w" sizes="(min-width: 900px) 46vw, 80vw" width="2000" height="1333" alt="Dos chicas riendo y cantando, una con el micro y otra con la bufanda del Getafe" loading="lazy" decoding="async"><figcaption>23:40 · Karaoke</figcaption></figure></li>
+          <li class="pj-seq__item"><figure><img src="assets/portfolio/cachondeo/cachondeo-15-1000.webp" srcset="assets/portfolio/cachondeo/cachondeo-15-1000.webp 1000w, assets/portfolio/cachondeo/cachondeo-15.webp 2000w" sizes="(min-width: 900px) 46vw, 80vw" width="2000" height="1333" alt="Chico con camiseta naranja cantando al micro con la gente detrás" loading="lazy" decoding="async"><figcaption>00:15 · El micro</figcaption></figure></li>
+          <li class="pj-seq__item"><figure><img src="assets/portfolio/cachondeo/cachondeo-17-1000.webp" srcset="assets/portfolio/cachondeo/cachondeo-17-1000.webp 1000w, assets/portfolio/cachondeo/cachondeo-17.webp 2000w" sizes="(min-width: 900px) 46vw, 80vw" width="2000" height="1500" alt="En blanco y negro: grupo de amigos abrazados bajo el letrero luminoso de Cachondeo Group" loading="lazy" decoding="async"><figcaption>01:30 · La última</figcaption></figure></li></ol>
+      </div>
+    </section>
+
+    <section class="pj-gal ip-wrap" id="galeria" aria-labelledby="pj-gal-title">
+      <div class="pj-gal__head">
+        <h2 class="pj-h2" id="pj-gal-title">Hoja de contactos<b class="pj-dot">.</b></h2>
+        <div class="pj-filters" role="group" aria-label="Filtrar las fotos">
+          <button class="pj-filter" type="button" data-pj-filter="all" aria-pressed="true">Todas</button>
+          <button class="pj-filter" type="button" data-pj-filter="color" aria-pressed="false">Color</button>
+          <button class="pj-filter" type="button" data-pj-filter="bw" aria-pressed="false">B/N</button>
+        </div>
+      </div>
+      <ul class="pj-grid" data-pj-grid>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="0" aria-label="Ampliar: Grupo de amigos con camisetas naranjas de Cachondeo Group posando juntos en la fiesta">
+          <img src="assets/portfolio/cachondeo/cachondeo-01-1000.webp" width="2000" height="1125" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="1" aria-label="Ampliar: Chico con camiseta naranja de Cachondeo Group cantando al micro entre la gente">
+          <img src="assets/portfolio/cachondeo/cachondeo-02-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="2" aria-label="Ampliar: Dos chicas cantando al micro, una con la bufanda del Getafe">
+          <img src="assets/portfolio/cachondeo/cachondeo-03-1000.webp" width="2000" height="1500" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="3" aria-label="Ampliar: Chica con la bufanda del Getafe riendo a carcajadas con el micro junto a su amiga">
+          <img src="assets/portfolio/cachondeo/cachondeo-04-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="4" aria-label="Ampliar: Pareja abrazada y sonriendo; él con la camiseta naranja de Cachondeo Group">
+          <img src="assets/portfolio/cachondeo/cachondeo-05-1000.webp" width="2000" height="1500" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="5" aria-label="Ampliar: Chico con camiseta naranja dando un beso en la mejilla a una chica que sonríe con los ojos cerrados">
+          <img src="assets/portfolio/cachondeo/cachondeo-06-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="6" aria-label="Ampliar: Dos chicos con camisetas naranjas, uno con la bufanda del Getafe, hablándose al oído">
+          <img src="assets/portfolio/cachondeo/cachondeo-07-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="7" aria-label="Ampliar: Chico con camiseta naranja bailando con los brazos abiertos delante de un grupo de chicas">
+          <img src="assets/portfolio/cachondeo/cachondeo-08-1000.webp" width="2000" height="1125" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="8" aria-label="Ampliar: Chico con camiseta naranja de Cachondeo Group cantando con fuerza al micro">
+          <img src="assets/portfolio/cachondeo/cachondeo-09-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="9" aria-label="Ampliar: Chica rubia cantando al micro junto a un chico con camiseta naranja">
+          <img src="assets/portfolio/cachondeo/cachondeo-10-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="10" aria-label="Ampliar: Chico con camiseta naranja de Cachondeo Group cantando en mitad de la fiesta">
+          <img src="assets/portfolio/cachondeo/cachondeo-11-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="11" aria-label="Ampliar: Dos amigas abrazadas cantando juntas al mismo micro">
+          <img src="assets/portfolio/cachondeo/cachondeo-12-1000.webp" width="2000" height="1500" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="12" aria-label="Ampliar: Dos chicas riendo y cantando, una con el micro y otra con la bufanda del Getafe">
+          <img src="assets/portfolio/cachondeo/cachondeo-13-1000.webp" width="2000" height="1333" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="13" aria-label="Ampliar: Grupo de chicas cantando y riendo en la pista con un micro">
+          <img src="assets/portfolio/cachondeo/cachondeo-14-1000.webp" width="2000" height="1500" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="14" aria-label="Ampliar: Chico con camiseta naranja cantando al micro con la gente detrás">
+          <img src="assets/portfolio/cachondeo/cachondeo-15-1000.webp" width="2000" height="1333" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="0"><button class="pj-shot" type="button" data-pj-shot="15" aria-label="Ampliar: Chico sonriente con camiseta naranja de Cachondeo Group y la bufanda del Getafe al hombro">
+          <img src="assets/portfolio/cachondeo/cachondeo-16-1000.webp" width="1333" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="1"><button class="pj-shot" type="button" data-pj-shot="16" aria-label="Ampliar: En blanco y negro: grupo de amigos abrazados bajo el letrero luminoso de Cachondeo Group">
+          <img src="assets/portfolio/cachondeo/cachondeo-17-1000.webp" width="2000" height="1500" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="1"><button class="pj-shot" type="button" data-pj-shot="17" aria-label="Ampliar: En blanco y negro: chico con la bufanda del Getafe sobre la cabeza haciendo cuernos con las manos">
+          <img src="assets/portfolio/cachondeo/cachondeo-18-1000.webp" width="1500" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="1"><button class="pj-shot" type="button" data-pj-shot="18" aria-label="Ampliar: En blanco y negro: chico con camiseta de Cachondeo Group sonriendo de perfil">
+          <img src="assets/portfolio/cachondeo/cachondeo-19-1000.webp" width="1500" height="2000" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li>
+        <li class="pj-grid__item" data-bw="1"><button class="pj-shot" type="button" data-pj-shot="19" aria-label="Ampliar: En blanco y negro: micrófono y pulseras de Cachondeo Group sobre una mesa">
+          <img src="assets/portfolio/cachondeo/cachondeo-20-1000.webp" width="2000" height="1500" alt="" loading="lazy" decoding="async"><span class="pj-shot__star" aria-hidden="true"><svg viewBox="1194 585 84 119" aria-hidden="true" focusable="false"><path d="M1235 585Q1242.7 632.6 1278 643Q1242.7 654 1235 704Q1227.6 654 1194 643Q1227.6 632.6 1235 585Z" fill="currentColor"/></svg></span>
+        </button></li></ul>
+    </section>
+
+    <section class="pj-end ip-wrap" aria-labelledby="pj-end-title">
+      <h2 class="pj-end__title" id="pj-end-title">¿El siguiente es el tuyo?</h2>
+      <div class="pj-end__actions">
+        <a class="pj-btn" href="contacto.html?ref=cachondeo-group">Hablemos <b aria-hidden="true">→</b></a>
+        <a class="pj-link" href="portfolio.html">Volver al portfolio</a>
+      </div>
+    </section>
+
+    <nav class="pj-index" aria-label="Secciones del proyecto">
+      <ul><li><button type="button" data-pj-to="portada">Portada</button></li><li><button type="button" data-pj-to="ficha">Ficha</button></li><li><button type="button" data-pj-to="reels">Reels</button></li><li><button type="button" data-pj-to="la-noche">La noche</button></li><li><button type="button" data-pj-to="galeria">Galería</button></li></ul>
+    </nav>
+  </main>
+
+  <!-- Footer "fin de la sesión" (css/fin.css; js/fin.js lo monta, js/fin-physics.js la física).
+       Sin JS queda este menú sencillo. -->
+  <footer class="fin fin--fallback" data-footer>
+    <nav aria-label="Páginas"><a href="index.html">Inicio</a> · <a href="servicios.html">Servicios</a> · <a href="portfolio.html">Portfolio</a> · <a href="nosotros.html">Nosotros</a> · <a href="contacto.html">Contacto</a></nav>
+    <p>© 2026 disco. · <a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a></p>
+  </footer>
+
+  <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>
+  <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
+  <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
+  <script type="module" src="js/page.js?v=387c311"></script>
+  <script type="module" src="js/malla.js?v=387c311"></script>
+</body>
+</html>

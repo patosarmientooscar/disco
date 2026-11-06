@@ -11,7 +11,8 @@ export const showreel = { src: 'assets/paginas/disco-manifiesto.mp4', poster: 'a
 // media: lo que se ve en la ficha: fotos { type: 'img', src, thumb, w, h, alt } (src: la grande, para el visor;
 //   thumb: la de 1000 px, para la rejilla) y vídeos { type: 'video', src, poster, alt }
 // bw: true en las fotos en blanco y negro (filtro "B/N" de la galería del proyecto).
-// project: lo de su página (proyecto.html#slug): frase, ficha, encargo / idea / resultado, reels y secuencia (reels:
+// seo: { type, description } para su página (tools/proyectos.mjs).
+// project: lo de su página (proyecto-<slug>.html, la genera tools/proyectos.mjs): frase, ficha, encargo / idea / resultado, reels y secuencia (reels:
 //   [] = proyecto solo de fotos: la portada lleva la foto en vez del móvil y no hay sección de reels).
 // Con UN solo trabajo, el portfolio lo enseña como proyecto destacado; con 2 o más, la rejilla. Cada uno abre su página.
 export const works = [
@@ -51,7 +52,9 @@ export const works = [
     ],
     year: 2026,
     deliverables: ['2 reels verticales', '+80 fotos editadas', 'Cobertura completa del evento'],
-    // la página del proyecto (proyecto.html#cachondeo-group, js/proyecto.js). Textos: BORRADOR (Oscar los confirma)
+    // la página del proyecto (proyecto-cachondeo-group.html, js/proyecto.js). Textos: BORRADOR (Oscar los confirma)
+    // SEO de su página (tools/proyectos.mjs): título = '{title}: {type} en Madrid — disco.' (≤ 60) y descripción (≤ 155)
+    seo: { type: 'fiesta', description: 'Karaoke, fútbol y camisetas naranjas: la fiesta de Cachondeo Group en Madrid, contada en dos reels verticales y más de 80 fotos editadas.' },
     project: {
       tagline: 'Una noche de karaoke, fútbol y camisetas naranjas. La contamos en dos reels y más de 80 fotos.',
       facts: [
@@ -116,8 +119,9 @@ export const works = [
     ],
     year: 2026,
     deliverables: ['+130 fotos editadas', 'Color y blanco y negro'],
-    // la página del proyecto (proyecto.html#esb). Solo fotos: sin reels (js/proyecto.js pinta la portada con la foto
+    // la página del proyecto (proyecto-esb.html). Solo fotos: sin reels (js/proyecto.js pinta la portada con la foto
     // en vez del móvil y no pinta la sección de reels). Textos: BORRADOR (Oscar los confirma)
+    seo: { type: 'sesión de fotos nocturna', description: 'Neones, sofás y amigos: una noche de E, S, B en Madrid contada en más de 130 fotos editadas, en color y en blanco y negro.' },
     project: {
       tagline: 'Una noche entre neones, sofás y amigos. La contamos en más de 130 fotos, en color y en blanco y negro.',
       facts: [

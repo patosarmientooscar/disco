@@ -4,7 +4,7 @@ import { initManifesto } from './manifesto.js';
 import { litWords } from './interior.js';
 
 // Portfolio: el hero de la bola (js/portfolio-hero.js), contador, showreel y la rejilla "hoja de
-// contactos". Cada trabajo lleva a SU página (proyecto.html#slug, js/proyecto.js), con la transición entre páginas;
+// contactos". Cada trabajo lleva a SU página (proyecto-<slug>.html, js/proyecto.js), con la transición entre páginas;
 // los enlaces viejos (portfolio.html#slug) también. Sin trabajos: 6 huecos al .55 y el aviso "Estamos rodando...".
 // Con UN solo trabajo, en vez de la rejilla, el proyecto destacado: portada grande (toda ella, el enlace), 3 fotos de
 // adelanto y "Ver las 20 fotos", y "Próximo proyecto". Los datos, en js/portfolio-data.js.
@@ -16,7 +16,8 @@ const FEATURED_MAX = 6; // hasta aquí, cada trabajo a todo el ancho, uno debajo
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = (n) => String(n).padStart(2, '0');
-const page = (slug, extra = '') => `proyecto.html${extra}#${encodeURIComponent(slug)}`;
+// la página de cada proyecto (AS-C: proyecto-<slug>.html, con su contenido en el HTML)
+const page = (slug, extra = '') => `proyecto-${encodeURIComponent(slug)}.html${extra}`;
 const setCount = (n) => { document.querySelector('[data-count]').textContent = `${pad(n)} PROYECTO${n === 1 ? '' : 'S'}`; };
 
 export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {

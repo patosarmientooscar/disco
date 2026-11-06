@@ -321,3 +321,10 @@
 }
 /* antes de que js/proyecto.js pinte la ficha: una pantalla reservada (el footer no aparece arriba y luego salta) */
 .js .pj:empty { min-height: 100vh; min-height: 100svh; background: #000; }
+
+/* AS-C: la página llega con el contenido ya en el HTML (tools/proyectos.mjs): hasta que js/proyecto.js lo anima, el
+   título y lo que entra con él, en su punto de partida (sin verse un instante antes de la entrada) */
+@media (prefers-reduced-motion: no-preference) {
+  .js .pj[data-slug] [data-pj-rise] { visibility: hidden; } /* (js/proyecto.js lo enciende al colocarlo) */
+  .js .pj[data-slug] [data-pj-enter] { opacity: 0; }
+}
