@@ -12,6 +12,7 @@ import { litWords } from './interior.js';
 const LABEL = { restaurantes: 'Restaurante', noche: 'Noche', eventos: 'Evento', marcas: 'Marca' };
 const RATIOS = ['4/5', '1/1', '9/16'];
 const EMPTY = 6;
+const FEATURED_MAX = 6; // hasta aquí, cada trabajo a todo el ancho, uno debajo de otro; con más, la rejilla
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = (n) => String(n).padStart(2, '0');
@@ -40,11 +41,13 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     return;
   }
 
-  if (works.length === 1) {
-    initFeatured({ work: works[0] });
+  // de 1 a FEATURED_MAX trabajos: cada uno a todo el ancho, uno debajo de otro (el bloque de proyecto destacado)
+  if (works.length <= FEATURED_MAX) {
+    initFeatured(works);
     return;
   }
 
+  // a partir de FEATURED_MAX + 1 trabajos, la rejilla en columnas ("hoja de contactos"), tal cual estaba
   grid.innerHTML = works.map((w, i) => {
     const ratio = w.ratio || RATIOS[i % 3];
     const cover = w.cover
@@ -110,21 +113,30 @@ function initReel({ reduced }) {
   });
 }
 
-// --- un solo trabajo: proyecto destacado ---
+// --- hasta FEATURED_MAX trabajos: cada uno como proyecto destacado, uno debajo de otro, todos iguales ---
 // Portada grande con el título encima (toda ella, el enlace a la página del proyecto); debajo, 3 fotos de adelanto en
-// fila y "Ver las 20 fotos" (a la galería del proyecto); al final, la tarjeta del próximo proyecto.
-function initFeatured({ work: w }) {
+// fila y "Ver las N fotos" (a la galería del proyecto). Al final de todos, UNA vez, la tarjeta del próximo proyecto.
+function initFeatured(list) {
   const stage = document.querySelector('[data-stage]');
   stage.classList.add('is-featured');
+  stage.innerHTML = `${list.map(renderFeatured).join('')}
+    <a class="pf-next" href="contacto.html">
+      <span class="pf-next__kicker">Próximo proyecto: en rodaje</span>
+      <span class="pf-next__title">¿El siguiente es el tuyo? <b aria-hidden="true">→</b></span>
+    </a>`;
+}
+// un proyecto (el bloque). Adelanto: las verticales primero y, si no llegan a 3, se completa con horizontales (la
+// fila las recorta a 4:5: sin huecos)
+function renderFeatured(w, i) {
   const photos = (w.media || []).filter((m) => m.type === 'img');
   const first = photos[0];
-  const peek = photos.filter((m) => m.h > m.w).slice(0, 3);
+  const peek = [...photos.filter((m) => m.h > m.w), ...photos.slice(1).filter((m) => m.h <= m.w)].slice(0, 3);
   const line = [w.client, ...(w.deliverables || [])].filter(Boolean).map(esc).join(' · ');
   const all = page(w.slug, '?ver=galeria');
-  stage.innerHTML = `
+  return `<div class="pf-proj">
     <article class="pf-feat">
       <a class="pf-feat__cover" href="${page(w.slug)}">
-        <img src="${esc(w.coverLarge || w.cover)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || w.cover)} 2000w" sizes="100vw"${first ? ` width="${first.w}" height="${first.h}"` : ''} alt="${esc(first?.alt || '')}" decoding="async">
+        <img src="${esc(w.coverLarge || w.cover)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || w.cover)} 2000w" sizes="100vw"${first ? ` width="${first.w}" height="${first.h}"` : ''} alt="${esc(first?.alt || '')}" loading="${i ? 'lazy' : 'eager'}" decoding="async">
         <span class="pf-feat__text">
           <span class="pf-feat__title">${esc(w.title)}</span>
           <span class="pf-feat__line">${line}</span>
@@ -137,8 +149,5 @@ function initFeatured({ work: w }) {
         <li><a href="${all}" aria-label="Ver la galería: ${esc(m.alt)}"><img src="${esc(m.thumb || m.src)}" width="${m.w}" height="${m.h}" alt="" loading="lazy" decoding="async"></a></li>`).join('')}</ul>
       <a class="pf-peek__more" href="${all}">Ver las ${photos.length} fotos <b aria-hidden="true">→</b></a>
     </div>` : ''}
-    <a class="pf-next" href="contacto.html">
-      <span class="pf-next__kicker">Próximo proyecto: en rodaje</span>
-      <span class="pf-next__title">¿El siguiente es el tuyo? <b aria-hidden="true">→</b></span>
-    </a>`;
+  </div>`;
 }

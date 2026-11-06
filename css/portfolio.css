@@ -193,6 +193,8 @@
 .pf-next__title { font: 600 clamp(30px, 4.4vw, 72px) / 1 var(--font-display); letter-spacing: -0.03em; }
 .pf-next__title b { font-weight: inherit; color: var(--orange); }
 .pf__stage.is-featured { display: block; } /* (en móvil, el estado vacío va en column-reverse) */
+/* varios proyectos, uno debajo de otro y todos iguales: entre uno y el siguiente, el hueco de las secciones (sin línea) */
+.pf-proj + .pf-proj { margin-top: clamp(72px, 12vh, 140px); }
 @media (max-width: 639px) {
   .pf-feat__cover img { aspect-ratio: 4 / 5; }
 }
