@@ -21,7 +21,9 @@ export const config = {
   // claves: https://formsubmit.co) o 'emailjs' (solo si arriba están sus claves; si no, FormSubmit). alias: el código
   // que da FormSubmit tras activar el email, para no dejar la dirección en el código (vacío = se usa `to`). Pasos:
   // docs/contacto.md
-  contactForm: { provider: 'formsubmit', to: 'equipo@discoproduccion.com', alias: '' },
+  // cc: copia de cada aviso (_cc de FormSubmit).
+  // provisional: cuando exista y esté activado equipo@discoproduccion.com, ponerlo en 'to' (AR-H; docs/contacto.md)
+  contactForm: { provider: 'formsubmit', to: 'patosarmientooscar@gmail.com', cc: 'equipo@discoproduccion.com', alias: '' },
   // qué datos son reales: con false, ese botón o dato NO se pinta (nada de enlaces a 34600000000)
   ready: { whatsapp: false, phone: false },
   // prueba social de la home (js/home-close.js): solo datos REALES. Con los dos arrays vacíos la sección no existe.

@@ -129,7 +129,7 @@ export function init({ gsap, lenis, reduced }) {
         const emailjs = await loadEmailjs();
         await emailjs.send(keys.serviceId, keys.templateId, params, { publicKey: keys.publicKey });
         if (keys.autoReplyTemplateId) emailjs.send(keys.serviceId, keys.autoReplyTemplateId, params, { publicKey: keys.publicKey }).catch(() => {});
-      } else await formsubmit(cf.alias || cf.to || email, params, data.web || '');
+      } else await formsubmit(cf.alias || cf.to || email, params, data.web || '', cf.cc || '');
       try { localStorage.setItem(LOCK_KEY, String(Date.now())); } catch { /* sin almacenamiento */ }
       await gsap.to(bar, { scaleX: 1, duration: 0.25, ease: 'power2.out' });
       finish(data);
@@ -171,7 +171,7 @@ export function init({ gsap, lenis, reduced }) {
 // FormSubmit: el aviso a disco, una tabla con los datos (AJAX: sin salir de la página). _replyto: al darle a
 // Responder, se contesta al interesado. Vale si responde success "true"
 const FORMSUBMIT = 'https://formsubmit.co/ajax/';
-async function formsubmit(to, p, honey) {
+async function formsubmit(to, p, honey, cc = '') {
   const body = {
     _subject: `Nuevo interesado en la web · ${p.negocio} · ${p.nombre}`,
     _template: 'table',
@@ -186,6 +186,7 @@ async function formsubmit(to, p, honey) {
     Enviado: p.fecha,
     'Página': p.pagina,
   };
+  if (cc) body._cc = cc; // (copia: config.contactForm.cc)
   dlog('contacto: aviso a FormSubmit', FORMSUBMIT + to, body);
   // (si FormSubmit no contesta, no se espera para siempre: a los SEND_MS, error con el email)
   const ctl = new AbortController();
@@ -203,7 +204,7 @@ async function formsubmit(to, p, honey) {
     throw new Error(err.name === 'AbortError' ? 'timeout' : 'red');
   } finally { clearTimeout(timer); }
   const out = await res.json().catch(() => ({}));
-  dlog('contacto: respuesta de FormSubmit', res.status, out);
+  dlog('contacto: respuesta de FormSubmit', res.status, JSON.stringify(out));
   if (!res.ok || String(out.success) !== 'true') throw new Error(out.message || `FormSubmit ${res.status}`);
 }
 
