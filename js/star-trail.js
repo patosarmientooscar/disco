@@ -106,6 +106,8 @@ export function createTrail({ scene, model, n = 8, color = 0xF35411 }) {
     // la calidad adaptativa baja copias (de 8 a 3), nunca la quita
     setMax(k) { max = Math.max(1, Math.min(n, k)); },
     get visible() { return ghosts.some((g) => g.holder.visible); },
-    dispose() { ghosts.forEach((g) => g.mat.dispose()); },
+    // (al salir de la página el renderer compartido puede haberse liberado antes: three falla al soltar un material
+    // que ya no conoce; en ese caso no hay nada que liberar)
+    dispose() { ghosts.forEach((g) => { try { g.mat.dispose(); } catch { /* ya liberado con el renderer */ } }); },
   };
 }

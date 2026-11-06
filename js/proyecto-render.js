@@ -95,7 +95,9 @@ export function renderProject(w, { works = [] } = {}) {
     <section class="pj-end ip-wrap" aria-labelledby="pj-end-title">
       <h2 class="pj-end__title" id="pj-end-title">¿El siguiente es el tuyo?</h2>
       <div class="pj-end__actions">
-        <a class="pj-btn" href="contacto.html?ref=${encodeURIComponent(w.slug)}">Hablemos <b aria-hidden="true">→</b></a>
+        <a class="pj-btn" href="contacto.html?ref=${encodeURIComponent(w.slug)}" data-draft>Cuéntanos tu proyecto <b aria-hidden="true">→</b></a>
+        <a class="pj-link" href="servicios.html" data-draft>Qué hacemos: foto, vídeo y edición</a>${next ? `
+        <a class="pj-link" href="${projectUrl(next.slug)}" data-draft>Siguiente proyecto: ${esc(next.title)}</a>` : ''}
         <a class="pj-link" href="portfolio.html">Volver al portfolio</a>
       </div>
     </section>

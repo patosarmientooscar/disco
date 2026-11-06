@@ -122,7 +122,9 @@ export function sharedGL() {
   window.addEventListener('resize', resize);
   // al salir de verdad se libera la GPU; si la página se queda en la caché de atrás/adelante (bfcache), no: al
   // volver sigue igual
-  window.addEventListener('pagehide', (e) => { if (!e.persisted) renderer.dispose(); });
+  // (el último: después de que el hero y el recorrido suelten lo suyo; antes, three fallaba al soltar materiales y
+  // texturas de un renderer ya liberado)
+  window.addEventListener('pagehide', (e) => { if (!e.persisted) setTimeout(() => renderer.dispose(), 0); });
   let owner = null;
   const fps = { t: 0, n: 0 };
   const lower = () => {
