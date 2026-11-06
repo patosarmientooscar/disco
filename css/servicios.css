@@ -160,6 +160,8 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  overflow: clip; /* AR-E: recorta sin ser desplazable (la foto del panel Vídeo crece con su movimiento de cámara: con
+                    hidden, el foco del botón lo desplazaba 18 px) */
   border-radius: 22px;
   background: #000;
   isolation: isolate;
@@ -167,8 +169,7 @@
 }
 .of-pic { position: absolute; left: 0; top: 0; z-index: 0; will-change: transform; }
 .of-pic__in { position: absolute; left: 0; top: 0; will-change: transform; }
-.of-pic__in > img,
-.of-video {
+.of-pic__in > img {
   position: absolute;
   inset: 0;
   display: block;
@@ -176,22 +177,6 @@
   height: 100%;
   object-fit: cover;
 }
-.of-play {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 8;
-  min-height: 44px;
-  padding: 0 20px;
-  translate: -50% -50%;
-  border: 1px solid rgb(244 242 239 / 0.6);
-  border-radius: 999px;
-  background: rgb(11 9 9 / 0.6);
-  color: var(--paper);
-  font: 500 15px / 1 var(--font-display);
-  cursor: pointer;
-}
-.of-play:hover { border-color: var(--paper); }
 .of-shade { position: absolute; inset: 0; z-index: 2; background: #000; opacity: 0.15; pointer-events: none; }
 .of-panel::after {
   content: "";
@@ -326,33 +311,9 @@
 .of-tc { right: 22px; font-variant-numeric: tabular-nums; }
 .of-panel.is-open .of-rec,
 .of-panel.is-open .of-tc { opacity: 1; transition-delay: 0.4s; }
-.of-sound {
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
-  z-index: 8;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 1px solid rgb(244 242 239 / 0.5);
-  border-radius: 50%;
-  background: rgb(11 9 9 / 0.5);
-  color: var(--paper);
-  cursor: pointer;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-.of-panel.is-open .of-sound { opacity: 1; visibility: visible; transition-delay: 0.4s, 0.4s, 0s, 0s, 0s; }
-.of-sound:hover { border-color: var(--paper); }
-.of-sound[aria-pressed="true"] { border-color: var(--orange); background: var(--orange); color: var(--ink); }
-.of-sound__on,
-.of-sound[aria-pressed="true"] .of-sound__off { display: none; }
-.of-sound__off,
-.of-sound[aria-pressed="true"] .of-sound__on { display: block; }
-.of-sound:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+/* (el botón de sonido y el de reproducir del vídeo del bus, en legacy/servicios-oficios-video-bus/) */
+/* la foto del panel Vídeo: su capa, para el movimiento de cámara (js/oficios.js) */
+.of-img--video { will-change: transform; }
 .of-panel--video .of-text { padding-right: 52px; } /* el texto no llega al botón de sonido */
 
 /* Edición: la sala de montaje. El visor ocupa todo el panel (el reel vertical, recortado) con la cortinilla: a la
@@ -471,7 +432,6 @@
   .of-tc { top: 14px; }
   .of-rec { left: 18px; }
   .of-tc { right: 18px; }
-  .of-sound { right: 14px; bottom: 14px; }
   .of-tl { padding: 8px 10px 8px 8px; }
 }
 

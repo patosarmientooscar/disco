@@ -1,0 +1,60 @@
+.of-pic__in { position: absolute; left: 0; top: 0; will-change: transform; }
+.of-pic__in > img,
+.of-video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.of-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 8;
+  min-height: 44px;
+  padding: 0 20px;
+  translate: -50% -50%;
+  border: 1px solid rgb(244 242 239 / 0.6);
+  border-radius: 999px;
+  background: rgb(11 9 9 / 0.6);
+  color: var(--paper);
+  font: 500 15px / 1 var(--font-display);
+  cursor: pointer;
+}
+.of-play:hover { border-color: var(--paper); }
+.of-shade { position: absolute; inset: 0; z-index: 2; background: #000; opacity: 0.15; pointer-events: none; }
+.of-panel::after {
+  content: "";
+  position: absolute;
+  inset: 40% 0 0;
+  z-index: 3;
+.of-sound {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgb(244 242 239 / 0.5);
+  border-radius: 50%;
+  background: rgb(11 9 9 / 0.5);
+  color: var(--paper);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.of-panel.is-open .of-sound { opacity: 1; visibility: visible; transition-delay: 0.4s, 0.4s, 0s, 0s, 0s; }
+.of-sound:hover { border-color: var(--paper); }
+.of-sound[aria-pressed="true"] { border-color: var(--orange); background: var(--orange); color: var(--ink); }
+.of-sound__on,
+.of-sound[aria-pressed="true"] .of-sound__off { display: none; }
+.of-sound__off,
+.of-sound[aria-pressed="true"] .of-sound__on { display: block; }
+.of-sound:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.of-panel--video .of-text { padding-right: 52px; } /* el texto no llega al botón de sonido */
