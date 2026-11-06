@@ -41,7 +41,7 @@ export function renderProject(w, { works = [] } = {}) {
 
   const html = `
     <section class="pj-cover${reels.length ? '' : ' pj-cover--photo'}" id="portada" aria-labelledby="pj-title">
-      <div class="pj-cover__bg" data-pj-zoom><img src="${esc(bgSrc)}" srcset="${bgSet}" sizes="100vw" width="${bg.w}" height="${bg.h}" alt="${reels.length ? esc(cover.alt) : ''}" fetchpriority="high" decoding="async"></div>
+      <div class="pj-cover__bg" data-pj-zoom${reels.length ? '' : ' aria-hidden="true"'}><img src="${esc(bgSrc)}" srcset="${bgSet}" sizes="100vw" width="${bg.w}" height="${bg.h}" alt="${reels.length ? esc(cover.alt) : ''}" fetchpriority="high" decoding="async"></div>
       <i class="pj-cover__shade" aria-hidden="true"></i>${front}
       <div class="pj-cover__text">
         <p class="pj-tag" data-pj-enter><span class="pj-tag__star">${STAR}</span>Proyecto</p>

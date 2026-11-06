@@ -74,7 +74,7 @@ function initSectors({ gsap, loop, still, desktop }) {
       </button>
       <div class="sv-for__panel" id="sector-${i}" hidden>
         <p>${s.text}</p>
-        ${s.photo ? `<div class="sv-for__photo"><img src="${s.photo.src}" width="${s.photo.w}" height="${s.photo.h}" alt="" loading="lazy" decoding="async"></div>` : ''}
+        ${s.photo ? `<div class="sv-for__photo"><img src="${s.photo.src}" width="${s.photo.w}" height="${s.photo.h}" alt="${s.photo.alt || ''}" loading="lazy" decoding="async"></div>` : ''}
       </div></li>`).join('');
   const items = [...list.children];
   // acordeón (móvil); en escritorio el botón no abre nada (la frase ya está en la fila)
