@@ -44,6 +44,21 @@ export async function buildProjects() {
       },
     });
   }
+  // AS-D: la lista del portfolio, ya en el HTML de portfolio.html (js/portfolio.js la repinta igual al cargar)
+  const { FEATURED_MAX, renderFeaturedList } = await mod('js/portfolio-render.js');
+  const pf = join(ROOT, 'portfolio.html');
+  let ph = readFileSync(pf, 'utf8');
+  const STAGE = /<div class="pf__stage(?: is-featured)?" data-stage>\s*(?:<!-- seo:works[\s\S]*?<!-- \/seo:works -->\s*)?(?=<ul class="pf__grid")/;
+  if (!STAGE.test(ph)) throw new Error('portfolio.html: no encuentro [data-stage]');
+  const featured = works.length && works.length <= FEATURED_MAX;
+  ph = ph.replace(STAGE, featured
+    ? `<div class="pf__stage is-featured" data-stage>
+        <!-- seo:works (tools/proyectos.mjs: no editar a mano) -->${renderFeaturedList(works)}
+        <!-- /seo:works -->
+        `
+    : '<div class="pf__stage" data-stage>\n        ');
+  writeFileSync(pf, ph);
+
   // las de proyectos que ya no están en los datos
   const keep = new Set(out.map((p) => p.file));
   for (const f of readdirSync(ROOT)) if (/^proyecto-.+\.html$/.test(f) && !keep.has(f)) unlinkSync(join(ROOT, f));

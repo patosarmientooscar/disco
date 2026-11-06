@@ -154,6 +154,7 @@
   gap: 14px;
 }
 .pf-feat__title {
+  margin: 0; /* (AS-D: es un h3) */
   font: 600 clamp(48px, 9vw, 168px) / 0.86 var(--font-display);
   letter-spacing: -0.04em;
   text-transform: uppercase;
@@ -202,7 +203,10 @@
   .pf-feat__cover img { aspect-ratio: 4 / 5; }
 }
 /* adelanto: 3 fotos en fila (enlazan a la galería del proyecto) */
+/* AS-D: bajo la portada, una frase de lo que se hizo (project.tagline) */
+.pf-proj__tagline { max-width: 56ch; margin: clamp(16px, 1.8vw, 24px) 0 0; font: 400 clamp(16px, 1.25vw, 19px) / 1.5 var(--font-display); color: rgb(244 242 239 / 0.8); text-wrap: pretty; }
 .pf-peek { margin-top: clamp(12px, 1.4vw, 20px); }
+.pf-proj__tagline + .pf-peek { margin-top: clamp(16px, 1.8vw, 24px); }
 .pf-peek__row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(8px, 1.2vw, 16px); margin: 0; padding: 0; list-style: none; }
 .pf-peek__row a { display: block; overflow: hidden; border-radius: 3px; background: #141111; }
 .pf-peek__row img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
