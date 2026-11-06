@@ -20,6 +20,7 @@
 .sv > .sv-close { z-index: auto; }
 /* AR-B: el manifiesto sin contexto propio: su texto (z 4, css/base.css) queda por encima del destello */
 .sv > .sv-manifest { z-index: auto; }
+.sv > .sv-faq { z-index: auto; } /* (AS-I: Preguntas, igual: su texto por encima del destello) */
 /* (AR-B: proceso y para quién, sin contexto: los fondos de las tarjetas, debajo del destello; su texto, encima) */
 .sv-close__in { z-index: 2; }
 .sv-proc > .sv-wrap,
@@ -525,11 +526,46 @@
   font: 600 clamp(44px, 5.6vw, 96px) / 0.95 var(--font-display);
   letter-spacing: -0.03em;
 }
-/* el texto: el del manifiesto (.sv-manifest__text), sin el margen automático; en dos bloques con aire entre medias */
-.sv-proc__lead { max-width: 24ch; margin-top: clamp(28px, 4vh, 44px); }
-.sv-proc__duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(32px, 8vw, 160px); align-items: start; }
-.sv-proc__duo .sv-proc__lead { max-width: 20ch; }
-.sv-proc__duo .sv-proc__lead + .sv-proc__lead { justify-self: end; margin-top: clamp(96px, 16vh, 180px); }
+/* AT-B: las tarjetas a la izquierda (8 de 12 columnas) y los dos textos a la derecha (4), en una columna que acompaña
+   mientras bajan las tarjetas (sticky a ~30 % de la pantalla: no es un pin, la página sigue bajando). Los textos, más
+   pequeños que el manifiesto y con el mismo encendido palabra a palabra; las palabras clave (<em>) se vuelven naranjas
+   al encenderse (js/servicios.js → .is-lit). Apilado (AR-B): la columna sticky en z 4, por encima del destello.
+   (LEGACY: los dos bloques grandes encima de las tarjetas, en git: AR-F) */
+.sv-proc__body {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  column-gap: clamp(40px, 5vw, 96px);
+  align-items: start;
+  margin-top: clamp(64px, 10vh, 112px);
+}
+.sv-proc__body > .sheet { grid-column: 1; grid-row: 1; margin-top: 0; }
+.sv-proc__aside {
+  position: sticky;
+  top: 30vh;
+  z-index: 4;
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 3vw, 44px);
+}
+.sv-proc__lead {
+  max-width: 26ch;
+  margin: 0;
+  font: 500 clamp(18px, 1.5vw, 23px) / 1.35 var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--paper);
+}
+.sv-proc__lead em { font-style: normal; }
+.sv-proc__lead .mw { opacity: 0.4; } /* apagadas, pero legibles */
+.sv-proc__lead .mw--hot { transition: color 0.6s cubic-bezier(0.32, 0.72, 0, 1); }
+.sv-proc__lead .mw--hot.is-lit { color: var(--orange); }
+.mw--hot .mw-p { color: var(--paper); } /* (la coma o el punto de una palabra clave, sin teñir) */
+.sv-proc__body .sheet__name { font-size: clamp(17px, 1.3vw, 21px); }
+/* (en 8 columnas, la fase va encima de su fila, como en tableta: las tarjetas mantienen su tamaño) */
+.sv-proc__body .sheet__phase { grid-template-columns: minmax(0, 1fr); row-gap: 30px; padding-top: 0; }
+.sv-proc__body .sheet__label { flex-direction: row; justify-content: space-between; }
+.sv-proc__body .sheet__row::before { left: 0; }
 .sheet {
   --gap: 16px;
   --col: 200px;
@@ -677,6 +713,13 @@
 .sv-faq .faq__a a { color: var(--paper); text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) { .sv-faq .faq__item summary::after { transition: none; } }
 
+@media (max-width: 899px) {
+  .sv-proc__body { grid-template-columns: minmax(0, 1fr); row-gap: clamp(48px, 8vh, 72px); }
+  .sv-proc__aside { position: relative; top: auto; grid-column: 1; grid-row: 1; gap: 28px; }
+  .sv-proc__body > .sheet { grid-row: 2; }
+  .sv-proc__lead { max-width: 30ch; }
+}
+
 /* ---------- F) Para quién ---------- */
 .sv-for { padding: clamp(120px, 20vh, 220px) 0 clamp(96px, 16vh, 180px); }
 .sv-for__list { margin: clamp(40px, 6vh, 64px) 0 0; padding: 0; list-style: none; }
@@ -794,9 +837,6 @@
   .sheet__text { font-size: 14px; }
   .sheet__cell::before { top: -22px; height: 9px; }
   .sheet__row .sheet__cell:nth-child(n + 3)::before { display: none; } /* (la línea va arriba de la fase) */
-  .sv-proc__duo { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .sv-proc__duo .sv-proc__lead { max-width: none; }
-  .sv-proc__duo .sv-proc__lead + .sv-proc__lead { justify-self: start; margin-top: 28px; }
 }
 @media (min-width: 900px) {
   .sv-for__panel { display: none !important; }
@@ -805,6 +845,8 @@
 /* ---------- movimiento reducido: sin pin, flash, linterna ni parallax; todo visible ---------- */
 @media (prefers-reduced-motion: reduce) {
   .sv-manifest__text .mw { opacity: 1; }
+  .sv-proc__lead .mw { opacity: 1; }
+  .sv-proc__lead .mw--hot { color: var(--orange); }
   .sheet__card, .sheet__card::after, .sheet__n, .sheet__cell::before { transition: none; }
   .js .sv-close__light { opacity: 1; }
 }
