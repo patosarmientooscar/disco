@@ -15,17 +15,42 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   // Luna y Bruno: sus textos, igual; y cada foto se abre desde su borde al entrar en pantalla (1 s, css/about.css).
   // Solo se esconden las que aún no han llegado y si hay observador: si no, se ven
   document.querySelectorAll('[data-person-bio]').forEach((el) => litWords(el, { gsap, reduced, start: 'top 85%', end: 'bottom 55%' }));
-  if (!reduced.matches && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (!e.isIntersecting) return;
-      e.target.classList.remove('is-pending');
-      io.unobserve(e.target);
-    }), { rootMargin: '0px 0px -12% 0px' });
+  if (!reduced.matches && 'IntersectionObserver' in window) revealPhotos();
+
+  // AR-G: la foto tiene que verse SIEMPRE. La entrada (clip-path) solo si el observador llega; si una foto pendiente
+  // está en pantalla 1,5 s sin que haya llegado, se destapa igual; si ya está por encima (la página se abrió bajada, se
+  // restauró el scroll o se vuelve atrás), se destapa sin animación. Se comprueba en cada scroll (una lectura por
+  // foto pendiente, solo mientras quede alguna), al volver de la caché (pageshow) y al cargar.
+  function revealPhotos() {
+    const SAFE = 1500;
+    const pending = new Map(); // foto → temporizador del seguro
+    const open = (p, instant = false) => {
+      if (!pending.has(p)) return;
+      clearTimeout(pending.get(p));
+      pending.delete(p);
+      io.unobserve(p);
+      if (instant) p.style.transition = 'none';
+      p.classList.remove('is-pending');
+      if (instant) requestAnimationFrame(() => { p.style.transition = ''; });
+      if (!pending.size) window.removeEventListener('scroll', check);
+    };
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) open(e.target); }), { rootMargin: '0px 0px -12% 0px' });
+    const check = () => pending.forEach((timer, p) => {
+      const r = p.getBoundingClientRect();
+      if (r.bottom < 0) { open(p, true); return; }                  // ya por encima: sin animación
+      if (r.top < innerHeight && !timer) pending.set(p, setTimeout(() => open(p), SAFE)); // en pantalla: el seguro
+    });
     document.querySelectorAll('[data-person-photo]').forEach((p) => {
       if (p.getBoundingClientRect().top < innerHeight * 0.88) return;
       p.classList.add('is-pending');
+      pending.set(p, 0);
       io.observe(p);
     });
+    if (!pending.size) return;
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('pageshow', check);
+    window.addEventListener('load', check, { once: true });
+    requestAnimationFrame(check);
   }
 
   if (reduced.matches) {
