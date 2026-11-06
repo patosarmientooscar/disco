@@ -239,3 +239,12 @@ a.cta-pill.is-roll .cta-pill__arrow { transform: translateX(5px); }
   .side-hint { transition: opacity 0.3s ease, color 0.4s ease; transform: translate3d(0, -50%, 0); }
   .side-hint__line s { animation: none; display: none; }
 }
+
+/* ---------- AR-B: el texto SIEMPRE por encima del destello ----------
+   El canvas del destello es fijo, z-index 1 (3 mientras sale del hero o salta por el bento: js/hero-star.js,
+   js/page-star.js). Todo lo que se lee va en z-index 4, por encima de los dos; fotos, vídeos y fondos se quedan
+   debajo (el destello pasa por encima de ellos). :where() = especificidad 0: si un texto ya tiene su posición
+   (absolute, sticky…) o su z-index, manda el suyo. Las secciones que creaban contexto propio con el texto dentro
+   (manifiesto de Servicios, pin de "Cómo trabajamos", columnas de Contacto…) se arreglan en su CSS. */
+:where(main) :where(h1, h2, h3, h4, h5, h6, p, dt, dd, label, legend, figcaption, blockquote, .btn, .cta-pill) { position: relative; z-index: 4; }
+:where(main) :where(.steps__n, .pf-next__kicker, .pf-next__title, .pf-peek__more, .reel__link, .pj-btn, .pj-link, .pj-filter, .pj-reel__title, .pj-reel__time, .sv-for__more, .sv-for__name, .ct__send) { position: relative; z-index: 4; }

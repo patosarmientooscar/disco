@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { finStop } from './fin.js';
 import { dlog } from './gpu.js';
 import { createTrail } from './star-trail.js';
+import { createDodge } from './star-dodge.js';
 import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studio, drift, mixEnv, compileScene } from './star-core.js';
 
 // Recorrido del destello 3D por las páginas interiores (después del hero, que tiene el suyo: js/hero-star.js).
@@ -174,6 +175,8 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   // brillo de la fugaz: 1 encendido; con el parpadeo del footer baja con él hasta 0
   const trailGain = () => THREE.MathUtils.clamp((envK.k / ENV_INTENSITY - 0.3) / 0.7, 0, 1);
   let nowT = 0;
+  // sobre una foto o un vídeo grande: un desvío mínimo y lento, sumado al objetivo (js/star-dodge.js)
+  const dodge = createDodge({ ScrollTrigger });
   const trailStep = (gain = 1) => {
     trail.setMax(gl.quality.trail ? TRAIL.n : TRAIL.low);
     trail.update(nowT, star, view.halfH, { gain: gain * trailGain() });
@@ -989,6 +992,12 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     if (drag.on) {
       drag.frozen ||= { x: cur.x, y: cur.y, s: cur.s };
       t = { x: drag.frozen.x, y: drag.frozen.y, s: drag.frozen.s, off: false };
+    }
+    // (no en las paradas fijas, de guía, arrastrado ni volviendo del footer)
+    {
+      const dw = drag.on || fin.returning ? 0 : (1 - guide) * (1 - hw);
+      const dd = dodge.step(((t.x + 1) / 2) * innerWidth, ((1 - t.y) / 2) * H, px, dt, dw);
+      if (dd.x || dd.y) t = { ...t, x: t.x + (2 * dd.x) / innerWidth, y: t.y - (2 * dd.y) / H };
     }
     lift(tw > 0.5); // en el bento salta por encima de las tarjetas
     // posición y tamaño: un solo filtro según dt (con el scroll rápido se queda algo atrás; en el bento, rápido)

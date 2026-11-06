@@ -143,6 +143,7 @@
 .pj-fact + .pj-fact { padding-left: 20px; border-left: 1px solid var(--line); }
 .pj-fact dt { font: 400 11px / 1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--pj-dim); }
 .pj-fact dd { margin: 10px 0 0; font: 500 16px / 1.3 var(--font-display); }
+.pj-story__col { position: relative; z-index: 4; } /* AR-B: la entrada (transform) no deja el texto debajo del destello */
 .pj-story { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(32px, 5vw, 96px); margin-top: clamp(64px, 10vh, 120px); }
 .pj-story__title { margin: 0; font: 500 clamp(24px, 2.2vw, 34px) / 1.05 var(--font-display); letter-spacing: -0.02em; }
 .pj-story__text { max-width: 34ch; margin: 16px 0 0; font: 400 18px / 1.55 var(--font-display); color: rgb(244 242 239 / 0.82); text-wrap: pretty; }

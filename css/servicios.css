@@ -18,8 +18,9 @@
 .sv > .sv-proc,
 .sv > .sv-for,
 .sv > .sv-close { z-index: auto; }
-.sv-proc > .sv-wrap,
-.sv-for > .sv-wrap,
+/* AR-B: el manifiesto sin contexto propio: su texto (z 4, css/base.css) queda por encima del destello */
+.sv > .sv-manifest { z-index: auto; }
+/* (AR-B: proceso y para quién, sin contexto: los fondos de las tarjetas, debajo del destello; su texto, encima) */
 .sv-close__in { z-index: 2; }
 .sv-proc > .sv-wrap,
 .sv-for > .sv-wrap { position: relative; }

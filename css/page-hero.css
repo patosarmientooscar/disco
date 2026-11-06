@@ -62,7 +62,7 @@
 /* 6. etiqueta de la página, titular, botones y meta: abajo, por encima del destello */
 .pgh__foot {
   position: absolute;
-  z-index: 2;
+  z-index: 4; /* AR-B: por encima del destello también cuando sale (canvas en z 3) */
   left: var(--ph-x);
   right: var(--ph-x);
   bottom: clamp(24px, 5vh, 48px);
@@ -188,7 +188,7 @@
 /* la pista para coger el destello (solo escritorio; aparece a los 3 s sin tocarlo) */
 .pgh__hint {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   left: 50%;
   top: var(--ph-hint-y, 16%);
   margin: 0;
@@ -201,7 +201,7 @@
   pointer-events: none;
 }
 /* flash de la entrada (como el de la intro) */
-.pgh__flash { position: absolute; inset: 0; z-index: 3; background: #fff; opacity: 0; pointer-events: none; }
+.pgh__flash { position: absolute; inset: 0; z-index: 5; background: #fff; opacity: 0; pointer-events: none; }
 /* el destello breve cuando el destello sale de pantalla (en el borde por donde sale) */
 .pgh-burst {
   position: fixed;

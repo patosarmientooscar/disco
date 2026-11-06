@@ -3,6 +3,7 @@ import { finStop } from './fin.js';
 import { MODEL_HEIGHT, ENV_INTENSITY, FOV, CAMERA_Z, loadModel, studio, mixEnv, drift, compileScene } from './star-core.js';
 import { gpuOK, levelDpr } from './gpu.js';
 import { createTrail } from './star-trail.js';
+import { createDodge } from './star-dodge.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
@@ -128,6 +129,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   let failed = false;
   const materials = [];
   let trail = null;
+  const dodge = createDodge({ ScrollTrigger });
   // la fugaz, con la pose de este fotograma (gain: se enciende con la entrada y se apaga con el parpadeo del footer)
   const trailStep = (time, gain = 1) => {
     trail?.update(time, star, view.halfH, { on: star.visible, gain: gain * THREE.MathUtils.clamp((env.k / ENV_INTENSITY - 0.3) / 0.7, 0, 1) });
@@ -408,6 +410,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
     const p = curveAt(scroll.px);
     place(target, { x: p.x, y: p.y, s: p.z });
+    // sobre una foto o un vídeo grande, un desvío mínimo y lento sumado al objetivo (js/star-dodge.js); solo en el
+    // recorrido libre (no en el hero, el estudio ni el footer)
+    const dd = dodge.step(((p.x + 1) / 2) * innerWidth, ((1 - p.y) / 2) * innerHeight, lenis.scroll, dt, (1 - w) * (1 - ws) * (1 - we) * (fin.returning ? 0 : 1));
+    target.position.x += (dd.x / innerWidth) * 2 * view.halfW;
+    target.position.y -= (dd.y / innerHeight) * 2 * view.halfH;
     // libre (fuera del hero y del estudio): deriva orgánica; en el hero, solo la flotación vertical.
     // Las dos se suman después del filtro (abajo), no al objetivo
     const free = (1 - w) * (1 - ws) * (1 - we);

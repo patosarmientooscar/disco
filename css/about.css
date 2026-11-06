@@ -89,7 +89,7 @@
 
 /* cómo trabajamos: regla con cabezal naranja (como el del footer) */
 .ab-how { position: relative; }
-.ab-how__pin { padding-top: clamp(72px, 12vh, 140px); padding-bottom: clamp(72px, 12vh, 140px); }
+.ab-how__pin { position: relative; z-index: 4; padding-top: clamp(72px, 12vh, 140px); padding-bottom: clamp(72px, 12vh, 140px); }
 .ab-how__ruler { position: relative; height: 28px; margin-bottom: 36px; }
 .ab-how__line,
 .ab-how__fill {
