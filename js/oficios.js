@@ -7,19 +7,20 @@
 //   FOTO, el disparo: obturador (dos láminas que se cierran hasta el centro y se abren en 0.18 s), flash, la foto
 //     "congelada" (zoom 1.04 → 1) y el AF que se cierra con rebote sobre una cara (con el ratón: parallax ±10 px y el
 //     AF salta a la cara que tengas debajo).
-//   VÍDEO, el directo: corte (un fotograma en negro), bandas de cine hasta 2.39:1, REC y el timecode corriendo. La
-//     imagen es una foto de E, S, B (oficios-real/video-esb.webp; AR-E) con un movimiento lento de cámara (escala
-//     1.04 → 1.10 y un desplazamiento del 1,5 %, 14 s, ida y vuelta) mientras el panel está abierto y en pantalla.
-//     (LEGACY: el baile en el bus, con su sonido, en legacy/servicios-oficios-video-bus/)
-//   EDICIÓN, la sala de montaje: el visor ocupa todo el panel, con el reel de la fiesta y la cortinilla LOG / GRADE que sigue al ratón
+//   VÍDEO, el directo: corte (un fotograma en negro), el baile en el bus (oficios-real/bus.mp4), bandas de cine hasta
+//     2.39:1, REC y el timecode real del vídeo. El botón de sonido le quita el silencio al propio vídeo (su audio, a
+//     la vez que la imagen); al cerrar el panel, se vuelve a silenciar.
+//   EDICIÓN, la sala de montaje: el visor ocupa todo el panel, con la foto de E, S, B (oficios-real/video-esb.webp; AT-A)
+//     en dos estados (LOG: en bruto, sin el color del neón; GRADE: tal cual) y la cortinilla que sigue al ratón; la foto,
+//     con un movimiento lento de cámara (escala 1.04 → 1.10, 14 s, ida y vuelta)
 //     (con el dedo, se arrastra); debajo, la línea de tiempo: V1 con los 8 clips del reel (al pasar por uno, el visor
 //     salta a ese tramo), A1 con la forma de onda real del audio y el cabezal sincronizado con el visor.
 // Los vídeos solo corren con su panel abierto y la sección en pantalla. Todo en el loop único (gsap.ticker).
-// Movimiento reducido: los tres abiertos, quietos (la foto del panel Vídeo, sin el movimiento de cámara).
+// Movimiento reducido: los tres abiertos, quietos; el vídeo, con un botón para reproducirlo.
 // (LEGACY: la bailarina, en legacy/servicios-oficios-bailarina/)
 const MEDIA = {
   foto: { w: 2400, h: 1800, fx: 0.5, fy: 0.4 },    // oficios-real/foto.webp (DSC03230): encuadre entre las dos caras
-  video: { w: 2400, h: 1800, fx: 0.5, fy: 0.45 },  // oficios-real/video-esb.webp (el chico en la barra, neón)
+  video: { w: 1280, h: 720, fx: 0.5, fy: 0.45 },   // oficios-real/bus.mp4 (el baile en el bus)
 };
 // caras de la foto (fracción de la imagen: centro y ancho); la primera, la de la izquierda (donde se cierra el AF)
 const FACES = [
@@ -36,16 +37,16 @@ const SCOPE = { ratio: 2.39, max: 0.25 }; // bandas de cine (en paneles estrecho
 const CUT = 1 / 24;                // s: el corte en negro (un fotograma)
 const WIPE = { lerp: 0.15, sweep: 1.6 };
 const INTENT = 80; // ms con el ratón encima antes de abrir (cruzar la sección de camino a otro sitio no abre nada)
-// el movimiento de cámara de la foto del panel Vídeo (escala, desplazamiento en fracción del ancho, s por ida)
-const DOLLY = { from: 1.04, to: 1.10, shift: 0.015, dur: 14 };
 const SRC = {
-  video: { fps: 25 }, // (el timecode del directo)
-  edit: 'assets/portfolio/cachondeo/reel-fiesta.mp4',
+  video: { desk: 'assets/servicios/oficios-real/bus.mp4', narrow: 'assets/servicios/oficios-real/bus-720.mp4', fps: 25 },
+  edit: 23, // s: el "montaje" de la línea de tiempo (el cabezal da la vuelta en este tiempo; antes, el reel de la fiesta)
   near: '100% 0px', // los metadatos, con la sección a una pantalla
 };
 // forma de onda real del audio de reel-fiesta.mp4 (RMS en 120 tramos, 0–100; sacada con ffmpeg)
 const WAVE = [0, 0, 0, 23, 0, 24, 0, 22, 10, 0, 26, 7, 24, 0, 21, 14, 0, 25, 8, 26, 7, 19, 18, 0, 26, 5, 24, 12, 22, 17, 10, 27, 8, 25, 14, 20, 19, 2, 28, 12, 24, 14, 16, 75, 27, 74, 27, 64, 42, 19, 74, 21, 68, 25, 62, 47, 20, 73, 21, 70, 28, 50, 62, 27, 70, 25, 69, 27, 22, 72, 21, 73, 24, 67, 30, 22, 71, 21, 71, 23, 69, 39, 30, 72, 51, 50, 40, 44, 44, 37, 52, 40, 47, 40, 40, 42, 32, 48, 100, 63, 58, 47, 44, 38, 52, 39, 45, 42, 39, 45, 39, 49, 37, 42, 38, 34, 44, 95, 38, 16];
 const CLIPS = 8;
+// la cámara lenta de la foto del panel Edición (escala, desplazamiento en fracción del ancho, s por ida)
+const DOLLY = { from: 1.04, to: 1.10, shift: 0.015, dur: 14 };
 const MOBILE = '(max-width: 767px)';
 const NARROW = '(max-width: 899px)';
 
@@ -227,32 +228,43 @@ export function initOficios({ gsap, loop, still }) {
     };
   }
 
-  // ---------- VÍDEO: el directo (una foto con movimiento de cámara) ----------
+  // ---------- VÍDEO: el directo ----------
   function videoFx(p) {
-    const img = p.el.querySelector('[data-of-photo]');
+    const v = p.el.querySelector('[data-of-video]');
     const cut = p.el.querySelector('[data-of-cut]');
     const tcEl = p.el.querySelector('[data-of-tc]');
+    const btn = p.el.querySelector('[data-of-sound]');
     const bars = p.el.querySelectorAll('[data-of-bar]');
-    const s = { on: false, tc: '', t: 0 };
+    const s = { on: false, loaded: false, tc: '', loud: false };
     const size = () => {
       const pw = st.col ? st.W : st.open;
       const ph = st.col ? st.open : st.H;
       const bh = Math.min(ph * SCOPE.max, Math.max(0, (ph - pw / SCOPE.ratio) / 2));
       bars.forEach((b) => { b.style.height = `${bh.toFixed(1)}px`; });
     };
-    // la cámara: escala 1.04 → 1.10 y un desplazamiento lento, ida y vuelta (sine.inOut); en pausa fuera de pantalla
-    // o con el panel cerrado (se queda donde estaba)
-    gsap.set(img, { scale: DOLLY.from, xPercent: 0, transformOrigin: '50% 50%' });
-    const dolly = gsap.to(img, { scale: DOLLY.to, xPercent: -DOLLY.shift * 100, yPercent: DOLLY.shift * 40, duration: DOLLY.dur, ease: 'sine.inOut', repeat: -1, yoyo: true, paused: true });
-    const run = () => { if (s.on && st.vis && !document.hidden) dolly.play(); else dolly.pause(); };
+    const load = () => {
+      if (s.loaded) return;
+      s.loaded = true;
+      v.preload = 'metadata';
+      v.src = matchMedia(NARROW).matches ? SRC.video.narrow : SRC.video.desk;
+    };
+    const run = () => { if (s.on && st.vis && !document.hidden) v.play().catch(() => {}); else v.pause(); };
+    // el sonido: el del propio vídeo (solo con el panel abierto y en pantalla: el vídeo se para con ellos)
+    const sound = (on) => {
+      s.loud = on;
+      btn.setAttribute('aria-pressed', String(on));
+      v.muted = !on;
+      if (on) { load(); v.play().catch(() => { v.muted = true; s.loud = false; btn.setAttribute('aria-pressed', 'false'); }); }
+    };
+    btn.addEventListener('click', () => sound(!s.loud));
     return {
-      load() { img.loading = 'eager'; img.decode?.().catch(() => {}); },
+      load,
       resize: size,
       open() {
         s.on = true;
-        this.load();
+        load();
         size();
-        // el corte: un fotograma en negro y entra la imagen
+        // el corte: un fotograma en negro y entra el vídeo
         gsap.timeline({ overwrite: true }).set(cut, { opacity: 1 }).set(cut, { opacity: 0 }, CUT);
         gsap.fromTo(bars, { scaleY: 0 }, { scaleY: 1, duration: 0.6, ease: 'expo.out', delay: 0.15, overwrite: true });
         run();
@@ -260,16 +272,25 @@ export function initOficios({ gsap, loop, still }) {
       close() {
         s.on = false;
         gsap.to(bars, { scaleY: 0, duration: 0.25, ease: 'power2.in', overwrite: true });
-        run(); // la cámara se para donde está
+        v.pause(); // se queda congelado en ese fotograma
+        if (s.loud) sound(false);
       },
       visible: run,
-      still() { size(); gsap.set(bars, { scaleY: 1 }); dolly.kill(); gsap.set(img, { scale: 1, xPercent: 0, yPercent: 0 }); },
-      // el timecode del directo: corre con el panel abierto y en pantalla (25 fps)
-      tick(ratio) {
+      still() { size(); gsap.set(bars, { scaleY: 1 }); },
+      // movimiento reducido: no se reproduce solo; un botón
+      button() {
+        const b = p.el.querySelector('[data-of-play]');
+        b.hidden = false;
+        b.addEventListener('click', () => {
+          load();
+          if (v.paused) { v.play().catch(() => {}); b.textContent = '❚❚ Pausar'; } else { v.pause(); b.textContent = '▶ Reproducir'; }
+        });
+      },
+      // timecode real del vídeo (30 fps)
+      tick() {
         if (!s.on) return;
-        s.t += ratio / 60;
         const fps = SRC.video.fps;
-        const f = Math.floor(s.t * fps);
+        const f = Math.floor(v.currentTime * fps);
         const pad = (n) => String(n).padStart(2, '0');
         const sec = Math.floor(f / fps);
         const tc = `00:${pad(Math.floor(sec / 60) % 60)}:${pad(sec % 60)}:${pad(f % fps)}`;
@@ -282,19 +303,23 @@ export function initOficios({ gsap, loop, still }) {
   function editFx(p) {
     const suite = p.el.querySelector('[data-of-suite]');
     const viewer = p.el.querySelector('[data-of-viewer]');
-    const v = p.el.querySelector('[data-of-edit]');
+    const imgs = p.el.querySelectorAll('.of-viewer__img');
+    const cams = p.el.querySelectorAll('[data-of-cam]');
     const clipsEl = p.el.querySelector('[data-of-clips]');
     const clips = [...clipsEl.children];
     const wave = p.el.querySelector('[data-of-wave]');
     const head = p.el.querySelector('[data-of-head]');
-    const s = { on: false, loaded: false, x: 0.5, tx: 0.5, user: false, drag: false, sweep: null, px: '', hx: '', clip: -1, hover: -1 };
+    const s = { on: false, loaded: false, x: 0.5, tx: 0.5, user: false, drag: false, sweep: null, px: '', hx: '', clip: -1, hover: -1, t: 0 };
     const load = () => {
       if (s.loaded) return;
       s.loaded = true;
-      v.preload = 'metadata';
-      v.src = SRC.edit;
+      imgs.forEach((i) => { i.loading = 'eager'; i.decode?.().catch(() => {}); });
     };
-    const run = () => { if (s.on && st.vis && !document.hidden) v.play().catch(() => {}); else v.pause(); };
+    // la cámara: las dos capas (GRADE y LOG) con el mismo movimiento; en pausa con el panel cerrado o fuera de pantalla
+    gsap.set(cams, { scale: DOLLY.from, transformOrigin: '50% 50%' });
+    const dolly = gsap.to(cams, { scale: DOLLY.to, xPercent: -DOLLY.shift * 100, yPercent: DOLLY.shift * 40, duration: DOLLY.dur, ease: 'sine.inOut', repeat: -1, yoyo: true, paused: true });
+    const playing = () => s.on && st.vis && !document.hidden;
+    const run = () => { if (playing()) dolly.play(); else dolly.pause(); };
     // el visor ocupa todo el panel; la línea de tiempo, abajo a lo ancho, y el texto encima de ella (--of-tlh)
     const size = () => {
       p.el.style.setProperty('--of-tlh', `${suite.querySelector('[data-of-tl]').offsetHeight.toFixed(0)}px`);
@@ -316,9 +341,9 @@ export function initOficios({ gsap, loop, still }) {
       }
     };
     const seek = (i) => {
-      if (!v.duration || i === s.hover) return;
+      if (i === s.hover) return;
       s.hover = i;
-      v.currentTime = (i / CLIPS) * v.duration + 0.05;
+      s.t = (i / CLIPS) * SRC.edit + 0.05;
     };
     const point = (clientX) => {
       const r = viewer.getBoundingClientRect();
@@ -355,18 +380,20 @@ export function initOficios({ gsap, loop, still }) {
       close() {
         s.on = false;
         s.sweep?.kill();
-        v.pause(); // congelado
+        run(); // la cámara, congelada donde está
       },
       visible: run,
-      still() { size(); s.x = s.tx = 0.5; viewer.style.setProperty('--x', '50%'); },
+      still() { size(); s.x = s.tx = 0.5; viewer.style.setProperty('--x', '50%'); dolly.kill(); gsap.set(cams, { scale: 1, xPercent: 0, yPercent: 0 }); },
       tick(ratio) {
         if (!s.on) return;
         const a = 1 - Math.pow(1 - WIPE.lerp, ratio);
         s.x += (s.tx - s.x) * (s.user ? a : 1);
         const px = `${(s.x * 100).toFixed(2)}%`;
         if (px !== s.px) { s.px = px; viewer.style.setProperty('--x', px); }
-        // el cabezal, con el vídeo del visor; el clip que pasa, marcado
-        const f = v.duration ? v.currentTime / v.duration : 0;
+        // el cabezal recorre el montaje (SRC.edit s, en bucle) mientras el panel está abierto y en pantalla; el clip que
+        // pasa, marcado
+        if (playing()) s.t = (s.t + ratio / 60) % SRC.edit;
+        const f = s.t / SRC.edit;
         const hx = `${(f * clipsEl.clientWidth).toFixed(1)}px`;
         if (hx !== s.hx) { s.hx = hx; head.style.transform = `translate3d(${hx}, 0, 0)`; }
         const c = Math.min(CLIPS - 1, Math.floor(f * CLIPS));
@@ -406,7 +433,7 @@ export function initOficios({ gsap, loop, still }) {
       fx[p.key].still();
     });
     fx.edit.load();
-    fx.video.load();
+    fx.video.button();
     return;
   }
 
@@ -475,7 +502,7 @@ export function initOficios({ gsap, loop, still }) {
 
   loop.add((time, ratio) => {
     if (!st.vis) return;
-    fx.video.tick(ratio);
+    fx.video.tick();
     fx.edit.tick(ratio);
   });
 }
