@@ -75,7 +75,7 @@ const TOUR = {
   desk_off: [2, -2], mob_off: [-4, -10], // px desde la esquina superior derecha
 };
 const ORANGE = { base: 0.14, lit: 0.42, peak: 0.85, decay: 0.9 }; // el plano naranja de los reflejos
-const MATE = { s: 0.24, lerp: 0.1, gap: 12, fade: 0.4 };        // "Para quién": el compañero del cursor
+const MATE = { s: 0.15, lerp: 0.25, gap: 12, fade: 0.4, hop: 0.6 }; // "Para quién": en la tarjeta plana del carrusel
 const SEAL = { turns: 2, dur: 0.9, ring: 0.6 };
 const CLOSE_DIM = 0.62;            // brillo de los reflejos sobre el naranja del cierre (que no se queme)
 const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26]];
@@ -187,7 +187,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const gate = document.querySelector('[data-star-gate]'); // servicios: "Tres oficios"
   const hero = document.querySelector('[data-page-hero], [data-star-hero]'); // (nosotros: el hero "Somos disco.", js/nosotros-hero.js)
   const bento = document.querySelector('[data-bento]');
-  const list = document.querySelector('[data-sectors]');
+  const list = document.querySelector('[data-arc]'); // servicios: el carrusel de "Para quién" (AT-C)
   const manifest = gate ? document.querySelector('[data-manifest]') : null;
   // nosotros: el hero (y el hueco del destello), las fotos del equipo y "Cómo trabajamos"
   const about = document.querySelector('[data-nh]');
@@ -363,13 +363,11 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
         out.push({ ...cornerAt(cards[0], ats[0]), at: ats[0] }, { ...cornerAt(cards[cards.length - 1], ats[ats.length - 1]), at: ats[ats.length - 1] });
       }
     }
-    // C: "Para quién": a la derecha del título; después (escritorio), a la derecha de la lista
+    // C: "Para quién": a la derecha del título; después, en la tarjeta plana del carrusel (todo su recorrido sticky)
     if (forTitle) {
       const at = docTop(forTitle) + forTitle.offsetHeight / 2 - 0.3 * H;
       out.push({ ...beside(forTitle, at, 0.3), at });
-      if (list && !view.mobile && matchMedia('(hover: hover)').matches) {
-        mate = { start: docTop(list) - 0.55 * H, end: docTop(list) + list.offsetHeight - 0.45 * H };
-      }
+      if (list) mate = { start: docTop(list) - 0.35 * H, end: docTop(list) + list.offsetHeight - 0.75 * H };
     }
     // D: el cierre naranja, centrado arriba
     if (close) out.push({ x: 0, y: 0.56, s: 0.36, at: Math.min(max - 2, docTop(close) - 0.3 * H), close: true });
@@ -586,27 +584,37 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     gsap.fromTo(orange, { level: ORANGE.peak }, { level: ORANGE.lit, duration: ORANGE.decay, ease: 'power2.out', overwrite: true });
   };
 
-  // ---------- "Para quién": la fila que tienes encima (servicios.js le pone .is-on) ----------
+  // ---------- "Para quién" (AT-C): en la esquina superior derecha de la tarjeta plana del carrusel en arco
+  // (js/arc-carousel.js: .is-flat y data-active). Cuando cambia la plana, salta a la nueva en arco (con su fugaz) ----------
   const mp = { x: 0, y: 0, init: false, row: -1 };
-  const items = list ? [...list.children] : [];
+  const hop = { f: 1, from: null, tw: null };
+  const flatCorner = () => {
+    const c = list.querySelector('.arc__card.is-flat');
+    if (!c) return null;
+    const r = c.getBoundingClientRect();
+    return { x: r.right + off()[0], y: r.top + off()[1] };
+  };
   const matePose = (ratio) => {
-    const lr = list.getBoundingClientRect();
-    const row = items.findIndex((it) => it.classList.contains('is-on'));
     const H = innerHeight;
-    const hPx = MATE.s * unit() * H;
-    const tx = Math.min(innerWidth - (WIDTH * hPx) / 2 - 6, lr.right + MATE.gap + (WIDTH * hPx) / 2);
-    let ty;
-    if (row >= 0) {
-      const rr = items[row].getBoundingClientRect();
-      ty = rr.top + rr.height / 2;
-    } else {
-      ty = THREE.MathUtils.clamp(lr.top + lr.height / 2, Math.max(lr.top + hPx / 2, 0.3 * H), Math.min(lr.bottom - hPx / 2, 0.7 * H));
+    const row = Number(list.dataset.active ?? -1);
+    const t = flatCorner() || { x: mp.x, y: mp.y };
+    if (!mp.init) { mp.x = t.x; mp.y = t.y; mp.init = true; mp.row = row; }
+    if (row !== mp.row) {
+      // la plana ha cambiado: salto en arco desde donde estaba
+      hop.from = { x: mp.x, y: mp.y };
+      hop.tw?.kill();
+      hop.f = 0;
+      hop.tw = gsap.to(hop, { f: 1, duration: MATE.hop, ease: 'power2.inOut' });
+      mp.row = row;
     }
-    if (!mp.init) { mp.x = tx; mp.y = ty; mp.init = true; }
-    const a = 1 - Math.pow(1 - MATE.lerp, ratio);
-    mp.x += (tx - mp.x) * a;
-    mp.y += (ty - mp.y) * a;
-    mp.row = row;
+    if (hop.f < 1 && hop.from) {
+      mp.x = hop.from.x + (t.x - hop.from.x) * hop.f;
+      mp.y = hop.from.y + (t.y - hop.from.y) * hop.f - Math.sin(Math.PI * hop.f) * TOUR.arc * H;
+    } else {
+      const a = 1 - Math.pow(1 - MATE.lerp, ratio);
+      mp.x += (t.x - mp.x) * a;
+      mp.y += (t.y - mp.y) * a;
+    }
     return { x: nx(mp.x), y: 1 - (2 * mp.y) / H, s: MATE.s };
   };
 

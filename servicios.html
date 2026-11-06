@@ -491,10 +491,19 @@
     <section class="sv-for" id="para-quien" data-malla="quiet" aria-labelledby="for-title" data-for>
       <div class="sv-wrap">
         <h2 class="sv-big" id="for-title">Para quién<b class="sv-dot">.</b></h2>
-        <ul class="sv-for__list" data-sectors data-draft></ul>
+      </div>
+      <!-- AT-C: carrusel en arco (js/arc-carousel.js): la sección es alta y su escenario, sticky (la página sigue bajando).
+           Las fotos, en el escenario (debajo del destello); el pie, en una capa sticky encima (z 4: el texto, por encima) -->
+      <div class="arc" data-arc role="region" aria-roledescription="carousel" aria-label="Sectores" data-draft>
+        <div class="arc__stage" data-arc-stage><div class="arc__ring" data-arc-ring></div></div>
+        <div class="arc__over">
+          <div class="arc__cap" data-arc-cap><span class="arc__title" data-arc-title></span><span class="arc__line" data-arc-line></span><span class="arc__n" data-arc-n></span></div>
+          <p class="sr-only" aria-live="polite" data-arc-live></p>
+        </div>
+      </div>
+      <div class="sv-wrap">
         <p class="sv-for__more"><a href="contacto.html">¿Tu sector no está? Cuéntanos tu idea <b aria-hidden="true">→</b></a></p>
       </div>
-      <div class="sv-follow" data-follow aria-hidden="true"><img alt="" width="400" height="500" decoding="async" data-follow-img></div>
     </section>
 
     <!-- G) cierre: la luz naranja entra con un degradado de ~40vh y se queda -->
