@@ -4,11 +4,13 @@
 <head>
   <meta charset="utf-8">
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
-  <script src="js/file-guard.js?v=9b2573c" defer></script>
+  <script src="js/file-guard.js?v=387c311" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- seo (tools/site.mjs: no editar a mano) -->
   <title>Política de privacidad — disco.</title>
   <meta name="description" content="Cómo trata disco. tus datos cuando nos escribes o usas el formulario de contacto, y cómo ejercer tus derechos.">
-  <!-- canonical y og:url: cuando haya dominio (config.siteUrl, PENDIENTES.md), descomentar y cambiar [DOMINIO]
+  <meta name="robots" content="noindex, follow">
+  <!-- canonical y og:url: se activan solos al poner SITE_URL en tools/site.mjs
   <link rel="canonical" href="https://[DOMINIO]/privacidad.html">
   <meta property="og:url" content="https://[DOMINIO]/privacidad.html">
   -->
@@ -25,6 +27,8 @@
   <meta name="twitter:title" content="Política de privacidad — disco.">
   <meta name="twitter:description" content="Cómo trata disco. tus datos cuando nos escribes o usas el formulario de contacto, y cómo ejercer tus derechos.">
   <meta name="twitter:image" content="assets/brand/og.jpg">
+  <meta name="twitter:image:alt" content="disco. — foto, vídeo y edición en Madrid">
+  <!-- /seo -->
   <meta name="theme-color" content="#0b0909">
   <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/brand/favicon-32.png" sizes="32x32" type="image/png">
@@ -47,13 +51,13 @@
     @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
   </style>
 
-  <link rel="stylesheet" href="css/tokens.css?v=9b2573c">
-  <link rel="stylesheet" href="css/base.css?v=9b2573c">
-  <link rel="stylesheet" href="css/interior.css?v=9b2573c">
-  <link rel="stylesheet" href="css/legal.css?v=9b2573c">
-  <link rel="stylesheet" href="css/nav.css?v=9b2573c">
-  <link rel="stylesheet" href="css/fin.css?v=9b2573c">
-  <link rel="stylesheet" href="css/transition.css?v=9b2573c">
+  <link rel="stylesheet" href="css/tokens.css?v=387c311">
+  <link rel="stylesheet" href="css/base.css?v=387c311">
+  <link rel="stylesheet" href="css/interior.css?v=387c311">
+  <link rel="stylesheet" href="css/legal.css?v=387c311">
+  <link rel="stylesheet" href="css/nav.css?v=387c311">
+  <link rel="stylesheet" href="css/fin.css?v=387c311">
+  <link rel="stylesheet" href="css/transition.css?v=387c311">
   <script>
     document.documentElement.classList.add('js');
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto
@@ -64,54 +68,54 @@
     { "imports": {
       "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
       "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/",
-      "./js/about.js": "./js/about.js?v=9b2573c",
-      "./js/aurora.js": "./js/aurora.js?v=9b2573c",
-      "./js/bento.js": "./js/bento.js?v=9b2573c",
-      "./js/config.js": "./js/config.js?v=9b2573c",
-      "./js/contact.js": "./js/contact.js?v=9b2573c",
-      "./js/core.js": "./js/core.js?v=9b2573c",
-      "./js/file-guard.js": "./js/file-guard.js?v=9b2573c",
-      "./js/fin-physics.js": "./js/fin-physics.js?v=9b2573c",
-      "./js/fin.js": "./js/fin.js?v=9b2573c",
-      "./js/gpu.js": "./js/gpu.js?v=9b2573c",
-      "./js/hero-exposure.js": "./js/hero-exposure.js?v=9b2573c",
-      "./js/hero-star.js": "./js/hero-star.js?v=9b2573c",
-      "./js/hero.js": "./js/hero.js?v=9b2573c",
-      "./js/home-close.js": "./js/home-close.js?v=9b2573c",
-      "./js/interior.js": "./js/interior.js?v=9b2573c",
-      "./js/intro-loader.js": "./js/intro-loader.js?v=9b2573c",
-      "./js/intro-shot.js": "./js/intro-shot.js?v=9b2573c",
-      "./js/main.js": "./js/main.js?v=9b2573c",
-      "./js/malla.js": "./js/malla.js?v=9b2573c",
-      "./js/manifesto.js": "./js/manifesto.js?v=9b2573c",
-      "./js/nav.js": "./js/nav.js?v=9b2573c",
-      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=9b2573c",
-      "./js/oficios.js": "./js/oficios.js?v=9b2573c",
-      "./js/page-hero.js": "./js/page-hero.js?v=9b2573c",
-      "./js/page-star.js": "./js/page-star.js?v=9b2573c",
-      "./js/page.js": "./js/page.js?v=9b2573c",
-      "./js/placeholder.js": "./js/placeholder.js?v=9b2573c",
-      "./js/portfolio-ball-color.js": "./js/portfolio-ball-color.js?v=9b2573c",
-      "./js/portfolio-data.js": "./js/portfolio-data.js?v=9b2573c",
-      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=9b2573c",
-      "./js/portfolio.js": "./js/portfolio.js?v=9b2573c",
-      "./js/proyecto.js": "./js/proyecto.js?v=9b2573c",
-      "./js/rec.js": "./js/rec.js?v=9b2573c",
-      "./js/scroll-fx.js": "./js/scroll-fx.js?v=9b2573c",
-      "./js/servicios-data.js": "./js/servicios-data.js?v=9b2573c",
-      "./js/servicios.js": "./js/servicios.js?v=9b2573c",
-      "./js/star-core.js": "./js/star-core.js?v=9b2573c",
-      "./js/star-dodge.js": "./js/star-dodge.js?v=9b2573c",
-      "./js/star-trail.js": "./js/star-trail.js?v=9b2573c",
-      "./js/star.js": "./js/star.js?v=9b2573c",
-      "./js/studio-cross.js": "./js/studio-cross.js?v=9b2573c",
-      "./js/studio-ui.js": "./js/studio-ui.js?v=9b2573c",
-      "./js/studio.js": "./js/studio.js?v=9b2573c",
-      "./js/team.js": "./js/team.js?v=9b2573c",
-      "./js/transition.js": "./js/transition.js?v=9b2573c",
-      "./js/wa-float.js": "./js/wa-float.js?v=9b2573c",
-      "./js/water.js": "./js/water.js?v=9b2573c",
-      "./js/why.js": "./js/why.js?v=9b2573c"
+      "./js/about.js": "./js/about.js?v=387c311",
+      "./js/aurora.js": "./js/aurora.js?v=387c311",
+      "./js/bento.js": "./js/bento.js?v=387c311",
+      "./js/config.js": "./js/config.js?v=387c311",
+      "./js/contact.js": "./js/contact.js?v=387c311",
+      "./js/core.js": "./js/core.js?v=387c311",
+      "./js/file-guard.js": "./js/file-guard.js?v=387c311",
+      "./js/fin-physics.js": "./js/fin-physics.js?v=387c311",
+      "./js/fin.js": "./js/fin.js?v=387c311",
+      "./js/gpu.js": "./js/gpu.js?v=387c311",
+      "./js/hero-exposure.js": "./js/hero-exposure.js?v=387c311",
+      "./js/hero-star.js": "./js/hero-star.js?v=387c311",
+      "./js/hero.js": "./js/hero.js?v=387c311",
+      "./js/home-close.js": "./js/home-close.js?v=387c311",
+      "./js/interior.js": "./js/interior.js?v=387c311",
+      "./js/intro-loader.js": "./js/intro-loader.js?v=387c311",
+      "./js/intro-shot.js": "./js/intro-shot.js?v=387c311",
+      "./js/main.js": "./js/main.js?v=387c311",
+      "./js/malla.js": "./js/malla.js?v=387c311",
+      "./js/manifesto.js": "./js/manifesto.js?v=387c311",
+      "./js/nav.js": "./js/nav.js?v=387c311",
+      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=387c311",
+      "./js/oficios.js": "./js/oficios.js?v=387c311",
+      "./js/page-hero.js": "./js/page-hero.js?v=387c311",
+      "./js/page-star.js": "./js/page-star.js?v=387c311",
+      "./js/page.js": "./js/page.js?v=387c311",
+      "./js/placeholder.js": "./js/placeholder.js?v=387c311",
+      "./js/portfolio-ball-color.js": "./js/portfolio-ball-color.js?v=387c311",
+      "./js/portfolio-data.js": "./js/portfolio-data.js?v=387c311",
+      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=387c311",
+      "./js/portfolio.js": "./js/portfolio.js?v=387c311",
+      "./js/proyecto.js": "./js/proyecto.js?v=387c311",
+      "./js/rec.js": "./js/rec.js?v=387c311",
+      "./js/scroll-fx.js": "./js/scroll-fx.js?v=387c311",
+      "./js/servicios-data.js": "./js/servicios-data.js?v=387c311",
+      "./js/servicios.js": "./js/servicios.js?v=387c311",
+      "./js/star-core.js": "./js/star-core.js?v=387c311",
+      "./js/star-dodge.js": "./js/star-dodge.js?v=387c311",
+      "./js/star-trail.js": "./js/star-trail.js?v=387c311",
+      "./js/star.js": "./js/star.js?v=387c311",
+      "./js/studio-cross.js": "./js/studio-cross.js?v=387c311",
+      "./js/studio-ui.js": "./js/studio-ui.js?v=387c311",
+      "./js/studio.js": "./js/studio.js?v=387c311",
+      "./js/team.js": "./js/team.js?v=387c311",
+      "./js/transition.js": "./js/transition.js?v=387c311",
+      "./js/wa-float.js": "./js/wa-float.js?v=387c311",
+      "./js/water.js": "./js/water.js?v=387c311",
+      "./js/why.js": "./js/why.js?v=387c311"
     } }
   </script>
 </head>
@@ -191,6 +195,6 @@
   <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
   <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
-  <script type="module" src="js/page.js?v=9b2573c"></script>
+  <script type="module" src="js/page.js?v=387c311"></script>
 </body>
 </html>

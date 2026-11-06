@@ -1,4 +1,4 @@
-// Cache-busting: node tools/version.mjs  (antes de publicar; ver PENDIENTES.md → Hosting)
+// Cache-busting: node tools/version.mjs  (antes de publicar; ver PENDIENTES.md → Hosting). Antes, el SEO: tools/site.mjs
 // GitHub Pages sirve css/ y js/ con 10 min de caché y sin versión en el nombre: tras publicar, un navegador podía
 // juntar el HTML nuevo con un CSS o un JS viejo (la página se ve rota). Este script pone ?v=<versión> en todo lo que
 // enlazan las páginas (*.html de la raíz):
@@ -13,8 +13,11 @@ import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildSite } from './site.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+// primero el SEO (tools/site.mjs: el dominio, las cabeceras, el JSON-LD, las páginas de proyecto, sitemap y robots)
+await buildSite();
 const list = (dir, ext) => readdirSync(join(ROOT, dir)).filter((f) => f.endsWith(ext)).sort();
 const css = list('css', '.css');
 const js = list('js', '.js');
