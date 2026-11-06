@@ -22,7 +22,7 @@ export function initTransitions({ gsap, reduced, loop }) {
   const veil = document.createElement('div');
   veil.className = 'pt';
   veil.setAttribute('aria-hidden', 'true');
-  veil.innerHTML = `<img class="pt__img" src="${LOGO}" alt="">`;
+  veil.innerHTML = `<img class="pt__img" src="${LOGO}" width="960" height="380" alt="">`;
   document.body.append(veil);
 
   // logo en línea (para el agua): se pide al arrancar, ya está en caché si se ha visto el velo de llegada

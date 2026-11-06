@@ -29,7 +29,7 @@ export function renderFeatured(w, i) {
   return `<div class="pf-proj">
     <article class="pf-feat">
       <a class="pf-feat__cover" href="${page(w.slug)}">
-        <img src="${esc(w.coverLarge || w.cover)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || w.cover)} 2000w" sizes="100vw"${first ? ` width="${first.w}" height="${first.h}"` : ''} alt="${esc(first?.alt || '')}" loading="${i ? 'lazy' : 'eager'}" decoding="async">
+        <img src="${esc(w.coverLarge || w.cover)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || w.cover)} 2000w" sizes="100vw"${first ? ` width="${first.w}" height="${first.h}"` : ''} alt="${esc(first?.alt || '')}" loading="lazy" decoding="async">
         <span class="pf-feat__text">
           <h3 class="pf-feat__title">${esc(w.title)}</h3>
           <span class="pf-feat__line">${line}</span>
