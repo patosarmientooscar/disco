@@ -2,12 +2,15 @@ import * as THREE from 'three';
 import { finStop } from './fin.js';
 import { MODEL_HEIGHT, ENV_INTENSITY, FOV, CAMERA_Z, loadModel, studio, mixEnv, drift, compileScene } from './star-core.js';
 import { gpuOK, levelDpr } from './gpu.js';
+import { createTrail } from './star-trail.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
 // debajo del texto y del menú (z-index, ver css/star.css). Render dentro del loop único (gsap.ticker).
 // Render y entorno: copia del visor aprobado por Oscar (el modelo, los materiales, los softboxes y la deriva, en
 // js/star-core.js, común con las páginas interiores).
+// LA FUGAZ (js/star-trail.js, AR-A): la estela naranja le sigue siempre, por donde vaya (también arrastrado y en el
+// footer, donde se apaga con él). Movimiento reducido: sin fugaz.
 const MAX_DPR = matchMedia('(max-width: 767px)').matches ? 1.25 : 2; // móvil: como mucho 1.25
 const HERO_SIZE = 0.45;             // alto del destello en el hero (fracción de la pantalla): el protagonista
 const HERO_SIZE_MOBILE = 0.34;
@@ -72,7 +75,8 @@ const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26
 const RETURN_LERP = 0.08;          // al revivir vuelve a su recorrido con este lerp (giro)…
 const RETURN_K = 5;                // …y este k (posición y tamaño; = lerp 0.08 por frame)
 const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
-const STUDIO_RAMP = 0.6;           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
+const STUDIO_RAMP = 0.6;
+const TRAIL_N = matchMedia('(max-width: 767px)').matches ? 6 : 8; // copias de la fugaz (móvil: 6)           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   if (!gpuOK()) return null; // sin GPU de verdad (js/gpu.js): no se muestra nada
@@ -113,6 +117,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const loaded = loadModel(renderer).then((gltf) => {
     gltf.scene.traverse((o) => { if (o.isMesh) { materials.push(o.material); mixEnv(o.material, envU); } });
     star.add(gltf.scene);
+    if (!reduced.matches) trail = createTrail({ scene, model: gltf.scene, n: TRAIL_N });
     // shaders listos antes de la entrada (sin tirón); en paralelo, sin bloquear el hilo principal si se puede
     return compileScene(renderer, scene, camera);
   }).catch(() => {
@@ -122,6 +127,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   });
   let failed = false;
   const materials = [];
+  let trail = null;
+  // la fugaz, con la pose de este fotograma (gain: se enciende con la entrada y se apaga con el parpadeo del footer)
+  const trailStep = (time, gain = 1) => {
+    trail?.update(time, star, view.halfH, { on: star.visible, gain: gain * THREE.MathUtils.clamp((env.k / ENV_INTENSITY - 0.3) / 0.7, 0, 1) });
+  };
 
   // --- tamaño y cámara ---
   const view = { halfW: 1, halfH: 1, mobile: false };
@@ -325,6 +335,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       } else {
         if (entry.done && frame % 2) return; // ya quieto, esperando al recorrido: solo flota (30 fps)
         heroPose(time);
+        trailStep(time, entry.p);
         renderer.clear();
         renderer.render(scene, camera);
         return;
@@ -334,7 +345,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     if (fin.held) {
       const p = fin.pose;
       const key = `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.angle.toFixed(3)}|${p.spinY.toFixed(3)}|${p.h.toFixed(1)}`;
-      if (key === fin.key && !dirty) return;
+      if (key === fin.key && !dirty && !trail?.visible) return; // (mientras la fugaz se apaga, se sigue pintando)
       fin.key = key;
       dirty = false;
       star.position.set(((p.x / innerWidth) * 2 - 1) * view.halfW, (1 - (p.y / innerHeight) * 2) * view.halfH, 0);
@@ -347,6 +358,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       current.ry = p.spinY;
       current.rz = -p.angle;
       offW = 0;
+      trailStep(time);
       renderer.clear();
       renderer.render(scene, camera);
       return;
@@ -457,6 +469,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     star.position.y += (d.y * view.halfH * free + Math.sin(time * 0.9) * HERO_BOB * (1 - free)) * offW;
     star.scale.setScalar(Math.max(0.0001, current.scale * land.k));
     star.rotation.set(current.rx, current.ry, current.rz);
+    trailStep(time);
 
     renderer.clear();
     if (backdrop) backdrop.draw(renderer);

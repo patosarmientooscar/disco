@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MODEL_HEIGHT, sharedGL, sharedModel, softboxScene, studio, mixEnv, compileScene } from './star-core.js';
 import { dlog } from './gpu.js';
+import { createTrail } from './star-trail.js';
 
 // El destello 3D en el hero de las páginas interiores (js/page-hero.js): el mismo de la home (GLB, materiales,
 // softboxes, ACES; js/star-core.js), protagonista en el centro del hero. Pinta en el canvas fijo compartido con el
@@ -11,9 +12,10 @@ import { dlog } from './gpu.js';
 // En reposo oscila de frente; se inclina hacia el cursor; se puede coger y girar con inercia (al soltar, se
 // recoloca de frente). SALIDA (sin pin; progreso 0 con el top del hero en 0 → 1 con su bottom en el 15 % superior):
 // se suelta de la sección con inercia, gira 1,25 vueltas acelerando, se inclina a la derecha y sale en diagonal
-// hacia arriba a la derecha encogiéndose, con una estela de 6 copias naranjas (más larga cuanto más rápido es el
-// scroll); al salir de pantalla, un destello breve en el borde. Al volver, entra por donde salió y vuelve con un
-// pequeño rebote. Movimiento reducido: quieto de frente, sube con la sección, sin estela.
+// hacia arriba a la derecha encogiéndose; al salir de pantalla, un destello breve en el borde. Al volver, entra por donde salió y vuelve con un
+// pequeño rebote. LA FUGAZ (js/star-trail.js, AR-A): la estela naranja le sigue SIEMPRE (corta y tenue en reposo,
+// larga con la velocidad; antes, solo al salir: legacy/hero-star-estela-salida/). Movimiento reducido: quieto de
+// frente, sube con la sección, sin estela.
 // CON RELEVO (opción handoff; solo Servicios, js/page-hero.js): la misma salida (suelta, vueltas, inclinación, estela),
 // pero en vez de salir de pantalla viaja en arco (Bézier: sube a la derecha y cae en curva) hasta el sitio del
 // manifiesto (maniPose de js/page-star.js, la misma función que usa el recorrido) y encoge hasta su tamaño; las
@@ -32,7 +34,7 @@ const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07, idleBack
 const REFLECT = { every: 8, size: 256, gain: 1.9, radius: 15 };
 // salida: hasta dónde va (pantallas: x hacia la derecha, y hacia arriba), vueltas, inclinación y tamaño final
 const EXIT = { end: 0.15, lerp: 0.08, x: 1.55, y: 1.9, turns: 1.25, roll: -0.35, shrink: 0.6, back: 'back.out(1.4)', backDur: 0.9 };
-const TRAIL = { n: 6, gap: 2, more: 5, speed: 12, alpha: 0.35, color: 0xF35411, still: 0.012 };
+const TRAIL = { n: 8, low: 3, color: 0xF35411 }; // la fugaz: copias (con la calidad baja, 3)
 const TAU = Math.PI * 2;
 // con relevo: el punto de control del arco (× ancho a la derecha del sitio, × alto por encima del hero), desde dónde
 // la orientación, la inclinación y la inercia van a la del recorrido, la estela se recoge, y los fundidos (s)
@@ -65,20 +67,8 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
   }
   star.add(model);
 
-  // la estela: 6 copias del destello (misma geometría) con un naranja emisivo aditivo, cada una con su opacidad
-  const ghosts = [];
-  if (!reduced.matches) {
-    for (let i = 0; i < TRAIL.n; i++) {
-      const mat = new THREE.MeshBasicMaterial({ color: TRAIL.color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
-      const g = model.clone(true);
-      g.traverse((o) => { if (o.isMesh) o.material = mat; });
-      const holder = new THREE.Group();
-      holder.add(g);
-      holder.visible = false;
-      scene.add(holder);
-      ghosts.push({ holder, mat });
-    }
-  }
+  // la fugaz (js/star-trail.js): copias del destello con un naranja aditivo, en sus poses pasadas
+  const trail = reduced.matches ? null : createTrail({ scene, model, n: TRAIL.n, color: TRAIL.color });
 
   // ---------- reflejos vivos: softboxes + esfera interior con el vídeo ----------
   const live = { env: null, pmrem: null, tex: null, frame: 0, rt: null, cube: null, cam: null };
@@ -273,8 +263,6 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
   let entered = false;
   const cur = { rx: 0, ry: 0, rz: 0 };
   let osc = 0;
-  const hist = [];                     // poses de los últimos fotogramas (para la estela)
-  const HIST = TRAIL.n * (TRAIL.gap + TRAIL.more) + 1;
   const ret = { m: 1, tw: null, from: null };
   let out = false;                     // fuera de pantalla (ya salió)
   let primed = false;
@@ -308,6 +296,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
   loop.add((time, ratio) => {
     if (!entered || document.hidden || !state.inView) {
       if (!state.inView) {
+        trail?.hide();
         gl.blank('hero');
         if (lifted) { lifted = false; canvas.style.zIndex = ''; }
       }
@@ -323,7 +312,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     if (relay) {
       relay.step(time);
       if (relay.done) {
-        ghosts.forEach((g) => { g.holder.visible = false; });
+        trail?.hide();
         if (lifted) { lifted = false; canvas.style.zIndex = ''; }
         gl.blank('hero');
         return;
@@ -336,7 +325,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
       fromMani = false;
       const d = relay.drawn || T;
       if (d) { now.x = (d.cx / view.w) * 2 - 1; now.y = 1 - (d.cy / H) * 2; now.s = d.hPx / H; }
-      hist.length = 0;
+      trail?.hide(); // la fugaz, de cero
       ret.from = { x: now.x, y: now.y, s: now.s };
       ret.tw?.kill();
       ret.m = 0;
@@ -448,32 +437,20 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
       ret.tw = gsap.to(ret, { m: 1, duration: EXIT.backDur, ease: EXIT.back });
     }
 
-    // la estela: cada copia, la pose de hace 2 fotogramas más que la anterior (más con el scroll rápido)
-    hist.unshift({ x: now.x, y: now.y, s, rx, ry, rz });
-    if (hist.length > HIST) hist.pop();
-    const v = Math.abs(lenis?.velocity || 0);
-    const gap = TRAIL.gap + Math.min(TRAIL.more, Math.round(v / TRAIL.speed));
-    // con relevo, en el último 15 % las copias se juntan con el destello y se apagan
+    // la fugaz: siempre que se ve (con relevo, en el último 15 % las copias se juntan con el destello y se apagan;
+    // con la calidad baja, 3 copias en vez de 8: js/star-core.js)
     const gather = T ? THREE.MathUtils.smoothstep(p, HANDOFF.gather, 1) : 0;
-    ghosts.forEach((g, i) => {
-      if (!gl.quality.trail) { g.holder.visible = false; return; }
-      const h = hist[Math.min(hist.length - 1, (i + 1) * gap)];
-      const d = Math.hypot(h.x - now.x, h.y - now.y);
-      const o = p > 0 ? TRAIL.alpha * (1 - i / TRAIL.n) * THREE.MathUtils.smoothstep(d, 0, TRAIL.still * 4) * (1 - gather) : 0;
-      g.holder.visible = o > 0.004;
-      if (!g.holder.visible) return;
-      g.mat.opacity = o;
-      const m = (a, b) => a + (b - a) * gather;
-      toWorld(g.holder, m(h.x, now.x), m(h.y, now.y), m(h.s, s));
-      g.holder.rotation.set(m(h.rx, rx), m(h.ry, ry), m(h.rz, rz));
-    });
+    if (trail) {
+      trail.setMax(gl.quality.trail ? TRAIL.n : TRAIL.low);
+      trail.update(time, star, view.halfH, { on: visible, gain: entry.p, gather });
+    }
 
     // al salir, por encima del contenido que sube (debajo de la nav); en el hero, debajo del texto del pie (con
     // relevo, ya en su sitio, a la altura del recorrido: "Tres oficios" lo tapa)
     const lift = p > 0.02 && visible && !(T && p >= 1);
     if (lift !== lifted) { lifted = lift; canvas.style.zIndex = lift ? '3' : ''; }
 
-    if (!visible && !ghosts.some((g) => g.holder.visible)) { gl.blank('hero'); return; }
+    if (!visible && !trail?.visible) { gl.blank('hero'); return; }
     // reflejos vivos: cada 8 fotogramas con el vídeo en marcha (sin ellos si la calidad ha bajado: js/star-core.js)
     if (live.pmrem && gl.quality.live && video && !video.paused && video.readyState >= 2 && ++live.frame % REFLECT.every === 0) reflect();
     gl.draw(scene, 'hero');
@@ -488,7 +465,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     live.tex?.dispose();
     live.pmrem?.dispose();
     live.env?.dispose();
-    ghosts.forEach((g) => g.mat.dispose());
+    trail?.dispose();
   });
 
   return {

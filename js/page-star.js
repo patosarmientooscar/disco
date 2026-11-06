@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { finStop } from './fin.js';
 import { dlog } from './gpu.js';
+import { createTrail } from './star-trail.js';
 import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studio, drift, mixEnv, compileScene } from './star-core.js';
 
 // Recorrido del destello 3D por las páginas interiores (después del hero, que tiene el suyo: js/hero-star.js).
@@ -40,6 +41,8 @@ import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studi
 // ilumina: .is-lit); en el estudio, a la derecha girando más rápido; en el cierre, centrado arriba con la onda; y
 // cae en el footer. Arrastrable en las paradas quietas.
 // Resto de páginas: solo el footer. Movimiento reducido: no hay recorrido (el footer ya está encajado).
+// LA FUGAZ (js/star-trail.js, AR-A): la estela naranja le sigue en todo el recorrido, con su tamaño en cada momento;
+// en el footer, al apagarse, se apaga con él.
 const UNIT = 0.45;                 // "escala 1" = 45 % del alto de pantalla (como en la home)
 const MOBILE_K = 0.75;             // en móvil, escalas un 25 % menores
 const WIDTH = 0.704;               // ancho / alto del modelo
@@ -76,6 +79,7 @@ const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26
 const RETURN_K = 5;
 const RETURN_LERP = 0.08;
 const VELOCITY_MUTE = 600;
+const TRAIL = { n: 8, low: 3 };    // la fugaz: copias (con la calidad baja, 3)
 const TAU = Math.PI * 2;
 // el manifiesto: escala, hueco con el texto, altura a la que se queda (× pantalla), giro lento (rad/s), entrada y
 // salida (s), el giro extra y el reflejo naranja de las palabras clave; el hero lo suelta con su bottom en el 15 %
@@ -165,6 +169,15 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   star.add(model);
   const materials = [];
   model.traverse((o) => { if (o.isMesh) materials.push(o.material); });
+  // la fugaz: copias del destello en sus poses pasadas (en esta escena: se pintan con él)
+  const trail = createTrail({ scene, model, n: TRAIL.n });
+  // brillo de la fugaz: 1 encendido; con el parpadeo del footer baja con él hasta 0
+  const trailGain = () => THREE.MathUtils.clamp((envK.k / ENV_INTENSITY - 0.3) / 0.7, 0, 1);
+  let nowT = 0;
+  const trailStep = (gain = 1) => {
+    trail.setMax(gl.quality.trail ? TRAIL.n : TRAIL.low);
+    trail.update(nowT, star, view.halfH, { gain: gain * trailGain() });
+  };
 
   const gate = document.querySelector('[data-star-gate]'); // servicios: "Tres oficios"
   const hero = document.querySelector('[data-page-hero], [data-star-hero]'); // (nosotros: el hero "Somos disco.", js/nosotros-hero.js)
@@ -611,7 +624,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const show = (on) => {
     if (drawn === on) return;
     drawn = on;
-    if (!on) gl.blank('page');
+    if (!on) { gl.blank('page'); trail.hide(); }
   };
   const envK = { k: ENV_INTENSITY, tl: null, dim: 1 };
   const applyEnv = () => { const k = envK.k * envK.dim; materials.forEach((m) => { m.envMapIntensity = k; }); };
@@ -752,6 +765,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     star.position.set(((mani.x / innerWidth) * 2 - 1) * view.halfW, (1 - (y / H) * 2) * view.halfH, 0);
     star.scale.setScalar(Math.max(0.0001, worldScale(p.hPx / (unit() * H)))); // (el tamaño de su pose: grande o encogiendo)
     star.rotation.set(look.rx, look.ry, look.rz);
+    trailStep();
     gl.draw(scene, 'page');
     drawn = true;
     relay.drawn = { cx: mani.x, cy: y, hPx: p.hPx };
@@ -792,12 +806,14 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
 
   loop.add((time, ratio) => {
     if (document.hidden || !stops.length) return;
+    nowT = time;
     // en el footer, "muerto": lo mueve la física (js/fin.js); aquí solo se pinta (pose en px de pantalla)
     if (fin.held) {
       drag.can = false;
       const p = fin.pose;
       const k = `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.angle.toFixed(3)}|${p.spinY.toFixed(3)}|${p.h.toFixed(1)}`;
-      if (k === fin.key && !dirty && gl.owner === 'page') return;
+      // (mientras la fugaz se apaga, se sigue pintando)
+      if (k === fin.key && !dirty && gl.owner === 'page' && !trail.visible) return;
       fin.key = k;
       dirty = false;
       star.visible = true;
@@ -811,6 +827,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       cur.rx = 0;
       cur.ry = p.spinY;
       cur.rz = -p.angle;
+      trailStep();
       gl.draw(scene, 'page');
       drawn = true;
       return;
@@ -1065,6 +1082,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     star.position.set(x * view.halfW, y * view.halfH, 0);
     star.scale.setScalar(Math.max(0.0001, worldScale(s)));
     star.rotation.set(cur.rx * Math.min(1, j) + rxAdd, ryAll, cur.rz * Math.min(1, j) + rzAdd);
+    trailStep(about ? intro.p : 1);
     gl.draw(scene, 'page');
     gl.measure(dt);
     drawn = true;
@@ -1089,6 +1107,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     studioTex.dispose();
     orangeTex?.dispose();
     sectorTex.forEach((t) => t?.dispose());
+    trail.dispose();
   });
 
   return {

@@ -75,7 +75,8 @@ export function sharedModel(renderer) {
 // data-star = hero | page, para las pruebas); blank() solo borra lo suyo.
 // Sin WebGL: null (el hero sigue con su vídeo y en el footer cae la estrella del logo).
 // CALIDAD ADAPTATIVA: measure(dt) cuenta los fotogramas dibujados; cada 2 s, si van por debajo de 50 fps, baja un
-// escalón, en este orden: DPR a 1 → sin la estela del hero → sin los reflejos vivos del vídeo (gl.quality).
+// escalón, en este orden: DPR a 1 → la fugaz con 3 copias en vez de 8 (nunca se quita: js/star-trail.js) → sin los
+// reflejos vivos del vídeo (gl.quality).
 const GL_DPR = { desk: 1.75, mob: 1.25 };
 const QUALITY = { window: 2, min: 50 };
 let gl;
