@@ -3,15 +3,15 @@ import { dlog } from './gpu.js';
 
 // Contacto (contacto.html, css/contact.css): sin hero. El titular y los canales (copiar el email, Instagram) y un
 // formulario corto que manda a disco un AVISO por correo con los datos (sin abrir el programa de correo), según
-// js/config.js → contactForm: por defecto FormSubmit (sin cuenta ni claves; la primera vez hay que activar el email:
-// docs/contacto.md); con provider 'emailjs' y sus claves puestas, EmailJS (su plantilla, en docs/emailjs/). Si falla,
+// js/config.js → contactForm: por defecto Web3Forms (con su Access Key, sin activación por correo: docs/contacto.md);
+// alternativas: provider 'formsubmit' (o Web3Forms sin Key) y 'emailjs' con sus claves (docs/emailjs/). Si falla,
 // el error da el email para escribir directamente. Con ?debug, la consola muestra lo que se envía. Anti-spam: campo trampa, 3 s mínimos desde que se abre la página y 30 s entre envíos.
 // Animaciones: el titular sube y los campos entran en cascada; mientras se escribe, el REC late más rápido; al
 // enviar, el botón se vuelve una barra fina; al terminar, flash y "Recibido, {nombre}.".
 // (LEGACY: la claqueta y el formulario largo, en legacy/contacto-hoja-rodaje/)
 const MIN_MS = 3000;          // antes de esto, un envío es de un robot
 const LOCK_MS = 30000;        // entre dos envíos
-const SEND_MS = 12000;        // FormSubmit tiene este tiempo para contestar; después, error con el email
+const SEND_MS = 12000;        // el servicio tiene este tiempo para contestar; después, error con el email
 const TYPING_MS = 1200;       // el REC late rápido hasta 1,2 s después de la última tecla
 const LOCK_KEY = 'disco_contact_sent';
 const MSG = {
@@ -70,6 +70,7 @@ export function init({ gsap, lenis, reduced }) {
   const keys = config.emailjs || {};
   const cf = config.contactForm || {};
   const ready = cf.provider === 'emailjs' && !!(keys.publicKey && keys.serviceId && keys.templateId); // EmailJS; si no, FormSubmit
+  // Web3Forms (por defecto): solo con su Access Key puesta; sin ella, FormSubmit
   const fallback = `<a href="mailto:${email}">${email}</a>`;
 
   // con las claves puestas, EmailJS se descarga en cuanto se toca el formulario
@@ -129,7 +130,8 @@ export function init({ gsap, lenis, reduced }) {
         const emailjs = await loadEmailjs();
         await emailjs.send(keys.serviceId, keys.templateId, params, { publicKey: keys.publicKey });
         if (keys.autoReplyTemplateId) emailjs.send(keys.serviceId, keys.autoReplyTemplateId, params, { publicKey: keys.publicKey }).catch(() => {});
-      } else await formsubmit(cf.alias || cf.to || email, params, data.web || '', cf.cc || '');
+      } else if (cf.provider === 'web3forms' && cf.web3formsKey) await web3forms(cf.web3formsKey, params, data.web || '');
+      else await formsubmit(cf.alias || cf.to || email, params, data.web || '', cf.cc || '');
       try { localStorage.setItem(LOCK_KEY, String(Date.now())); } catch { /* sin almacenamiento */ }
       await gsap.to(bar, { scaleX: 1, duration: 0.25, ease: 'power2.out' });
       finish(data);
@@ -168,7 +170,47 @@ export function init({ gsap, lenis, reduced }) {
   initFaq({ gsap, reduced });
 }
 
-// FormSubmit: el aviso a disco, una tabla con los datos (AJAX: sin salir de la página). _replyto: al darle a
+// Web3Forms (AV): el aviso a disco con los datos (el destino lo fija la Access Key). replyto: al darle a Responder, se
+// contesta al interesado. botcheck: el campo trampa (si viene relleno, no se envía). Vale solo si la respuesta es ok y
+// success === true; con ?debug, la respuesta completa en la consola
+const WEB3FORMS = 'https://api.web3forms.com/submit';
+async function web3forms(key, p, honey) {
+  if (honey) throw new Error('botcheck');
+  const body = {
+    access_key: key,
+    subject: `Nuevo interesado en la web · ${p.negocio} · ${p.nombre}`,
+    from_name: 'Web disco.',
+    replyto: p.email,
+    botcheck: honey,
+    Nombre: p.nombre,
+    Negocio: p.negocio,
+    Email: p.email,
+    'Teléfono': p.telefono,
+    Mensaje: p.mensaje,
+    Enviado: p.fecha,
+    'Página': p.pagina,
+  };
+  dlog('contacto: aviso a Web3Forms', { ...body, access_key: '…' });
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), SEND_MS);
+  let res;
+  try {
+    res = await fetch(WEB3FORMS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctl.signal,
+    });
+  } catch (err) {
+    dlog('contacto: Web3Forms no responde', err.name === 'AbortError' ? `sin respuesta en ${SEND_MS / 1000} s` : err.message);
+    throw new Error(err.name === 'AbortError' ? 'timeout' : 'red');
+  } finally { clearTimeout(timer); }
+  const out = await res.json().catch(() => ({}));
+  dlog('contacto: respuesta de Web3Forms', res.status, JSON.stringify(out));
+  if (!res.ok || out.success !== true) throw new Error(out.message || `Web3Forms ${res.status}`);
+}
+
+// FormSubmit (alternativa): el aviso a disco, una tabla con los datos (AJAX: sin salir de la página). _replyto: al darle a
 // Responder, se contesta al interesado. Vale si responde success "true"
 const FORMSUBMIT = 'https://formsubmit.co/ajax/';
 async function formsubmit(to, p, honey, cc = '') {

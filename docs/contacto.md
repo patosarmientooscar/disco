@@ -1,44 +1,48 @@
-# Formulario de contacto: el aviso por correo (FormSubmit)
+# Formulario de contacto: el aviso por correo (Web3Forms)
 
-Cuando alguien envía el formulario de `contacto.html`, llega un aviso por correo: «Nuevo interesado en la web · {negocio} · {nombre}». Es una tabla con el nombre, el negocio, el email, el teléfono, el mensaje, la fecha y hora de Madrid y la página desde la que se envió. Al darle a **Responder**, contestas directamente al interesado.
+Cuando alguien envía el formulario de `contacto.html`, llega un aviso por correo: «Nuevo interesado en la web · {negocio} · {nombre}», remitente «Web disco.». Trae el nombre, el negocio, el email, el teléfono, el mensaje, la fecha y hora de Madrid y la página desde la que se envió. Al darle a **Responder**, contestas directamente al interesado.
 
-Lo envía [FormSubmit](https://formsubmit.co), que no necesita cuenta ni claves. Se configura en `js/config.js` → `contactForm`.
+Desde AV lo envía [Web3Forms](https://web3forms.com). No necesita activación por correo: funciona con una **Access Key**. Antes era FormSubmit, que nunca llegó a mandar el correo de activación (su servidor respondía 522).
 
-## Destino provisional (desde AR-H)
+## Dónde está la Key
 
-`equipo@discoproduccion.com` todavía no está activado en FormSubmit y puede que ese buzón ni exista. Por eso, de momento, los avisos van a otra dirección:
+En `js/config.js` → `contactForm.web3formsKey`. Es pública por diseño: puede ir en el código del navegador sin problema.
 
-- `to: 'patosarmientooscar@gmail.com'`: aquí llegan los avisos.
-- `cc: 'equipo@discoproduccion.com'`: copia de cada aviso, para cuando ese buzón exista.
+```js
+contactForm: { provider: 'web3forms', web3formsKey: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', to: 'patosarmientooscar@gmail.com', ... }
+```
 
-**La primera vez (una sola vez):**
+- La Key tiene forma de UUID (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`). Web3Forms rechaza cualquier otra cosa con «Invalid form_id/access_key format. Must be a valid UUID.».
+- **Sin Key puesta** (`web3formsKey: ''`), el formulario usa FormSubmit para no quedarse mudo.
+- Después de cambiar la Key, publica: `node tools/version.mjs` y push.
 
-1. Envía el formulario una vez, con datos de prueba (vale desde el servidor local o desde la web publicada).
-2. A `patosarmientooscar@gmail.com` llega un correo de FormSubmit, **«Confirm your email»**. Mira también en spam. Pulsa el botón de confirmar.
-3. Desde ese momento llegan todos los avisos. El de la prueba no llega, porque solo sirve para activar.
+## A qué correo llega
 
-> Si FormSubmit está caído (su web responde 522), el formulario no se queda colgado: a los 12 s muestra «No hemos podido enviarlo. Escríbenos a equipo@discoproduccion.com…». Nunca muestra un «Recibido» falso, solo lo muestra si FormSubmit contesta `success: "true"`. Para ver la respuesta completa de FormSubmit en la consola, abre la página con `?debug` (`contacto.html?debug`).
+Al correo con el que se creó la Key en web3forms.com: de momento, `patosarmientooscar@gmail.com`. El destino lo fija la Key, no el código. `to` en `js/config.js` es solo informativo.
+
+## Límite del plan gratuito
+
+**250 envíos al mes.** Si se superan, Web3Forms deja de entregar hasta el mes siguiente (o hay que pasar a un plan de pago).
 
 ## Cuando exista equipo@discoproduccion.com
 
-1. En `js/config.js`, cambia a `contactForm: { provider: 'formsubmit', to: 'equipo@discoproduccion.com', cc: '', alias: '' }`.
-2. Publica (`node tools/version.mjs` y push) y envía una prueba.
-3. A `equipo@discoproduccion.com` llega «Confirm your email». Pulsa el botón.
+1. En [web3forms.com](https://web3forms.com), crea una Key nueva con `equipo@discoproduccion.com`. Llega por correo a ese buzón.
+2. Ponla en `js/config.js` → `contactForm.web3formsKey`, y cambia también `to: 'equipo@discoproduccion.com'` (informativo).
+3. Publica (`node tools/version.mjs` y push) y envía una prueba desde la web publicada.
 
-## Para no dejar el email en el código (recomendado)
+## Si algo falla
 
-1. Tras confirmar, FormSubmit manda otro correo con un **código aleatorio** (algo como `a1b2c3d4e5…`).
-2. Pon ese código en `js/config.js` → `contactForm.alias: 'a1b2c3d4e5…'`. El formulario pasa a enviar a `https://formsubmit.co/ajax/{código}` y el email deja de estar en el código.
-3. Publica (`node tools/version.mjs` y push).
+- El formulario solo dice «Recibido, {nombre}.» si Web3Forms responde ok y `success: true`. Si no, o si no contesta en 12 s, muestra «No hemos podido enviarlo. Escríbenos a equipo@discoproduccion.com…».
+- Para ver lo que se envía y la respuesta completa en la consola, abre la página con `?debug` (`contacto.html?debug`).
+- Web3Forms solo acepta envíos desde un navegador. Las llamadas desde un servidor (curl, scripts) o desde navegadores automáticos sin ventana devuelven 403 («Use our API in client side…»). Para probar, usa un navegador normal.
 
-## Si algún día preferís EmailJS
+## Alternativas (siguen en el código)
 
-Rellenad sus claves en `js/config.js` → `emailjs` y poned `contactForm.provider: 'emailjs'`. Los pasos están en `docs/emailjs/LEEME.md`, que trae una plantilla más bonita. Sin las claves, se sigue usando FormSubmit.
+- `provider: 'formsubmit'`: [FormSubmit](https://formsubmit.co). Envía a `alias` (el código que da FormSubmit tras confirmar el email) o, si está vacío, a `to`, con copia a `cc`. La primera vez manda un «Confirm your email» que hay que confirmar.
+- `provider: 'emailjs'`: EmailJS, con sus claves en `js/config.js` → `emailjs`. Pasos en `docs/emailjs/LEEME.md`. Sin las claves, se usa FormSubmit.
 
 ## Anti-spam (igual que antes)
 
-El formulario lleva tres protecciones:
-
-- un campo trampa oculto;
+- un campo trampa oculto (`web`; a Web3Forms va como `botcheck`): si viene relleno, no se envía nada;
 - 3 s mínimos desde que se abre la página;
 - 30 s entre envíos desde el mismo navegador.
