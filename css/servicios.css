@@ -526,40 +526,65 @@
   font: 600 clamp(44px, 5.6vw, 96px) / 0.95 var(--font-display);
   letter-spacing: -0.03em;
 }
-/* AT-B: las tarjetas a la izquierda (8 de 12 columnas) y los dos textos a la derecha (4), en una columna que acompaña
-   mientras bajan las tarjetas (sticky a ~30 % de la pantalla: no es un pin, la página sigue bajando). Los textos, más
-   pequeños que el manifiesto y con el mismo encendido palabra a palabra; las palabras clave (<em>) se vuelven naranjas
-   al encenderse (js/servicios.js → .is-lit). Apilado (AR-B): la columna sticky en z 4, por encima del destello.
-   (LEGACY: los dos bloques grandes encima de las tarjetas, en git: AR-F) */
+/* AU: las tarjetas a la izquierda (8 de 12 columnas) y, a la derecha (4), un texto por fase. Cada texto vive dentro de
+   su fase (.sheet__say: absoluto, a la derecha de la hoja y tan alto como la fase) y es sticky a 30vh dentro de ella:
+   la acompaña bajando muy poco y se va con ella (no es un pin). Solo se ve el de la fase activa (js/proc-say.js:
+   data-state below / on / above): sus líneas suben desde una máscara, escalonadas, y sus palabras clave (<em>) se
+   encienden en naranja un instante después; el anterior se va hacia arriba por su máscara y se desvanece. Al subir,
+   al revés. Apilado (AR-B): el texto en z 4, por encima del destello; la fase no crea contexto.
+   (LEGACY: los dos textos en una columna sticky, en legacy/servicios-proceso-dos-textos/) */
 .sv-proc__body {
+  --proc-gap: clamp(40px, 5vw, 96px);
+  --say-ease: cubic-bezier(0.32, 0.72, 0, 1);
   display: grid;
   grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
-  column-gap: clamp(40px, 5vw, 96px);
+  column-gap: var(--proc-gap);
   align-items: start;
   margin-top: clamp(64px, 10vh, 112px);
 }
 .sv-proc__body > .sheet { grid-column: 1; grid-row: 1; margin-top: 0; }
-.sv-proc__aside {
-  position: sticky;
-  top: 30vh;
+/* (la columna de la derecha mide la mitad de la de las tarjetas: 4 / 8) */
+.sheet__say {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% + var(--proc-gap));
+  width: 50%;
   z-index: 4;
-  grid-column: 2;
-  grid-row: 1;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(32px, 3vw, 44px);
 }
+.sheet__say .sv-proc__lead { position: sticky; top: 30vh; }
 .sv-proc__lead {
   max-width: 26ch;
   margin: 0;
   font: 500 clamp(18px, 1.5vw, 23px) / 1.35 var(--font-display);
   letter-spacing: -0.01em;
   color: var(--paper);
+  text-wrap: pretty;
 }
-.sv-proc__lead em { font-style: normal; }
-.sv-proc__lead .mw { opacity: 0.4; } /* apagadas, pero legibles */
-.sv-proc__lead .mw--hot { transition: color 0.6s cubic-bezier(0.32, 0.72, 0, 1); }
-.sv-proc__lead .mw--hot.is-lit { color: var(--orange); }
+.sv-proc__lead em { font-style: normal; color: var(--orange); }
+/* las líneas, cada una en su máscara (la holgura de abajo, para los descendentes) */
+.say__line { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+.say__in { display: block; will-change: transform; }
+.say__hot { color: var(--orange); }
+/* los tres estados (solo con JS; sin JS, los tres textos visibles) */
+.js .sheet__say[data-state] .say__hot { color: var(--paper); transition: color 0.3s var(--say-ease) 0.5s; }
+.js .sheet__say[data-state="below"] .say__in {
+  transform: translate3d(0, 115%, 0);
+  transition: transform 0.5s var(--say-ease);
+}
+.js .sheet__say[data-state="on"] .say__in {
+  transform: none;
+  opacity: 1;
+  transition: transform 0.8s var(--say-ease) calc(0.15s + var(--i, 0) * 0.06s), opacity 0.5s var(--say-ease) calc(0.15s + var(--i, 0) * 0.06s);
+}
+.js .sheet__say[data-state="on"] .say__hot { color: var(--orange); transition: color 0.4s var(--say-ease) var(--hd, 0.5s); }
+.js .sheet__say[data-state="above"] .say__in {
+  transform: translate3d(0, -115%, 0);
+  opacity: 0;
+  transition: transform 0.5s var(--say-ease), opacity 0.5s var(--say-ease);
+}
+/* (un salto entre dos estados ocultos, sin pasar por la vista) */
+.js .sheet__say.is-jump .say__in, .js .sheet__say.is-jump .say__hot { transition: none; }
 .mw--hot .mw-p { color: var(--paper); } /* (la coma o el punto de una palabra clave, sin teñir) */
 .sv-proc__body .sheet__name { font-size: clamp(17px, 1.3vw, 21px); }
 /* (en 8 columnas, la fase va encima de su fila, como en tableta: las tarjetas mantienen su tamaño) */
@@ -714,10 +739,9 @@
 @media (prefers-reduced-motion: reduce) { .sv-faq .faq__item summary::after { transition: none; } }
 
 @media (max-width: 899px) {
-  .sv-proc__body { grid-template-columns: minmax(0, 1fr); row-gap: clamp(48px, 8vh, 72px); }
-  .sv-proc__aside { position: relative; top: auto; grid-column: 1; grid-row: 1; gap: 28px; }
-  .sv-proc__body > .sheet { grid-row: 2; }
-  .sv-proc__lead { max-width: 30ch; }
+  .sv-proc__body { grid-template-columns: minmax(0, 1fr); }
+  .sheet__say { position: static; order: -1; width: auto; }
+  .sheet__say .sv-proc__lead { position: relative; top: auto; max-width: none; }
 }
 
 /* ---------- F) Para quién: carrusel en arco (js/arc-carousel.js; AT-C) ----------
@@ -858,8 +882,8 @@
 /* ---------- movimiento reducido: sin pin, flash, linterna ni parallax; todo visible ---------- */
 @media (prefers-reduced-motion: reduce) {
   .sv-manifest__text .mw { opacity: 1; }
-  .sv-proc__lead .mw { opacity: 1; }
-  .sv-proc__lead .mw--hot { color: var(--orange); }
+  .js .sheet__say[data-state] .say__in { transform: none; opacity: 1; transition: none; }
+  .js .sheet__say[data-state] .say__hot { color: var(--orange); transition: none; }
   .sheet__card, .sheet__card::after, .sheet__n, .sheet__cell::before { transition: none; }
   .js .sv-close__light { opacity: 1; }
 }

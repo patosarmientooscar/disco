@@ -4,6 +4,7 @@ import { initOficios } from './oficios.js';
 import { initBento } from './bento.js';
 import { initManifesto } from './manifesto.js';
 import { initArcCarousel } from './arc-carousel.js';
+import { initProcSay } from './proc-say.js';
 
 // Servicios v2 (css/servicios.css): fondo negro; el hero común de las páginas (js/page-hero.js, lo monta js/page.js);
 // los tres oficios en paneles (js/oficios.js); el proceso en bento (js/bento.js); para quién; y el cierre naranja,
@@ -19,8 +20,8 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
   initManifesto({ gsap, lenis, reduced }); // el vídeo completo con sonido, desde el botón del hero
   initOficios({ gsap, ScrollTrigger, loop, still });
   initBento({ gsap, ScrollTrigger, loop, still });
-  // "En cada producción.": el texto corto, palabra a palabra como el manifiesto (AR-F)
-  document.querySelectorAll('[data-manifest-lite]').forEach((el) => litWords(gsap, el, still));
+  // "En cada producción.": un texto por fase, que cambia con el scroll (js/proc-say.js; AU)
+  initProcSay({ ScrollTrigger, lenis, still });
   initSectors({ gsap, ScrollTrigger, lenis, loop, still });
   initClose({ gsap, ScrollTrigger, still });
   // los titulares son enormes: al cargar la fuente la página cambia de alto (las posiciones de los pines y de la
@@ -30,8 +31,8 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
 
 // ---------- B) manifiesto: palabra a palabra (.15 → 1); "idea" e "imágenes" en naranja (y el destello, a su
 // derecha, lo celebra: js/page-star.js) ----------
-// (las palabras, una a una en spans .mw; las de <em>, .mw--hot. Lo comparten el manifiesto y el texto de "En cada
-// producción.")
+// (las palabras, una a una en spans .mw; las de <em>, .mw--hot. LEGACY: el texto de "En cada producción." que
+// también las usaba, en legacy/servicios-proceso-dos-textos/)
 function splitWords(el) {
   const hot = new Set([...el.querySelectorAll('em')].map((e) => e.textContent.trim()));
   const text = el.textContent.replace(/\s+/g, ' ').trim();
@@ -41,20 +42,6 @@ function splitWords(el) {
     const [, word, punct] = w.match(/^(.*?)([.,;:]*)$/);
     return `<span class="mw${hot.has(bare) ? ' mw--hot' : ''}" aria-hidden="true">${word}${punct ? `<span class="mw-p">${punct}</span>` : ''}</span>`;
   }).join(' ')}`;
-}
-// el texto de "En cada producción.": la misma animación que el manifiesto (sin las palabras clave del destello)
-function litWords(gsap, el, still) {
-  splitWords(el);
-  if (still) return;
-  // (las palabras clave, <em>, se vuelven naranjas al encenderse: .is-lit; al apagarse, vuelven)
-  const hot = [...el.querySelectorAll('.mw--hot')];
-  gsap.to(el.querySelectorAll('.mw'), {
-    opacity: 1,
-    ease: 'none',
-    stagger: 0.1,
-    scrollTrigger: { trigger: el, start: 'top 75%', end: 'bottom 40%', scrub: 0.6 },
-    onUpdate: () => hot.forEach((w) => w.classList.toggle('is-lit', +gsap.getProperty(w, 'opacity') > 0.85)),
-  });
 }
 function initManifest(gsap, still) {
   const el = document.querySelector('[data-manifest]');
