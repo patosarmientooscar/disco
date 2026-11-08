@@ -828,6 +828,11 @@
 .sv-for__more { margin: clamp(40px, 7vh, 64px) 0 0; }
 .sv-for__more a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font: 500 18px / 1 var(--font-display); color: var(--paper); text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 calc(100% - 8px) / 100% 1px no-repeat; }
 .sv-for__more a:hover { color: var(--orange); }
+/* AY-G: la flecha nunca se queda sola en otra línea; en móvil el enlace se parte como texto, con el mismo subrayado */
+.sv-for__nw { white-space: nowrap; }
+@media (max-width: 639px) {
+  .sv-for__more a { display: inline-block; padding: 12px 0; line-height: 1.35; background: none; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+}
 
 /* ---------- G) cierre: la luz naranja entra con un degradado de 40vh (scroll) y se queda ---------- */
 .sv-close {

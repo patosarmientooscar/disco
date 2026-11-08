@@ -14,6 +14,10 @@ const RING = 10;                      // como mínimo, tarjetas en la rueda (el 
 const FOLLOW = 0.11;                  // s: la posición persigue al objetivo (1 − e^(−dt / 110 ms))
 const SETTLE = { idle: 150, min: 0.5, max: 1.4 }; // ms sin scroll; s de asentado (según lo que falte)
 const PER_STEP = 0.6;                 // alto de la sección: escenario × (1 + pasos × 0.6)
+// AY-G, móvil (< 640 px): tarjetas al 70 % del ancho, 9° entre una y otra (una rueda más grande y plana: las de los
+// lados asoman sin cortarse a medias), la plana centrada a un 34 % del alto (mitad de arriba), el pie justo debajo y
+// siempre entero, y menos scroll por tarjeta
+const MOB = { max: 640, cardW: 0.7, step: 9 * (Math.PI / 180), peek: 0.92, y: 0.34, perStep: 0.45 };
 const CAP = { y: 14, dur: 0.6, stagger: 0.06 };
 const pad = (n) => String(n).padStart(2, '0');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -43,26 +47,39 @@ export function initArcCarousel({ root, items, gsap, ScrollTrigger, lenis, loop,
   const offsetOf = (i, pos) => { let d = (((i - pos) % size) + size) % size; if (d >= size / 2) d -= size; return d; };
 
   // geometría (se mide en resize): u, tarjeta, radio y centro de la rueda (debajo del escenario, centrado)
-  const g = { W: 0, H: 0, cw: 0, ch: 0, R: 0, hx: 0, hy: 0 };
+  const g = { W: 0, H: 0, cw: 0, ch: 0, R: 0, hx: 0, hy: 0, step: STEP, per: PER_STEP };
   const measure = () => {
     g.W = stage.clientWidth;
     g.H = stage.clientHeight;
-    const u = Math.min(g.H, g.W / GEO.u);
-    g.cw = GEO.cardW * u;
-    g.ch = g.cw / GEO.ratio;
-    g.R = GEO.R * u;
-    g.hx = g.W / 2;
-    g.hy = g.H / 2 + g.R - GEO.lift * g.H;
+    if (g.W < MOB.max) {
+      g.step = MOB.step;
+      g.per = MOB.perStep;
+      g.cw = MOB.cardW * g.W;
+      g.ch = g.cw / GEO.ratio;
+      // (el radio que separa una tarjeta de la siguiente un 92 % de su ancho)
+      g.R = (MOB.peek * g.cw) / Math.sin(MOB.step);
+      g.hx = g.W / 2;
+      g.hy = MOB.y * g.H + g.R;
+    } else {
+      g.step = STEP;
+      g.per = PER_STEP;
+      const u = Math.min(g.H, g.W / GEO.u);
+      g.cw = GEO.cardW * u;
+      g.ch = g.cw / GEO.ratio;
+      g.R = GEO.R * u;
+      g.hx = g.W / 2;
+      g.hy = g.H / 2 + g.R - GEO.lift * g.H;
+    }
     root.style.setProperty('--arc-w', `${g.cw.toFixed(1)}px`);
     root.style.setProperty('--arc-h', `${g.ch.toFixed(1)}px`);
     // el pie, debajo de la tarjeta plana
     root.style.setProperty('--arc-cap', `${(g.hy - g.R + g.ch / 2 + Math.max(36, 0.05 * g.H)).toFixed(1)}px`);
-    root.style.height = `${(innerHeight * (1 + (n - 1) * PER_STEP)).toFixed(0)}px`;
+    root.style.height = `${(innerHeight * (1 + (n - 1) * g.per)).toFixed(0)}px`;
     drawn = -1;
   };
   // cada tarjeta, en el borde de la rueda: ángulo desde arriba; x / y en el borde; girada como el radio
   const place = (el, d) => {
-    const a = d * STEP;
+    const a = d * g.step;
     const x = g.hx + g.R * Math.sin(a) - g.cw / 2;
     const y = g.hy - g.R * Math.cos(a) - g.ch / 2;
     el.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${(a * 180 / Math.PI).toFixed(3)}deg)`;
