@@ -77,13 +77,13 @@ export function initProcSay({ ScrollTrigger, lenis, still }) {
   // la fase activa: la que cruza la línea; la activa se mantiene HY px más allá de su borde; en el hueco entre dos
   // fases, la que estaba; antes de la primera, ninguna (-1); después de la última, ninguna (-2: se fueron por arriba)
   // AY-F, móvil (< 900 px, el texto encima de su fase): manda el inicio de cada fase, que es donde está su texto. Una
-  // fase se activa cuando su inicio pasa del 75 % de la pantalla y sigue hasta que entra la siguiente; la última se
+  // fase se activa cuando su inicio pasa del 62 % de la pantalla y sigue hasta que entra la siguiente; la última se
   // apaga cuando su final sale por arriba. (Con la línea del 45 % de escritorio, Rodaje, corta y justo detrás de una
   // fase alta, podía estar entera en pantalla con el texto aún escondido, y un gesto normal se la saltaba.)
   const stacked = matchMedia('(max-width: 899px)');
   const updateStacked = () => {
     const sy = lenis.scroll;
-    const y = sy + innerHeight * 0.75;
+    const y = sy + innerHeight * 0.62;
     const last = items[items.length - 1];
     let k = -1;
     items.forEach((it, i) => { if (y >= it.top + (i === active + 1 ? HY : 0)) k = i; });
