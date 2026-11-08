@@ -168,6 +168,11 @@
 .pj-seq__item img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 3px; background: #141111; }
 .pj-seq__item figcaption { margin-top: 14px; font: 400 12px / 1 var(--font-mono); letter-spacing: 0.08em; color: var(--pj-dim); }
 .pj-seq__view.is-manual { overflow-x: auto; }
+/* AY-J: móvil, deslizar con el dedo: imán en cada foto (al inicio, con el margen de la página), sin bloquear el scroll
+   vertical (touch-action por defecto: el gesto vertical es de la página) y sin barra */
+.pj-seq__view.is-swipe { overflow-y: hidden; /* (con overflow-x auto, el y también lo era: unos px de más en el pie hacían que la tira se quedara con el gesto vertical) */ scroll-snap-type: x mandatory; scroll-padding-inline: var(--pj-x); overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.pj-seq__view.is-swipe::-webkit-scrollbar { display: none; }
+.pj-seq__view.is-swipe .pj-seq__item { scroll-snap-align: start; }
 
 /* ---------- F) hoja de contactos ---------- */
 .pj-gal { padding-top: clamp(64px, 10vh, 120px); padding-bottom: clamp(96px, 16vh, 180px); }

@@ -157,6 +157,9 @@ function initSequence({ gsap, ScrollTrigger, main, still }) {
   const view = main.querySelector('[data-pj-seq-view]');
   const strip = main.querySelector('[data-pj-strip]');
   if (still) { view.classList.add('is-manual'); return; }
+  // (AY-J: en móvil, la tira se desliza con el dedo, con imán en cada foto; el scroll vertical sigue siendo de la
+  // página y la siguiente foto asoma a la derecha)
+  if (matchMedia('(max-width: 767px)').matches) { view.classList.add('is-manual', 'is-swipe'); return; }
   gsap.fromTo(strip, { x: () => Math.min(0, view.clientWidth * 0.08) }, {
     x: () => -Math.max(0, strip.scrollWidth - view.clientWidth),
     ease: 'none',
