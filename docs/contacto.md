@@ -9,10 +9,10 @@ Desde AV lo envía [Web3Forms](https://web3forms.com). No necesita activación p
 En `js/config.js` → `contactForm.web3formsKey`. Es pública por diseño: puede ir en el código del navegador sin problema.
 
 ```js
-contactForm: { provider: 'web3forms', web3formsKey: 'b385a024-20bb-44f6-bfba-82d8dc3b849a', to: 'equipo@discoproduccion.com', ... }
+contactForm: { provider: 'web3forms', web3formsKey: 'e6145629-48ad-4814-b136-8f5f10c5ba7b', to: 'equipo@discoproduccion.com', ... }
 ```
 
-Key de AW (creada con equipo@discoproduccion.com), probada el 8 de noviembre de 2026 desde el servidor local: `{"success":true, … "message":"Form submitted successfully!"}`.
+Key de AX (creada fuera del panel, con equipo@discoproduccion.com), probada el 8 de noviembre de 2026 desde el servidor local: `{"success":true, … "message":"Form submitted successfully!"}`.
 
 - La Key tiene forma de UUID (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`). Web3Forms rechaza cualquier otra cosa con «Invalid form_id/access_key format. Must be a valid UUID.».
 - **Sin Key puesta** (`web3formsKey: ''`), el formulario usa FormSubmit para no quedarse mudo.
