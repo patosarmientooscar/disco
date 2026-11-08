@@ -1,8 +1,8 @@
-// Física del footer (js/fin.js): matter-js 0.19 desde cdnjs, cargado solo al acercarse al footer.
+// Física del footer (js/fin.js): matter-js 0.19 (assets/vendor/), cargado solo al acercarse al footer.
 // Mundo 2D en px del footer (origen arriba a la izquierda): suelo = borde de arriba de la fila inferior,
 // paredes = los lados, techo = el top del footer. Las letras son cuerpos estáticos (columnas sacadas de su
 // relleno real); la estrella, un cuerpo compuesto de dos rombos cruzados. Paso fijo de 1/60 s.
-const SRC = 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js';
+const SRC = new URL('../assets/vendor/matter-0.19.0.min.js', import.meta.url).href; // (AY-E: local)
 const GRAVITY = 1.4;
 const STEP = 1000 / 60;
 const MAX_STEPS = 4;            // tras un tirón no recupera más de 4 pasos (sin espiral)

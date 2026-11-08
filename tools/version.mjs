@@ -32,8 +32,10 @@ if (git('status --porcelain -- css js')) {
 }
 
 const THREE = {
-  three: 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js',
-  'three/addons/': 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/',
+  // (AY-E: todo local, en assets/vendor/; nada de CDN que pueda fallar con mala cobertura)
+  three: './assets/vendor/three-0.169.0/build/three.module.min.js',
+  'three/addons/': './assets/vendor/three-0.169.0/examples/jsm/',
+  ogl: './assets/vendor/ogl-1.0.11.js',
 };
 
 for (const page of list('.', '.html')) {

@@ -15,7 +15,7 @@ import { gpuOK, gpuLevel } from './gpu.js';
 // la velocidad del scroll aviva la fuga.
 // El plano OGL solo existe cerca del tramo (se crea al acercarse y se destruye al salir). Movimiento reducido:
 // sin plano ni pin, un degradado fijo (CSS).
-const OGL = 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm';
+const OGL = 'ogl'; // (assets/vendor/ogl-1.0.11.js, por el import map)
 // paleta: negro → brasa → rojo → naranja de marca → casi luz (el final cae entre el naranja y la luz: el set)
 const PALETTE = ['#0b0909', '#3a0f06', '#a3300c', '#F35411', '#ffb27f'];
 const P_EASE = 8;          // 1/s: suavizado del progreso (Lenis ya suaviza el scroll; esto quita el último escalón)

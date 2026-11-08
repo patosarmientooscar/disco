@@ -1,6 +1,6 @@
 import { splitLetters, initExposure } from './hero-exposure.js';
 import { gpuOK, gpuLevel, dlog } from './gpu.js';
-import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/+esm';
+import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'ogl';
 
 // Hero v2: foto roja a pantalla completa. Con ratón, el cursor remueve un fluido (stable fluids,
 // Navier-Stokes 2D en GPU) y la foto se pliega dentro de los remolinos, como mármol o tinta removida.
