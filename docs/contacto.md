@@ -9,10 +9,10 @@ Desde AV lo envía [Web3Forms](https://web3forms.com). No necesita activación p
 En `js/config.js` → `contactForm.web3formsKey`. Es pública por diseño: puede ir en el código del navegador sin problema.
 
 ```js
-contactForm: { provider: 'web3forms', web3formsKey: '30cbd128-fc92-4cb1-9551-dd0bf5f64ec3', to: 'patosarmientooscar@gmail.com', ... }
+contactForm: { provider: 'web3forms', web3formsKey: 'b385a024-20bb-44f6-bfba-82d8dc3b849a', to: 'equipo@discoproduccion.com', ... }
 ```
 
-Probada el 7 de noviembre de 2026, en local y desde la web publicada: `{"success":true, … "message":"Form submitted successfully!"}`.
+Key de AW (creada con equipo@discoproduccion.com), probada el 8 de noviembre de 2026 desde el servidor local: `{"success":true, … "message":"Form submitted successfully!"}`.
 
 - La Key tiene forma de UUID (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`). Web3Forms rechaza cualquier otra cosa con «Invalid form_id/access_key format. Must be a valid UUID.».
 - **Sin Key puesta** (`web3formsKey: ''`), el formulario usa FormSubmit para no quedarse mudo.
@@ -20,17 +20,11 @@ Probada el 7 de noviembre de 2026, en local y desde la web publicada: `{"success
 
 ## A qué correo llega
 
-Al correo con el que se creó la Key en web3forms.com: de momento, `patosarmientooscar@gmail.com`. El destino lo fija la Key, no el código. `to` en `js/config.js` es solo informativo.
+A **equipo@discoproduccion.com**, el correo con el que se creó la Key en web3forms.com. El destino lo fija la Key, no el código: `to` en `js/config.js` es solo informativo. Para cambiar de destino, crea una Key nueva con el otro correo en web3forms.com y cámbiala en `js/config.js`.
 
 ## Límite del plan gratuito
 
 **250 envíos al mes.** Si se superan, Web3Forms deja de entregar hasta el mes siguiente (o hay que pasar a un plan de pago).
-
-## Cuando exista equipo@discoproduccion.com
-
-1. En [web3forms.com](https://web3forms.com), crea una Key nueva con `equipo@discoproduccion.com`. Llega por correo a ese buzón.
-2. Ponla en `js/config.js` → `contactForm.web3formsKey`, y cambia también `to: 'equipo@discoproduccion.com'` (informativo).
-3. Publica (`node tools/version.mjs` y push) y envía una prueba desde la web publicada.
 
 ## Si algo falla
 
@@ -40,7 +34,7 @@ Al correo con el que se creó la Key en web3forms.com: de momento, `patosarmient
 
 ## Alternativas (siguen en el código)
 
-- `provider: 'formsubmit'`: [FormSubmit](https://formsubmit.co). Envía a `alias` (el código que da FormSubmit tras confirmar el email) o, si está vacío, a `to`, con copia a `cc`. La primera vez manda un «Confirm your email» que hay que confirmar.
+- `provider: 'formsubmit'`: [FormSubmit](https://formsubmit.co). Envía a `alias` (el código que da FormSubmit tras confirmar el email) o, si está vacío, a `to` (y, si se pone `cc`, una copia). La primera vez manda un «Confirm your email» que hay que confirmar.
 - `provider: 'emailjs'`: EmailJS, con sus claves en `js/config.js` → `emailjs`. Pasos en `docs/emailjs/LEEME.md`. Sin las claves, se usa FormSubmit.
 
 ## Anti-spam (igual que antes)

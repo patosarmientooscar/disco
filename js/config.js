@@ -24,8 +24,8 @@ export const config = {
   //   'formsubmit' (alternativa: https://formsubmit.co): envía a `alias` (el código que da FormSubmit tras activar el
   //     email) o, si está vacío, a `to`; cc: copia de cada aviso (_cc).
   //   'emailjs' (alternativa: solo si arriba están sus claves; si no, FormSubmit).
-  // provisional: cuando exista equipo@discoproduccion.com, crear con él una Key nueva en web3forms.com y ponerla aquí
-  contactForm: { provider: 'web3forms', web3formsKey: '30cbd128-fc92-4cb1-9551-dd0bf5f64ec3', to: 'patosarmientooscar@gmail.com', cc: 'equipo@discoproduccion.com', alias: '' },
+  // (AW: la Key se creó con equipo@discoproduccion.com: los avisos llegan ahí)
+  contactForm: { provider: 'web3forms', web3formsKey: 'b385a024-20bb-44f6-bfba-82d8dc3b849a', to: 'equipo@discoproduccion.com', alias: '' },
   // qué datos son reales: con false, ese botón o dato NO se pinta (nada de enlaces a 34600000000)
   ready: { whatsapp: false, phone: false },
   // prueba social de la home (js/home-close.js): solo datos REALES. Con los dos arrays vacíos la sección no existe.
