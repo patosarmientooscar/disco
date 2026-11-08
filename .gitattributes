@@ -1,0 +1,22 @@
+# AY: finales de línea siempre LF en el repositorio y en la copia de trabajo (Windows con autocrlf los mezclaba)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.gif binary
+*.ico binary
+*.mp4 binary
+*.webm binary
+*.mov binary
+*.mp3 binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.glb binary
+*.hdr binary
+*.ktx2 binary
+*.zip binary
+*.pdf binary
