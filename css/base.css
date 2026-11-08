@@ -248,3 +248,21 @@ a.cta-pill.is-roll .cta-pill__arrow { transform: translateX(5px); }
    (manifiesto de Servicios, pin de "Cómo trabajamos", columnas de Contacto…) se arreglan en su CSS. */
 :where(main) :where(h1, h2, h3, h4, h5, h6, p, dt, dd, label, legend, figcaption, blockquote, .btn, .cta-pill) { position: relative; z-index: 4; }
 :where(main) :where(.steps__n, .pf-next__kicker, .pf-next__title, .pf-peek__more, .reel__link, .pj-btn, .pj-link, .pj-filter, .pj-reel__title, .pj-reel__time, .sv-for__more, .sv-for__name, .ct__send) { position: relative; z-index: 4; }
+
+/* ---------- AY-H: móvil (< 768 px) — zonas táctiles de 44 px y texto que se lee a 12 px como mínimo ----------
+   Botones y filas: min-height 44. Enlaces de texto (emails, "Ver un proyecto de…"): la zona crece con padding y un
+   margen negativo igual, así que no se mueve nada (el subrayado se recoloca a la misma distancia del texto). El texto
+   para leer o para navegar pasa de 11 a 12 px; los rótulos decorativos en mono (timecodes, números, "FIN DE LA SESIÓN")
+   se quedan a 11 px, con su contraste. (html delante: estas hojas se cargan antes que fin.css, nav.css o contact.css) */
+@media (max-width: 767px) {
+  html .skip { display: inline-flex; align-items: center; min-height: 44px; }
+  html .nav { --nav-text: 12px; }
+  html .fin { --fin-row: 44px; }
+  html .fin__list a, html .fin__up { font-size: 12px; }
+  html .fin__copy, html .sv-mail__copy, html .ct__copy { min-height: 44px; font-size: 12px; }
+  html .fin__prize a, html .fin__again { min-height: 44px; }
+  html .of-proj { align-items: center; min-height: 44px; }
+  html .ct__email, html .sv-mail a { display: inline-block; padding-block: 11px; margin-block: -11px; }
+  html .ct__email { background-position: 0 calc(100% - 11px); }
+  html .cf__label { font-size: 13px; }
+}
