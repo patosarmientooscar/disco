@@ -178,3 +178,18 @@
 .why.is-quick .why__meta { position: static; margin-top: 10px; opacity: 1; gap: 0; }
 .why.is-quick .why__n { display: none; }
 .why.is-quick .why__text { max-width: none; font-size: 16px; }
+/* AY-C: en móvil, "¿Por qué nosotros?" es el título de la sección (no un rótulo pequeño en mayúsculas) y va encima
+   de la lista desde el principio (en absoluto, antes de .is-quick, se dibujaba encima de las razones). Cada razón
+   se parte limpia: la estrellita en su columna y las dos líneas alineadas entre sí. */
+@media (max-width: 767px) {
+  .why .why__title {
+    position: static;
+    margin: 0 0 28px;
+    font: 600 clamp(38px, 11vw, 48px) / 0.98 var(--font-display);
+    letter-spacing: -0.03em;
+    text-transform: none;
+  }
+  .why.is-quick .why__word { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; }
+  .why.is-quick .why__spark { align-self: start; margin: 0.28em 0.3em 0 0; } /* (a la altura de la primera línea) */
+  .why.is-quick .why__list { font-size: clamp(24px, 7.4vw, 32px); text-wrap: balance; }
+}
