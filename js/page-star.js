@@ -4,6 +4,7 @@ import { dlog } from './gpu.js';
 import { createTrail } from './star-trail.js';
 import { createDodge } from './star-dodge.js';
 import { MODEL_HEIGHT, ENV_INTENSITY, sharedGL, sharedModel, softboxScene, studio, drift, mixEnv, compileScene } from './star-core.js';
+import { vp, box } from './viewport.js';
 
 // Recorrido del destello 3D por las páginas interiores (después del hero, que tiene el suyo: js/hero-star.js).
 // Pinta en el canvas fijo compartido con el hero (sharedGL: un solo renderer por página; css/page-hero.css), con
@@ -82,7 +83,7 @@ const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26
 const RETURN_K = 5;
 const RETURN_LERP = 0.08;
 const VELOCITY_MUTE = 600;
-const TRAIL = { n: 8, low: 3 };    // la fugaz: copias (con la calidad baja, 3)
+const TRAIL = { n: matchMedia('(pointer: coarse)').matches ? 4 : 8, low: 3 }; // la fugaz: copias (táctil, AY-A: 4; con la calidad baja, 3)
 const TAU = Math.PI * 2;
 // el manifiesto: escala, hueco con el texto, altura a la que se queda (× pantalla), giro lento (rad/s), entrada y
 // salida (s), el giro extra y el reflejo naranja de las palabras clave; el hero lo suelta con su bottom en el 15 %
@@ -126,8 +127,8 @@ export function maniMeasure() {
 export function maniPose(px) {
   const geo = maniSite.geo || maniMeasure();
   if (!geo) return null;
-  const H = innerHeight;
-  const W = innerWidth;
+  const H = vp.h;
+  const W = vp.w;
   const small = MANI.s * UNIT * (matchMedia('(max-width: 767px)').matches ? MOBILE_K : 1) * H;
   const top = geo.top - px;
   if (geo.right + MANI.gap + WIDTH * small > W - 16) {
@@ -305,7 +306,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const build = () => {
     const max = Math.max(1, ScrollTrigger.maxScroll(window));
     const end = footerStop(max);
-    stops = gate ? servicesStops(max, end) : about ? aboutStops(max, end) : [{ x: 0, y: -1.8, s: end.s, at: Math.max(1, end.at - innerHeight), off: true }, end];
+    stops = gate ? servicesStops(max, end) : about ? aboutStops(max, end) : [{ x: 0, y: -1.8, s: end.s, at: Math.max(1, end.at - vp.h), off: true }, end];
     stops.sort((a, b) => a.at - b.at);
     // una parada quieta (until > at) son dos puntos iguales: entre ellos, la curva se queda en su sitio
     stops = stops.flatMap((p) => (p.until > p.at ? [p, { ...p, at: p.until, twin: true }] : [p]));
@@ -316,19 +317,19 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const footerStop = (max) => {
     const stop = finStop(max, 1);
     if (!stop) return { x: 0, y: 1.6, s: 0.3, at: max };
-    return { x: 0, y: 1 - (2 * stop.cy) / innerHeight, s: stop.h / (unit() * innerHeight), at: max, footer: true };
+    return { x: 0, y: 1 - (2 * stop.cy) / vp.h, s: stop.h / (unit() * vp.h), at: max, footer: true };
   };
-  const nx = (px) => (px / innerWidth) * 2 - 1;
-  const ny = (el, at) => 1 - (2 * (docTop(el) + el.offsetHeight / 2 - at)) / innerHeight;
+  const nx = (px) => (px / vp.w) * 2 - 1;
+  const ny = (el, at) => 1 - (2 * (docTop(el) + el.offsetHeight / 2 - at)) / vp.h;
   const off = () => (view.mobile ? TOUR.mob_off : TOUR.desk_off);
   // esquina superior derecha de una tarjeta (para un scroll `at`, sin transformaciones)
   const cornerAt = (card, at) => ({
     x: nx(docLeft(card) + card.offsetWidth + off()[0]),
-    y: 1 - (2 * (docTop(card) + off()[1] - at)) / innerHeight,
+    y: 1 - (2 * (docTop(card) + off()[1] - at)) / vp.h,
     s: TOUR.s,
   });
   const servicesStops = (max, end) => {
-    const H = innerHeight;
+    const H = vp.h;
     const hx = (s) => (WIDTH * s * unit() * H) / 2; // medio ancho del destello en px
     const title = document.getElementById('proc-title');
     const forTitle = document.getElementById('for-title');
@@ -336,7 +337,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     // a la derecha de un título (sin taparlo); si no cabe (móvil), encima de él, a la derecha
     const beside = (el, at, s, y = ny(el, at)) => {
       const x = nx(docLeft(el) + textWidth(el) + 40 + hx(s));
-      if (x + (2 * hx(s)) / innerWidth <= 0.98) return { x, y, s };
+      if (x + (2 * hx(s)) / vp.w <= 0.98) return { x, y, s };
       const up = (el.offsetHeight / 2 + (s * unit() * H) / 2 + 16) / (H / 2);
       return { x: 0.5, y: ny(el, at) + up, s };
     };
@@ -386,7 +387,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   // en el hueco entre el bloque de Luna y el de Bruno (van en zigzag, uno debajo del otro), en el centro de la pantalla
   const teamPoint = (get) => {
     const [a, b] = [...team.querySelectorAll('[data-person]')].map(get);
-    return { x: innerWidth / 2, y: (a.bottom + b.top) / 2 };
+    return { x: vp.w / 2, y: (a.bottom + b.top) / 2 };
   };
   // un paso: escritorio (fijado), sobre la regla al principio de su columna; si no, a la derecha de su número
   const stepPoint = (card, get) => {
@@ -395,11 +396,11 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       const rr = get(how.querySelector('.ab-how__ruler'));
       return { x: r.left + 26, y: rr.top + rr.height / 2 };
     }
-    return { x: r.right - (WIDTH * ABOUT.step * unit() * innerHeight) / 2 - 4, y: r.top + 34 };
+    return { x: r.right - (WIDTH * ABOUT.step * unit() * vp.h) / 2 - 4, y: r.top + 34 };
   };
   const aboutStops = (max, end) => {
-    const H = innerHeight;
-    const W = innerWidth;
+    const H = vp.h;
+    const W = vp.w;
     const hx = (s) => (WIDTH * s * unit() * H) / 2;
     const ndc = (p) => ({ x: nx(p.x), y: 1 - (2 * p.y) / H });
     const out = [];
@@ -501,7 +502,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       if (p.twin || !pick(p)) continue;
       const u = p.until || p.at;
       const d = px < p.at ? p.at - px : px > u ? px - u : 0;
-      w = Math.max(w, 1 - THREE.MathUtils.smoothstep(d, 0, ABOUT.hold * innerHeight));
+      w = Math.max(w, 1 - THREE.MathUtils.smoothstep(d, 0, ABOUT.hold * vp.h));
     }
     return w;
   };
@@ -559,9 +560,9 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     const e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2; // power2.inOut
     const a = tour.pos(tour.cards[k]);
     const b = tour.pos(tour.cards[k + 1]);
-    const arc = Math.sin(Math.PI * f) * tour.arc * innerHeight;
+    const arc = Math.sin(Math.PI * f) * tour.arc * vp.h;
     tp.x = nx(a.x + (b.x - a.x) * e);
-    tp.y = 1 - (2 * (a.y + (b.y - a.y) * e - arc)) / innerHeight;
+    tp.y = 1 - (2 * (a.y + (b.y - a.y) * e - arc)) / vp.h;
     tp.s = tour.s;
     tp.rx = Math.sin(Math.PI * f) * TOUR.tilt; // como una moneda: de canto en lo alto, de frente al aterrizar
     return tp;
@@ -595,7 +596,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     return { x: r.right + off()[0], y: r.top + off()[1] };
   };
   const matePose = (ratio) => {
-    const H = innerHeight;
+    const H = vp.h;
     const row = Number(list.dataset.active ?? -1);
     const t = flatCorner() || { x: mp.x, y: mp.y };
     if (!mp.init) { mp.x = t.x; mp.y = t.y; mp.init = true; mp.row = row; }
@@ -660,8 +661,8 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   const onStar = (e) => drag.can && drawn && Math.abs(e.clientX - scr.x) < scr.h * 0.36 && Math.abs(e.clientY - scr.y) < scr.h * 0.5;
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch') return;
-    mouse.tx = (e.clientX / innerWidth) * 2 - 1;
-    mouse.ty = (e.clientY / innerHeight) * 2 - 1;
+    mouse.tx = (e.clientX / vp.w) * 2 - 1;
+    mouse.ty = (e.clientY / vp.h) * 2 - 1;
     if (!drag.on) { html.classList.toggle('ps-grab', onStar(e)); return; }
     const t = performance.now();
     const dx = e.clientX - drag.x;
@@ -701,9 +702,9 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     }
   };
   const seen = () => {
-    scr.x = ((star.position.x / view.halfW + 1) / 2) * innerWidth;
-    scr.y = ((1 - star.position.y / view.halfH) / 2) * innerHeight;
-    scr.h = ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * innerHeight;
+    scr.x = ((star.position.x / view.halfW + 1) / 2) * vp.w;
+    scr.y = ((1 - star.position.y / view.halfH) / 2) * vp.h;
+    scr.h = ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * vp.h;
   };
 
   // nosotros: hacia qué foto se inclina (la que tiene el ratón encima)
@@ -732,7 +733,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     dive.in = on;
     dive.tw?.kill();
     dive.tw = gsap.to(dive, { d: on ? 1 : 0, duration: DIVE.dur, ease: on ? 'power2.in' : 'power2.out' });
-    if (edge < 0 || edge > innerHeight) return; // el borde, fuera de pantalla: sin luz
+    if (edge < 0 || edge > vp.h) return; // el borde, fuera de pantalla: sin luz
     gsap.set(glowTop, { x, y: edge });
     glowTop.tl?.kill();
     glowTop.tl = gsap.timeline()
@@ -742,11 +743,11 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   };
   const maniFrame = (ratio, px, gateTop) => {
     const dt = ratio / 60;
-    const H = innerHeight;
+    const H = vp.h;
     const p = maniPose(px);
     const k = mani.k;
     // llega (y se va) por arriba a la derecha, por donde salió el del hero (con relevo, k = 1: ya está en su sitio)
-    let tx = innerWidth * 1.15 + (p.cx - innerWidth * 1.15) * k;
+    let tx = vp.w * 1.15 + (p.cx - vp.w * 1.15) * k;
     let ty = -0.25 * H + (p.cy + 0.25 * H) * k;
     if (drag.on) { drag.frozen ||= { x: mani.x, y: mani.y }; tx = drag.frozen.x; ty = drag.frozen.y; }
     if (!mani.init) { mani.x = tx; mani.y = ty; mani.init = true; }
@@ -773,13 +774,13 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     lift(false);
     drag.can = mani.on && k > 0.99 && !dive.in;
     // tapado del todo por "Tres oficios" o fuera de pantalla: no se pinta
-    if (gateTop <= y - p.hPx / 2 || y + p.hPx / 2 < 0 || y - p.hPx / 2 > H || mani.x - p.hPx > innerWidth) {
+    if (gateTop <= y - p.hPx / 2 || y + p.hPx / 2 < 0 || y - p.hPx / 2 > H || mani.x - p.hPx > vp.w) {
       drag.can = false;
       show(false);
       return;
     }
     star.visible = true;
-    star.position.set(((mani.x / innerWidth) * 2 - 1) * view.halfW, (1 - (y / H) * 2) * view.halfH, 0);
+    star.position.set(((mani.x / vp.w) * 2 - 1) * view.halfW, (1 - (y / H) * 2) * view.halfH, 0);
     star.scale.setScalar(Math.max(0.0001, worldScale(p.hPx / (unit() * H)))); // (el tamaño de su pose: grande o encogiendo)
     star.rotation.set(look.rx, look.ry, look.rz);
     trailStep();
@@ -791,8 +792,8 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
 
   // el salto: primero la luz se filtra por debajo del borde (0.3 s) y después sale con rebote y una vuelta entera
   // (con relevo, la luz y la espera en la X por la que entró: el mismo destello atravesando la sección)
-  const waitX = (px) => (handing ? maniPose(px).cx : innerWidth / 2);
-  const openGate = (edge, x = innerWidth / 2) => {
+  const waitX = (px) => (handing ? maniPose(px).cx : vp.w / 2);
+  const openGate = (edge, x = vp.w / 2) => {
     jump.open = true;
     jump.tl?.kill();
     cur.init = false; // empieza en su punto del recorrido, sin arrastrar una pose vieja
@@ -811,14 +812,14 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
   // el sello del cierre: 2 vueltas rápidas y una onda de luz que sale del destello
   const sealIt = () => {
     gsap.to(seal, { spin: seal.spin + SEAL.turns * TAU, duration: SEAL.dur, ease: 'power2.inOut' });
-    const d = ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * innerHeight * 1.1;
+    const d = ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * vp.h * 1.1;
     gsap.set(ring, { width: d, height: d, marginLeft: -d / 2, marginTop: -d / 2 });
     gsap.fromTo(ring, { opacity: 0.95, scale: 0.4 }, { opacity: 0, scale: 2.6, duration: SEAL.ring, ease: 'power2.out', delay: SEAL.dur * 0.45 });
   };
   // la onda sale del destello (y lo sigue mientras se expande)
   const ringAt = () => {
     if (!(+ring.style.opacity > 0)) return;
-    gsap.set(ring, { x: ((star.position.x / view.halfW + 1) / 2) * innerWidth, y: ((1 - star.position.y / view.halfH) / 2) * innerHeight });
+    gsap.set(ring, { x: ((star.position.x / view.halfW + 1) / 2) * vp.w, y: ((1 - star.position.y / view.halfH) / 2) * vp.h });
   };
 
   loop.add((time, ratio) => {
@@ -834,13 +835,13 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       fin.key = k;
       dirty = false;
       star.visible = true;
-      star.position.set(((p.x / innerWidth) * 2 - 1) * view.halfW, (1 - (p.y / innerHeight) * 2) * view.halfH, 0);
-      const sc = Math.max(0.0001, ((p.h / innerHeight) * 2 * view.halfH) / MODEL_HEIGHT);
+      star.position.set(((p.x / vp.w) * 2 - 1) * view.halfW, (1 - (p.y / vp.h) * 2) * view.halfH, 0);
+      const sc = Math.max(0.0001, ((p.h / vp.h) * 2 * view.halfH) / MODEL_HEIGHT);
       star.scale.setScalar(sc);
       star.rotation.set(0, p.spinY, -p.angle);
-      cur.x = p.x / innerWidth * 2 - 1;
-      cur.y = 1 - (p.y / innerHeight) * 2;
-      cur.s = p.h / (unit() * innerHeight);
+      cur.x = p.x / vp.w * 2 - 1;
+      cur.y = 1 - (p.y / vp.h) * 2;
+      cur.s = p.h / (unit() * vp.h);
       cur.rx = 0;
       cur.ry = p.spinY;
       cur.rz = -p.angle;
@@ -850,13 +851,13 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       return;
     }
     const px = lenis.scroll;
-    const H = innerHeight;
+    const H = vp.h;
     const dt = ratio / 60;
     // servicios: la puerta (borde inferior de "Tres oficios")
     let edge = H;
     let gateTop = H;
     if (gate) {
-      const gr = gate.getBoundingClientRect();
+      const gr = box(gate); // (AY-A: caché, sin forzar el layout)
       edge = gr.bottom;
       gateTop = gr.top;
       if (!jump.open && edge < JUMP.at * H) openGate(edge, waitX(px));
@@ -865,7 +866,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       if (+glowTop.style.opacity > 0) gsap.set(glowTop, { y: gateTop }); // la luz de arriba, pegada al borde
     }
     // servicios: el manifiesto, entre el hero (cuando ya ha soltado su destello) y "Tres oficios"
-    const heroBottom = hero ? hero.getBoundingClientRect().bottom : -1;
+    const heroBottom = hero ? box(hero).bottom : -1;
     if (maniGeo) {
       // con relevo, el hero decide (una vez por fotograma, lo llame quien lo llame primero): ha llegado y este sigue
       handing = !!relay.step;
@@ -959,7 +960,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
         else if (tw < 0.3) light(-1);
         if (litCard) {
           const r = litCard.getBoundingClientRect();
-          const sx = ((cur.x + 1) / 2) * innerWidth - r.left;
+          const sx = ((cur.x + 1) / 2) * vp.w - r.left;
           const sy = ((1 - cur.y) / 2) * H - r.top;
           litCard.style.setProperty('--sx', `${sx.toFixed(0)}px`);
           litCard.style.setProperty('--sy', `${sy.toFixed(0)}px`);
@@ -1010,8 +1011,8 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     // (no en las paradas fijas, de guía, arrastrado ni volviendo del footer)
     {
       const dw = drag.on || fin.returning ? 0 : (1 - guide) * (1 - hw);
-      const dd = dodge.step(((t.x + 1) / 2) * innerWidth, ((1 - t.y) / 2) * H, px, dt, dw);
-      if (dd.x || dd.y) t = { ...t, x: t.x + (2 * dd.x) / innerWidth, y: t.y - (2 * dd.y) / H };
+      const dd = dodge.step(((t.x + 1) / 2) * vp.w, ((1 - t.y) / 2) * H, px, dt, dw);
+      if (dd.x || dd.y) t = { ...t, x: t.x + (2 * dd.x) / vp.w, y: t.y - (2 * dd.y) / H };
     }
     // nosotros: en "Cómo trabajamos" salta por encima de los pasos. (Servicios, AR-F: las tarjetas de la hoja no crean
     // contexto, sus fondos ya quedan debajo del canvas; subirlo taparía "Tres oficios" mientras aún se ve)
@@ -1119,7 +1120,7 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
 
   if (about) {
     about.classList.add('is-3d');
-    if (lenis.scroll < innerHeight) {
+    if (lenis.scroll < vp.h) {
       gsap.fromTo(canvas, { opacity: 0 }, { opacity: 1, duration: ABOUT.enter.fade, ease: 'power1.out', clearProps: 'opacity' });
       gsap.to(intro, { p: 1, duration: ABOUT.enter.duration, ease: 'expo.out' });
     } else intro.p = 1;
@@ -1142,9 +1143,9 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       get failed() { return false; },
       screen() {
         return {
-          x: ((star.position.x / view.halfW + 1) / 2) * innerWidth,
-          y: ((1 - star.position.y / view.halfH) / 2) * innerHeight,
-          h: ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * innerHeight,
+          x: ((star.position.x / view.halfW + 1) / 2) * vp.w,
+          y: ((1 - star.position.y / view.halfH) / 2) * vp.h,
+          h: ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * vp.h,
           ry: cur.ry,
         };
       },

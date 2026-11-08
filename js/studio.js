@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStudioUI } from './studio-ui.js';
 import { CROSS, cross as crossState } from './studio-cross.js';
 import { dlog, isDebug } from './gpu.js';
+import { vp, box } from './viewport.js';
 
 // Estudio de fotografía 360°: un panorama equirectangular en una esfera alrededor de la cámara, dibujado
 // como fondo en el MISMO canvas y renderer que el destello 3D (star.setBackdrop), dentro del loop único.
@@ -66,7 +67,7 @@ export function initStudio({ gsap, ScrollTrigger, reduced, loop, star }) {
   }
 
   const { renderer } = star;
-  const big = renderer.capabilities.maxTextureSize >= 8192 && innerWidth >= 1024;
+  const big = renderer.capabilities.maxTextureSize >= 8192 && vp.w >= 1024;
 
   // --- esfera del panorama: su propia escena y cámara (fov 55 / 70), el destello va encima con la suya ---
   const panoScene = new THREE.Scene();
@@ -121,9 +122,9 @@ void main() {`);
   let portrait = false;
 
   const resize = () => {
-    panoCam.aspect = innerWidth / innerHeight;
+    panoCam.aspect = vp.w / vp.h;
     panoCam.fov = panoCam.aspect >= 1 ? FOV : FOV_PORTRAIT;
-    portrait = innerWidth < 768;
+    portrait = vp.w < 768;
     panoCam.updateProjectionMatrix();
   };
   resize();
@@ -131,6 +132,19 @@ void main() {`);
 
   // --- texturas: carga diferida; fuera de alcance (2 pantallas) se liberan de la GPU y vuelven al acercarse ---
   const loader = new THREE.TextureLoader();
+  // (AY-A: en móvil se decodifican fuera del hilo principal, con createImageBitmap: con <img>, la decodificación de los
+  // panoramas al subirlos a la GPU era una tarea de 400–650 ms en mitad del scroll. La misma imagen y el mismo resultado)
+  const bitmaps = !big && 'createImageBitmap' in window;
+  const loadTex = (url, done, flip) => {
+    if (!bitmaps) { loader.load(url, done); return; }
+    const bl = new THREE.ImageBitmapLoader().setOptions(flip ? { imageOrientation: 'flipY', premultiplyAlpha: 'none' } : { premultiplyAlpha: 'none' });
+    bl.load(url, (bmp) => {
+      const t = new THREE.Texture(bmp);
+      t.flipY = false; // (ya viene volteada, si hace falta)
+      t.needsUpdate = true;
+      done(t);
+    }, undefined, () => loader.load(url, done));
+  };
   let panoTex = null;
   let envSrc = null;
   let envTex = null;
@@ -143,7 +157,7 @@ void main() {`);
   };
   const load = () => {
     if (panoTex) return;
-    loader.load(big ? PANO : PANO_MOBILE, (t) => {
+    loadTex(big ? PANO : PANO_MOBILE, (t) => {
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = renderer.capabilities.getMaxAnisotropy();
       t.wrapS = THREE.RepeatWrapping; // en la costura el filtrado mezcla con el otro borde, no con el mismo
@@ -152,14 +166,15 @@ void main() {`);
       mat.needsUpdate = true;
       renderer.initTexture(t); // se sube a la GPU ya, no al aparecer
       resident = true;
-    });
-    loader.load(PANO_ENV, (t) => {
+    }, true);
+    loadTex(PANO_ENV, (t) => {
       // a ENV_SIZE × ENV_SIZE/2: su PMREM sale del mismo tamaño que el de softboxes y el destello puede fundirlos
       const c = document.createElement('canvas');
       c.width = ENV_SIZE;
       c.height = ENV_SIZE / 2;
       c.getContext('2d').drawImage(t.image, 0, 0, c.width, c.height);
       t.dispose();
+      t.image?.close?.(); // (el ImageBitmap ya está en el lienzo)
       envSrc = new THREE.CanvasTexture(c);
       envSrc.mapping = THREE.EquirectangularReflectionMapping;
       envSrc.colorSpace = THREE.SRGBColorSpace;
@@ -242,7 +257,7 @@ void main() {`);
       const prev = p;
       p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
       if (Math.abs(state.p - p) < 1e-5) p = state.p;
-      const sr = section.getBoundingClientRect();
+      const sr = box(section); // (AY-A: caché, sin forzar el layout)
       const prevB = bottom;
       top = sr.top;
       bottom = sr.bottom;
@@ -255,7 +270,7 @@ void main() {`);
       if (zoom !== panoCam.zoom) { panoCam.zoom = zoom; panoCam.updateProjectionMatrix(); }
       // reflejos del destello: los del estudio a medida que aparece; dentro del pin, del todo
       if (envTex) star.setEnvMix(envTex, active ? e : 0, ENV_INTENSITY);
-      const lit = section.classList.contains('is-lit') && top < innerHeight && bottom > 0;
+      const lit = section.classList.contains('is-lit') && top < vp.h && bottom > 0;
       const show = lit && resident && !!panoTex;
       // giro del estudio y dónde caen los puestos en pantalla (también sin textura: el AF va igual)
       const yaw = THREE.MathUtils.degToRad(yawAt(p, portrait ? ASIDE_MOBILE : ASIDE));
@@ -267,9 +282,9 @@ void main() {`);
       ui.update(state.p, anchors.map((an) => {
         an.getWorldPosition(v).project(panoCam);
         if (v.z > 1) return null; // detrás de la cámara
-        return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight };
+        return { x: (v.x + 1) / 2 * vp.w, y: (1 - v.y) / 2 * vp.h };
       }));
-      const changed = p !== prev || sphere.visible !== show || cross.value !== prevC || (bottom !== prevB && bottom < innerHeight);
+      const changed = p !== prev || sphere.visible !== show || cross.value !== prevC || (bottom !== prevB && bottom < vp.h);
       sphere.visible = show;
       if (isDebug()) layers(p);
       return changed;
@@ -277,10 +292,10 @@ void main() {`);
     draw(r) {
       if (!sphere.visible || cross.value === 0) return;
       // la sección ya se va hacia arriba: el panorama, solo en lo que queda de ella (debajo, la sección siguiente)
-      const clip = bottom < innerHeight;
+      const clip = bottom < vp.h;
       if (clip) {
         r.setScissorTest(true);
-        r.setScissor(0, innerHeight - bottom, innerWidth, bottom);
+        r.setScissor(0, vp.h - bottom, vp.w, bottom);
       }
       r.render(panoScene, panoCam);
       if (clip) r.setScissorTest(false);
@@ -300,9 +315,9 @@ function layers(p) {
     const s = getComputedStyle(e);
     if (s.display === 'none' || s.visibility === 'hidden') return;
     const r = e.getBoundingClientRect();
-    const w = Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0));
-    const h = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
-    const area = (w * h) / (innerWidth * innerHeight);
+    const w = Math.max(0, Math.min(r.right, vp.w) - Math.max(r.left, 0));
+    const h = Math.max(0, Math.min(r.bottom, vp.h) - Math.max(r.top, 0));
+    const area = (w * h) / (vp.w * vp.h);
     const name = `${e.tagName.toLowerCase()}.${String(e.className.baseVal ?? e.className).split(' ')[0]}`;
     if (w * h && s.backdropFilter && s.backdropFilter !== 'none') found.push(`${name} (backdrop, ${(area * 100).toFixed(1)} %)`);
     if (area > 0.4 && +s.opacity > 0.02 && +s.opacity < 0.98) found.push(`${name} (opacidad ${s.opacity})`);

@@ -8,6 +8,7 @@
 // una lista compacta (título, frase y la estrellita delante), y al entrar la sección aparecen juntas (0.6 s, y 16 → 0,
 // stagger .05). Nada depende del scroll. Al girar el móvil (cruza los 768 px) se cambia de modo (gsap.matchMedia).
 // La hoja de contactos anterior está en legacy/js/why-contactos.js.
+import { vp } from './viewport.js';
 const SCRUB = 1.5;
 const SMOOTH = 0.06;          // suavizado extra del progreso (por frame a 60 fps)
 const EDGE = 0.06;            // al principio y al final del pin el foco se queda en la primera / última
@@ -133,7 +134,7 @@ export function initWhy({ gsap, ScrollTrigger, reduced, loop, exitFade }) {
       const lo = Math.floor(f);
       const hi = Math.min(n - 1, lo + 1);
       const c = center(lo) + (center(hi) - center(lo)) * (f - lo);
-      const listY = innerHeight / 2 - c;
+      const listY = vp.h / 2 - c;
 
       const key = `${f.toFixed(4)}|${bounce.map((o) => o.b.toFixed(2)).join()}|${breath.v.toFixed(3)}|${listY.toFixed(1)}`;
       if (key !== applied) {
@@ -147,7 +148,7 @@ export function initWhy({ gsap, ScrollTrigger, reduced, loop, exitFade }) {
           it.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
         });
         // banda de la razón activa (en pantalla): el bokeh se apaga ahí para no restar contraste
-        const top = innerHeight / 2 - heights[i] / 2 - 24;
+        const top = vp.h / 2 - heights[i] / 2 - 24;
         bokeh.draw(p, breath.v, { top, bottom: top + heights[i] + metaH, right: list.getBoundingClientRect().right });
         ring.turn(-STOP_STEP * ringStop(fRing(p)));
       } else if (p !== prevP) {

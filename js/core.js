@@ -1,5 +1,6 @@
 import { initTransitions } from './transition.js';
 import { initWaFloat } from './wa-float.js';
+import { vp } from './viewport.js';
 
 // Base común de todas las páginas: Lenis + ScrollTrigger + un único loop + transiciones entre páginas.
 // Un único loop: gsap.ticker (un rAF) mueve Lenis, ScrollTrigger y todas las tareas.
@@ -68,13 +69,13 @@ function initScrollHint({ lenis }) {
   let done = false;
   const show = (on) => el.classList.toggle('is-on', on);
   const check = () => {
-    const max = document.documentElement.scrollHeight - innerHeight;
+    const max = document.documentElement.scrollHeight - vp.h;
     const y = lenis.scroll;
     const busy = document.body.classList.contains('is-loading') || nav?.classList.contains('is-open') || document.documentElement.classList.contains('is-arriving');
     // la página ya tiene su propio aviso en pantalla (el "Scroll to explore" del hero de la home): no se repite
     const own = document.querySelector('[data-hero-scroll]')?.getBoundingClientRect();
-    const ownOn = own && y < innerHeight * 0.5 && own.top < innerHeight && own.bottom > 0; // (el hero se queda fijo debajo: solo arriba)
-    if (done || ownOn || side.on || max < innerHeight * 0.5 || y > max - HINT.end * innerHeight || busy) return;
+    const ownOn = own && y < vp.h * 0.5 && own.top < vp.h && own.bottom > 0; // (el hero se queda fijo debajo: solo arriba)
+    if (done || ownOn || side.on || max < vp.h * 0.5 || y > max - HINT.end * vp.h || busy) return;
     // nunca encima de un botón, un enlace o texto (mira 5 puntos de su sitio; escondido está 8 px más abajo)
     const r = el.getBoundingClientRect();
     const pts = [[0.5, 0.5], [0.05, 0.2], [0.95, 0.2], [0.05, 0.8], [0.95, 0.8]];
@@ -86,7 +87,7 @@ function initScrollHint({ lenis }) {
   const arm = () => { clearTimeout(timer); if (!done) timer = setTimeout(check, HINT.idle * 1000); };
   lenis.on('scroll', () => {
     show(false);
-    const max = document.documentElement.scrollHeight - innerHeight;
+    const max = document.documentElement.scrollHeight - vp.h;
     if (max > 0 && lenis.scroll / max > HINT.learned) { done = true; clearTimeout(timer); return; }
     arm();
   });

@@ -4,14 +4,15 @@
 // final): el filtro de cada destello lo suaviza otra vez; nada de saltos. Rectángulos cacheados en coordenadas de la
 // página al cargar, en resize y en cada refresh de ScrollTrigger (sin leer el layout en cada fotograma).
 // Los heros (donde vive el destello encima de su vídeo) no cuentan.
+import { vp } from './viewport.js';
 const DODGE = { max: 0.03, k: 1.2, minArea: 0.12, depth: 0.18 };
 const SKIP = '.hero, .pgh, [data-nh], [data-page-hero], [data-star-hero], .fin, nav, dialog';
 
 export function createDodge({ ScrollTrigger } = {}) {
   let rects = [];
   const measure = () => {
-    const W = innerWidth;
-    const H = innerHeight;
+    const W = vp.w;
+    const H = vp.h;
     const sy = scrollY;
     rects = [...document.querySelectorAll('main img, main video')]
       .filter((el) => !el.closest(SKIP))
@@ -30,8 +31,8 @@ export function createDodge({ ScrollTrigger } = {}) {
     // px: el objetivo en pantalla (px); scroll: el de la página (px); dt: s; weight: 0–1 (0 = no desviarse: paradas
     // fijas, arrastre, footer). Devuelve el desvío suavizado (px)
     step(px, py, scroll, dt, weight = 1) {
-      const W = innerWidth;
-      const H = innerHeight;
+      const W = vp.w;
+      const H = vp.h;
       let wx = 0;
       let wy = 0;
       let best = 0;

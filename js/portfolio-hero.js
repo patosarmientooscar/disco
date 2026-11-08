@@ -1,4 +1,5 @@
 import { initBallColor } from './portfolio-ball-color.js';
+import { vp } from './viewport.js';
 
 // Hero de portfolio: la bola de espejos real, etalonada en naranja (el vídeo de js/config.js → pageHeroes.portfolio,
 // en dos versiones: horizontal 2560 y vertical, VERSIONS; el hero común, en js/page-hero.js, que elige la versión,
@@ -78,9 +79,9 @@ export function initBallHero({ lenis, loop, reduced }) {
   const resize = () => {
     const mob = matchMedia('(max-width: 767px)').matches;
     view.dpr = Math.min(devicePixelRatio || 1, mob ? DOTS.dprMob : DOTS.dpr);
-    view.w = still ? stage.clientWidth : innerWidth;
-    view.h = still ? stage.clientHeight : innerHeight;
-    view.k = Math.min(1.3, Math.max(0.7, innerWidth / 1440));
+    view.w = still ? stage.clientWidth : vp.w;
+    view.h = still ? stage.clientHeight : vp.h;
+    view.k = Math.min(1.3, Math.max(0.7, vp.w / 1440));
     canvas.width = Math.round(view.w * view.dpr);
     canvas.height = Math.round(view.h * view.dpr);
     if (still) { canvas.style.width = `${view.w}px`; canvas.style.height = `${view.h}px`; }
@@ -127,8 +128,8 @@ export function initBallHero({ lenis, loop, reduced }) {
     if (e.pointerType !== 'mouse') return;
     mouse.x = e.clientX;
     mouse.y = e.clientY;
-    mouse.tx = (e.clientX / innerWidth) * 2 - 1;
-    mouse.ty = (e.clientY / innerHeight) * 2 - 1;
+    mouse.tx = (e.clientX / vp.w) * 2 - 1;
+    mouse.ty = (e.clientY / vp.h) * 2 - 1;
   }, { passive: true });
 
   const draw = (s, time) => {
@@ -189,7 +190,7 @@ export function initBallHero({ lenis, loop, reduced }) {
   let lastP = -1;
   loop.add((time, ratio) => {
     if (document.hidden) return;
-    const H = innerHeight;
+    const H = vp.h;
     const sr = stage.getBoundingClientRect();
     const s = Math.max(0, -sr.top) / H;                  // pantallas bajadas desde el principio del hero
     const p = Math.min(1, Math.max(0, -sr.top / sr.height)); // salida del hero (0 → 1)

@@ -1,3 +1,4 @@
+import './viewport.js'; // (AY-A: el primero, para que su resize vaya antes que los demás)
 import { config } from './config.js';
 import { initCore } from './core.js';
 import { runIntroLoader } from './intro-loader.js';

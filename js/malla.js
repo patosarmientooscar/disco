@@ -11,6 +11,7 @@
 // Calidad: media resolución; en nivel 'low' (js/gpu.js) o gama baja, menos resolución y 30 fps. Nivel 'none': fondo
 // estático (css). Movimiento reducido: un fotograma fijo, que se redibuja al cambiar de sección clara a oscura.
 import { gpuLevel, lowEnd, dlog, isDebug } from './gpu.js';
+import { vp, box } from './viewport.js';
 
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
 // Mezcla "Destello" (aprobada). 6 huecos: el negro ocupa varios para que domine; en claro, papel ocupa esos mismos
@@ -80,7 +81,8 @@ function start() {
   }
   const { gsap } = window;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const low = level === 'low' || lowEnd();
+  // (AY-A: en táctil, también a 0.4 y 30 fps: el móvil baja calidad, no quita la malla)
+  const low = level === 'low' || lowEnd() || matchMedia('(pointer: coarse)').matches;
   const fine = matchMedia('(any-pointer: fine)').matches;
   const about = document.querySelector('[data-nh]');
   const scale = low ? SCALE.low : SCALE.normal;
@@ -103,8 +105,8 @@ function start() {
   const size = { w: 0, h: 0 };
   const fit = () => {
     const dpr = Math.min(devicePixelRatio || 1, MAX_DPR) * scale;
-    const w = Math.max(1, Math.round(innerWidth * dpr));
-    const h = Math.max(1, Math.round(innerHeight * dpr));
+    const w = Math.max(1, Math.round(vp.w * dpr));
+    const h = Math.max(1, Math.round(vp.h * dpr));
     if (w === size.w && h === size.h) return;
     size.w = w;
     size.h = h;
@@ -158,8 +160,8 @@ function start() {
   if (fine && !reduced) {
     window.addEventListener('pointermove', (e) => {
       if (e.pointerType === 'touch') return;
-      state.tx = (e.clientX / innerWidth) * 2 - 1;
-      state.ty = 1 - (e.clientY / innerHeight) * 2;
+      state.tx = (e.clientX / vp.w) * 2 - 1;
+      state.ty = 1 - (e.clientY / vp.h) * 2;
       state.ton = 1;
     }, { passive: true });
     document.documentElement.addEventListener('mouseleave', () => { state.ton = 0; });
@@ -171,23 +173,23 @@ function start() {
       if (par && !gl.getProgramParameter(prog, par.COMPLETION_STATUS_KHR)) return;
       try { link(); } catch (e) { dlog('malla: error de shader', e); cv.classList.add('malla--static'); root.classList.add('malla-static'); gsap.ticker.remove(tick); return; }
     }
-    const H = innerHeight;
+    const H = vp.h;
     const dt = Math.min(deltaMs / 1000, 0.1);
     // ¿tapada? (en nosotros no: forma parte del hero)
-    const heroR = hero ? hero.getBoundingClientRect() : null;
+    const heroR = hero ? box(hero) : null; // (AY-A: cajas en caché, sin forzar el layout)
     const homeCovering = hero && hero.id === 'hero-main' && !hero.classList.contains('is-covered') && !reduced;
     let hidden = !about && !!heroR && (homeCovering || cover(heroR, H) >= COVERED);
-    if (!hidden) hidden = opaques.some((el) => cover(el.getBoundingClientRect(), H) >= COVERED);
+    if (!hidden) hidden = opaques.some((el) => cover(box(el), H) >= COVERED);
 
     // papel y calma, según cuánto cubren sus secciones
-    const lt = lights.reduce((m, el) => Math.max(m, cover(el.getBoundingClientRect(), H)), 0);
+    const lt = lights.reduce((m, el) => Math.max(m, cover(box(el), H)), 0);
     let toLight = clamp((lt - 0.36) / 0.22);
     // con el scroll sigue el gesto; parado, se resuelve hacia claro u oscuro
     const y = window.scrollY;
     still = y === lastY ? still + dt : 0;
     lastY = y;
     if (still > REST) toLight = Math.round(toLight);
-    const toCalm = quiets.reduce((m, el) => Math.min(m, 1 - (1 - (+el.dataset.mallaCalm || CALM_QUIET)) * clamp(cover(el.getBoundingClientRect(), H) / 0.6)), 1);
+    const toCalm = quiets.reduce((m, el) => Math.min(m, 1 - (1 - (+el.dataset.mallaCalm || CALM_QUIET)) * clamp(cover(box(el), H) / 0.6)), 1);
     if (state.first) {
       state.light = toLight;
       state.calm = toCalm;
@@ -214,7 +216,8 @@ function start() {
     const L = state.light;
     for (let i = 0; i < 6; i++) for (let k = 0; k < 3; k++) colors[i * 3 + k] = DARK[i][k] + (LIGHT[i][k] - DARK[i][k]) * L;
     // nosotros: la luz vuelve a su sitio con el progreso del scroll por el hero
-    const pa = about ? clamp(-about.getBoundingClientRect().top / Math.max(1, about.offsetHeight)) : 1;
+    const ab = about && box(about);
+    const pa = about ? clamp(-ab.top / Math.max(1, ab.height)) : 1;
     gl.uniform3fv(U.u_c, colors);
     gl.uniform1f(U.u_t, reduced ? 4 : time * 0.58);
     gl.uniform1f(U.u_calm, state.calm);
@@ -222,7 +225,7 @@ function start() {
     let edge = -1;
     let floor = 2;
     for (const el of bounds) {
-      const r = el.getBoundingClientRect();
+      const r = box(el);
       if (r.top + r.height / 2 < H / 2) edge = Math.max(edge, r.bottom / H);
       else floor = Math.min(floor, r.top / H);
     }

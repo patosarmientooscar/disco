@@ -1,5 +1,6 @@
 import { cross } from './studio-cross.js';
 import { gpuOK, gpuLevel } from './gpu.js';
+import { vp, box } from './viewport.js';
 
 // "Dale al REC." → estudio (home, css/rec.css). La frase se queda fija en el centro durante el tramo (130vh; 100vh
 // en móvil) y el piloto REC se convierte en la luz que descubre el estudio:
@@ -160,8 +161,8 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
   });
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
-    state.tmx = e.clientX / innerWidth - 0.5;
-    state.tmy = 0.5 - e.clientY / innerHeight;
+    state.tmx = e.clientX / vp.w - 0.5;
+    state.tmy = 0.5 - e.clientY / vp.h;
   }, { passive: true });
 
   const studio = document.getElementById('estudio');
@@ -198,7 +199,7 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     });
     const mesh = new O.Mesh(renderer.gl, { geometry: new O.Triangle(renderer.gl), program });
     const size = () => {
-      renderer.setSize(innerWidth, innerHeight);
+      renderer.setSize(vp.w, vp.h);
       program.uniforms.uRes.value = [renderer.gl.drawingBufferWidth, renderer.gl.drawingBufferHeight];
     };
     size();
@@ -223,6 +224,22 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     onToggle: (self) => { near = self.isActive; if (near) create(); else destroy(); },
   });
 
+  // el piloto en pantalla sin medirlo en cada fotograma (AY-A): su sitio dentro de .rec__pin (sticky, top 0), medido
+  // en resize / refresh; la frase solo se mueve en y (react) y su escala no mueve el centro
+  const pin = rec.querySelector('.rec__pin');
+  const dotAt = { x: 0, y: 0, pinH: 0 };
+  const measureDot = () => {
+    const d = dot.getBoundingClientRect();
+    const p = pin.getBoundingClientRect();
+    dotAt.x = d.left + d.width / 2;
+    dotAt.y = d.top + d.height / 2 - p.top - (+gsap.getProperty(txt, 'y') || 0);
+    dotAt.pinH = p.height;
+  };
+  measureDot();
+  ScrollTrigger.addEventListener('refresh', measureDot);
+  window.addEventListener('resize', measureDot);
+  document.fonts?.ready.then(measureDot);
+
   let lastKey = '';
   loop.add((time, ratio) => {
     const dt = ratio / 60;
@@ -242,16 +259,18 @@ export function initRec({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     state.boost += (v - state.boost) * (1 - Math.exp(-(v > state.boost ? BOOST.attack : BOOST.release) * dt));
 
     // solo dentro del tramo: antes de que llegue arriba, recortado a su parte visible
-    const top = rec.getBoundingClientRect().top;
+    const top = box(rec).top; // (AY-A: caché, sin forzar el layout)
     gl.canvas.style.clipPath = top > 0 ? `inset(${top.toFixed(1)}px 0 0 0)` : '';
-    if (top >= innerHeight) return;
+    if (top >= vp.h) return;
 
     const { program, renderer } = gl;
     const u = program.uniforms;
     const dpr = renderer.dpr;
     const H = renderer.gl.drawingBufferHeight;
-    const b = dot.getBoundingClientRect();
-    u.uRec.value = [(b.left + b.width / 2) * dpr, H - (b.top + b.height / 2) * dpr];
+    const rb = box(rec);
+    const pinTop = Math.min(Math.max(rb.top, 0), rb.bottom - dotAt.pinH);
+    const dy = pinTop + dotAt.y + (+gsap.getProperty(txt, 'y') || 0);
+    u.uRec.value = [dotAt.x * dpr, H - dy * dpr];
     u.uP.value = state.p;
     u.uTime.value = time;
     u.uMouse.value = [state.mx, state.my];

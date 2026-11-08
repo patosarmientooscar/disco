@@ -4,6 +4,7 @@ import { MODEL_HEIGHT, ENV_INTENSITY, FOV, CAMERA_Z, loadModel, studio, mixEnv, 
 import { gpuOK, levelDpr } from './gpu.js';
 import { createTrail } from './star-trail.js';
 import { createDodge } from './star-dodge.js';
+import { vp } from './viewport.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
@@ -77,7 +78,7 @@ const RETURN_LERP = 0.08;          // al revivir vuelve a su recorrido con este 
 const RETURN_K = 5;                // …y este k (posición y tamaño; = lerp 0.08 por frame)
 const STUDIO_TURNS = 2;            // vueltas en Y a lo largo del pin (de frente al principio y al final)
 const STUDIO_RAMP = 0.6;
-const TRAIL_N = matchMedia('(max-width: 767px)').matches ? 6 : 8; // copias de la fugaz (móvil: 6)           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
+const TRAIL_N = matchMedia('(max-width: 767px), (pointer: coarse)').matches ? 4 : 8; // copias de la fugaz (móvil y táctil, AY-A: 4)           // × alto de pantalla: antes y después del pin pasa de su giro normal al del estudio
 
 export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   if (!gpuOK()) return null; // sin GPU de verdad (js/gpu.js): no se muestra nada
@@ -138,8 +139,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   // --- tamaño y cámara ---
   const view = { halfW: 1, halfH: 1, mobile: false };
   const resize = () => {
-    const w = innerWidth;
-    const h = innerHeight;
+    const w = vp.w;
+    const h = vp.h;
     const aspect = w / h;
     camera.aspect = aspect;
     camera.position.set(0, 0, aspect >= 1 ? CAMERA_Z : Math.max(CAMERA_Z, 5.2 / aspect));
@@ -161,7 +162,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const line = hero?.querySelector('.hero__line');
     const nav = document.querySelector('[data-nav] .nav__float');
     if (!line) return;
-    const H = innerHeight;
+    const H = vp.h;
     const pad = parseFloat(getComputedStyle(line).paddingTop) || 0; // la máscara deja sitio a las tildes
     const from = (nav ? offsetTo(nav, null) + nav.offsetHeight : 70) + HERO_GAP;
     const to = offsetTo(line, hero) + pad - HERO_GAP;
@@ -244,7 +245,7 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     const pt = curve.getPoint((i + f) / (n - 1));
     // llegada al estudio: en las últimas STUDIO_BLEND pantallas se mezcla con el primer punto de su recorrido
     if (hold && px < hold.start) {
-      const b = THREE.MathUtils.smoothstep(px, hold.start - STUDIO_BLEND * innerHeight, hold.start);
+      const b = THREE.MathUtils.smoothstep(px, hold.start - STUDIO_BLEND * vp.h, hold.start);
       if (b > 0) pt.lerp(studioPoint(0, view.mobile, blendVec), b);
     }
     return pt;
@@ -350,8 +351,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       if (key === fin.key && !dirty && !trail?.visible) return; // (mientras la fugaz se apaga, se sigue pintando)
       fin.key = key;
       dirty = false;
-      star.position.set(((p.x / innerWidth) * 2 - 1) * view.halfW, (1 - (p.y / innerHeight) * 2) * view.halfH, 0);
-      const sc = Math.max(0.0001, ((p.h / innerHeight) * 2 * view.halfH) / MODEL_HEIGHT);
+      star.position.set(((p.x / vp.w) * 2 - 1) * view.halfW, (1 - (p.y / vp.h) * 2) * view.halfH, 0);
+      const sc = Math.max(0.0001, ((p.h / vp.h) * 2 * view.halfH) / MODEL_HEIGHT);
       star.scale.setScalar(sc);
       star.rotation.set(0, p.spinY, -p.angle);
       current.position.copy(star.position);
@@ -377,17 +378,17 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
 
     // peso del estudio: 0 fuera, 1 durante el pin (rampa de STUDIO_RAMP pantallas antes y después)
     // al llegar al visor del footer: giro lento de frente (0 → 1 en la última media pantalla)
-    const we = finale ? THREE.MathUtils.smoothstep(scroll.px, finale - FOOTER_FRONT * innerHeight, finale) : 0;
+    const we = finale ? THREE.MathUtils.smoothstep(scroll.px, finale - FOOTER_FRONT * vp.h, finale) : 0;
     let ws = 0;
     if (hold) {
-      const ramp = STUDIO_RAMP * innerHeight;
+      const ramp = STUDIO_RAMP * vp.h;
       ws = THREE.MathUtils.smoothstep(scroll.px, hold.start - ramp, hold.start)
         * (1 - THREE.MathUtils.smoothstep(scroll.px, hold.end, hold.end + ramp));
     }
 
     // modo frontal: en el centro del hero el destello mira a cámara con "disco" legible (w = 1);
     // al bajar se libera poco a poco la rotación del scroll (w → 0)
-    const heroH = heroEl ? heroEl.offsetHeight : innerHeight;
+    const heroH = heroEl ? heroEl.offsetHeight : vp.h;
     const w = 1 - THREE.MathUtils.smoothstep(lenis.scroll, 0, FRONT_ZONE * heroH);
 
     // giro extra por la velocidad del scroll: más rápido, más gira; al parar frena suave
@@ -412,9 +413,9 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
     place(target, { x: p.x, y: p.y, s: p.z });
     // sobre una foto o un vídeo grande, un desvío mínimo y lento sumado al objetivo (js/star-dodge.js); solo en el
     // recorrido libre (no en el hero, el estudio ni el footer)
-    const dd = dodge.step(((p.x + 1) / 2) * innerWidth, ((1 - p.y) / 2) * innerHeight, lenis.scroll, dt, (1 - w) * (1 - ws) * (1 - we) * (fin.returning ? 0 : 1));
-    target.position.x += (dd.x / innerWidth) * 2 * view.halfW;
-    target.position.y -= (dd.y / innerHeight) * 2 * view.halfH;
+    const dd = dodge.step(((p.x + 1) / 2) * vp.w, ((1 - p.y) / 2) * vp.h, lenis.scroll, dt, (1 - w) * (1 - ws) * (1 - we) * (fin.returning ? 0 : 1));
+    target.position.x += (dd.x / vp.w) * 2 * view.halfW;
+    target.position.y -= (dd.y / vp.h) * 2 * view.halfH;
     // libre (fuera del hero y del estudio): deriva orgánica; en el hero, solo la flotación vertical.
     // Las dos se suman después del filtro (abajo), no al objetivo
     const free = (1 - w) * (1 - ws) * (1 - we);
@@ -562,9 +563,9 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
       // dónde está ahora (px de pantalla), su alto en px y su giro en Y
       screen() {
         return {
-          x: ((star.position.x / view.halfW + 1) / 2) * innerWidth,
-          y: ((1 - star.position.y / view.halfH) / 2) * innerHeight,
-          h: ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * innerHeight,
+          x: ((star.position.x / view.halfW + 1) / 2) * vp.w,
+          y: ((1 - star.position.y / view.halfH) / 2) * vp.h,
+          h: ((star.scale.x * MODEL_HEIGHT) / (2 * view.halfH)) * vp.h,
           ry: current.ry,
         };
       },
@@ -626,7 +627,7 @@ function waypoints(mobile, ScrollTrigger, heroPt = HERO_POINT) {
     { ...pt(path[path.length - 1]), at: studioSt.end, hold: 'studio' },
   ] : [];
   const whySt = ScrollTrigger.getById('why');
-  const at = mobile ? WHY_MOBILE : { ...WHY, x: ((innerWidth - WHY_RING_INSET) / innerWidth) * 2 - 1 };
+  const at = mobile ? WHY_MOBILE : { ...WHY, x: ((vp.w - WHY_RING_INSET) / vp.w) * 2 - 1 };
   const why = whySt ? [
     { ...at, at: whySt.start, hold: 'still' },
     { ...at, at: Math.min(max, Math.max(whySt.start + 1, whySt.end)), hold: 'still' },
@@ -637,7 +638,7 @@ function waypoints(mobile, ScrollTrigger, heroPt = HERO_POINT) {
   const stops = [...document.querySelectorAll('[data-star-stop]')].map((el) => {
     const [x, y, s] = (mobile && el.dataset.starStopM ? el.dataset.starStopM : el.dataset.starStop).split(',').map(Number);
     const r = el.getBoundingClientRect();
-    const at = Math.round(r.top + scrollY + r.height / 2 - innerHeight / 2);
+    const at = Math.round(r.top + scrollY + r.height / 2 - vp.h / 2);
     return { x, y, s, at: Math.min(max - 2, at) };
   }).filter((p) => p.at > 1 && !pins.some(([a, b]) => p.at >= a - 1 && p.at <= b + 1));
   const last = Math.max(why.length ? why[why.length - 1].at : 0, ...stops.map((p) => p.at));
@@ -655,8 +656,8 @@ function whyQuick(mobile) {
   for (let n = section; n; n = n.offsetParent) top += n.offsetTop;
   const away = { x: 0.95, y: 1.7, s: 0.2 };
   return [
-    { ...away, at: Math.max(1, top - 0.7 * innerHeight) },
-    { ...away, at: top + Math.max(1, section.offsetHeight - 0.6 * innerHeight) },
+    { ...away, at: Math.max(1, top - 0.7 * vp.h) },
+    { ...away, at: top + Math.max(1, section.offsetHeight - 0.6 * vp.h) },
   ];
 }
 
@@ -679,16 +680,16 @@ function teamPoints(mobile) {
   };
   const l = box(luna);
   const b = box(bruno);
-  const at = Math.max(1, l.y + l.h / 2 - innerHeight / 2);
+  const at = Math.max(1, l.y + l.h / 2 - vp.h / 2);
   const gap = mobile ? (l.x + l.w + document.documentElement.clientWidth) / 2 : (l.x + l.w + b.x) / 2;
   // el hueco entre las dos fotos (en móvil, el margen a la derecha de Luna): cabe entero, nunca encima de una foto
   const room = mobile ? document.documentElement.clientWidth - (l.x + l.w) : b.x - (l.x + l.w);
-  const fits = (room * 0.8) / (0.704 * (mobile ? HERO_SIZE_MOBILE : HERO_SIZE) * innerHeight) / GROW;
+  const fits = (room * 0.8) / (0.704 * (mobile ? HERO_SIZE_MOBILE : HERO_SIZE) * vp.h) / GROW;
   const p = box(phrase);
-  const right = Math.min(0.62, ((p.x + p.w) / innerWidth) * 2 - 1 + 0.45); // a la derecha del texto
+  const right = Math.min(0.62, ((p.x + p.w) / vp.w) * 2 - 1 + 0.45); // a la derecha del texto
   return [
-    { at: Math.max(1, p.y + p.h / 2 - innerHeight / 2), x: mobile ? 0.55 : right, y: mobile ? 0.55 : 0.1, s: 0.35 },
-    { at, x: (gap / innerWidth) * 2 - 1, y: 0, s: Math.min(0.3, fits) },
+    { at: Math.max(1, p.y + p.h / 2 - vp.h / 2), x: mobile ? 0.55 : right, y: mobile ? 0.55 : 0.1, s: 0.35 },
+    { at, x: (gap / vp.w) * 2 - 1, y: 0, s: Math.min(0.3, fits) },
   ];
 }
 
@@ -709,5 +710,5 @@ function footerPoint(mobile, max, fallback) {
   const stop = finStop(max, GROW);
   if (!stop) return { ...fallback, y: 1.6 };
   const size = mobile ? HERO_SIZE_MOBILE : HERO_SIZE;
-  return { x: 0, y: 1 - (2 * stop.cy) / innerHeight, s: stop.h / (size * innerHeight), footer: true };
+  return { x: 0, y: 1 - (2 * stop.cy) / vp.h, s: stop.h / (size * vp.h), footer: true };
 }

@@ -8,6 +8,7 @@
 // más de 1.5 s, se queda el CSS. Nunca tapa en negro. Movimiento reducido: un solo fotograma (t = 18). Gama baja
 // (deviceMemory ≤ 4 o nivel 'low' de js/gpu.js): 0.75 de resolución y 30 fps.
 import { webglOK, gpuLevel } from './gpu.js';
+import { vp } from './viewport.js';
 const MAX_DPR = 1.35;
 const MAX_PIXELS = 620000;
 const POINTER_LERP = 0.05;
@@ -148,8 +149,8 @@ export function initAurora({ canvas, stage, loop, reduced }) {
   if (!still) {
     window.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse') return;
-      ptr.tx = (e.clientX / innerWidth) * 2 - 1;
-      ptr.ty = 1 - (e.clientY / innerHeight) * 2;
+      ptr.tx = (e.clientX / vp.w) * 2 - 1;
+      ptr.ty = 1 - (e.clientY / vp.h) * 2;
     }, { passive: true });
   }
 

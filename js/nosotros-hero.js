@@ -9,6 +9,7 @@
 // Sin WebGL o sin GPU de verdad (js/gpu.js): la estrellita 2D en su hueco y el degradado CSS de la aurora.
 import { gpuOK, afterLoad } from './gpu.js';
 import { initAurora } from './aurora.js';
+import { box } from './viewport.js';
 
 const DRAW = { duration: 0.9, stagger: 0.07, delay: 0.3, fill: 0.5 };
 
@@ -35,7 +36,8 @@ export function initNosotrosHero({ gsap, lenis, loop, reduced }) {
   const veil = root.querySelector('.nh__aurora');
   let fade = -1;
   loop.add(() => {
-    const p = Math.max(0, -root.getBoundingClientRect().top / Math.max(1, root.offsetHeight));
+    const b = box(root); // (AY-A: caché, sin forzar el layout)
+    const p = Math.max(0, -b.top / Math.max(1, b.height));
     const f = 1 - Math.min(1, Math.max(0, (p - 0.6) / 0.4));
     if (f === fade) return;
     fade = f;

@@ -2,6 +2,7 @@
 // la imagen se aleja (scale 1.18 → 1) y los nombres aparecen justo después de su foto. Todo enlazado al
 // scroll (scrub): al volver a subir se deshace. Parallax de las fotos y subfrase: data-speed / data-rise
 // (js/scroll-fx.js). Con movimiento reducido, todo visible y quieto.
+import { vp } from './viewport.js';
 const SCRUB = 1.2;
 
 export function initTeam({ gsap, ScrollTrigger, reduced }) {
@@ -28,13 +29,13 @@ export function initTeam({ gsap, ScrollTrigger, reduced }) {
     }).fromTo(lines, { yPercent: 105 }, { yPercent: 0, ease: 'none', stagger: 0.08 });
   };
   buildPhrase();
-  let width = innerWidth;
+  let width = vp.w;
   let timer = 0;
   window.addEventListener('resize', () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      if (innerWidth === width) return;
-      width = innerWidth;
+      if (vp.w === width) return;
+      width = vp.w;
       buildPhrase();
       ScrollTrigger.refresh();
     }, 200);

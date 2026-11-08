@@ -1,5 +1,6 @@
 import { initNosotrosHero } from './nosotros-hero.js';
 import { litWords } from './interior.js';
+import { vp } from './viewport.js';
 
 // Nosotros: el hero "Somos disco." (js/nosotros-hero.js), manifiesto que se ilumina palabra a palabra con el scroll,
 // Luna y Bruno en zigzag (cada foto entra desde su lado; sus textos, palabra a palabra; de B/N a color con el ratón
@@ -38,10 +39,10 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     const check = () => pending.forEach((timer, p) => {
       const r = p.getBoundingClientRect();
       if (r.bottom < 0) { open(p, true); return; }                  // ya por encima: sin animación
-      if (r.top < innerHeight && !timer) pending.set(p, setTimeout(() => open(p), SAFE)); // en pantalla: el seguro
+      if (r.top < vp.h && !timer) pending.set(p, setTimeout(() => open(p), SAFE)); // en pantalla: el seguro
     });
     document.querySelectorAll('[data-person-photo]').forEach((p) => {
-      if (p.getBoundingClientRect().top < innerHeight * 0.88) return;
+      if (p.getBoundingClientRect().top < vp.h * 0.88) return;
       p.classList.add('is-pending');
       pending.set(p, 0);
       io.observe(p);
@@ -81,7 +82,7 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     ScrollTrigger.create({
       trigger: how,
       start: 'top top',
-      end: () => `+=${innerHeight * PIN}`,
+      end: () => `+=${vp.h * PIN}`,
       pin: how.querySelector('[data-how-pin]'),
       scrub: true,
       invalidateOnRefresh: true,

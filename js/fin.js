@@ -1,5 +1,6 @@
 import { config } from './config.js';
 import { loadMatter, sampleLetters, createWorld } from './fin-physics.js';
+import { vp } from './viewport.js';
 
 // Footer de todas las páginas: "fin de la sesión". Toda la web es una noche en la pista y esto es el final:
 // se apagan las luces, el destello que ha viajado por la página "se muere" y cae con gravedad sobre un
@@ -54,7 +55,7 @@ export function finStop(max, grow = 1) {
   const above = mail.getBoundingClientRect().bottom + shift + STOP.gap;
   const below = logo.top + shift - STOP.gap;
   const h = Math.max(STOP.min, Math.min(STOP.size * grow * s.h, below - above));
-  const cy = Math.min(below - h / 2, Math.max(above + h / 2, s.cy + shift - STOP.rise * innerHeight));
+  const cy = Math.min(below - h / 2, Math.max(above + h / 2, s.cy + shift - STOP.rise * vp.h));
   return { cy, h };
 }
 
@@ -352,10 +353,10 @@ export function initFin({ gsap, lenis, reduced, loop, star = null }) {
   loop.add((time, ratio) => {
     if (!near || document.hidden) return;
     const top = m.top - scrollY;
-    const atEnd = lenis ? lenis.scroll >= lenis.limit - 2 : innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+    const atEnd = lenis ? lenis.scroll >= lenis.limit - 2 : vp.h + scrollY >= document.documentElement.scrollHeight - 2;
     if (state === 'idle') {
-      if (entered && (top <= DIE_AT * innerHeight || atEnd) && ready()) die();
-    } else if (top > REVIVE_AT * innerHeight) {
+      if (entered && (top <= DIE_AT * vp.h || atEnd) && ready()) die();
+    } else if (top > REVIVE_AT * vp.h) {
       revive();
     }
 

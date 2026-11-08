@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { MODEL_HEIGHT, sharedGL, sharedModel, softboxScene, studio, mixEnv, compileScene } from './star-core.js';
 import { dlog } from './gpu.js';
 import { createTrail } from './star-trail.js';
+import { box } from './viewport.js';
 
 // El destello 3D en el hero de las páginas interiores (js/page-hero.js): el mismo de la home (GLB, materiales,
 // softboxes, ACES; js/star-core.js), protagonista en el centro del hero. Pinta en el canvas fijo compartido con el
@@ -31,7 +32,9 @@ const ENTER = { duration: 0.8, scale: 0.82, turn: -35 * (Math.PI / 180) }; // (A
 const IDLE = { amp: 0.32, speed: 0.45 };         // oscila ±0.32 rad en Y (fase a 0.45 rad/s), sin vueltas completas
 const TILT = { x: 0.22, y: 0.35, z: 0.06, lerp: 0.06 };
 const DRAG = { gain: 0.011, friction: 0.94, stop: 0.0015, settle: 0.07, idleBack: 1.2 };
-const REFLECT = { every: 8, size: 256, gain: 1.9, radius: 15 };
+// (AY-A: en táctil, los reflejos vivos cada 16 fotogramas y a 128: el móvil baja calidad, no quita el efecto)
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+const REFLECT = { every: TOUCH ? 16 : 8, size: TOUCH ? 128 : 256, gain: 1.9, radius: 15 };
 // salida: hasta dónde va (pantallas: x hacia la derecha, y hacia arriba), vueltas, inclinación y tamaño final
 const EXIT = { end: 0.15, lerp: 0.08, x: 1.55, y: 1.9, turns: 1.25, roll: -0.35, shrink: 0.6, back: 'back.out(1.4)', backDur: 0.9 };
 const TRAIL = { n: 8, low: 3, color: 0xF35411 }; // la fugaz: copias (con la calidad baja, 3)
@@ -221,9 +224,11 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     const h = now.s * view.h;
     return Math.abs(e.clientX - cx) < h * 0.36 && Math.abs(e.clientY - cy) < h * 0.5;
   };
-  stage.addEventListener('pointermove', (e) => { if (!drag.on) stage.classList.toggle('is-grab', onStar(e)); });
+  stage.addEventListener('pointermove', (e) => { if (!drag.on && e.pointerType !== 'touch') stage.classList.toggle('is-grab', onStar(e)); });
   stage.addEventListener('pointerdown', (e) => {
-    if (!onStar(e) || e.target.closest('a, button, input')) return;
+    // (AY-A: en táctil no se arrastra el destello, como en js/page-star.js: el dedo es siempre de la página y nunca
+    // se captura; si no, un gesto que empezaba encima del destello se quedaba sin scroll)
+    if (e.pointerType === 'touch' || !onStar(e) || e.target.closest('a, button, input')) return;
     drag.on = true;
     drag.id = e.pointerId;
     drag.x = e.clientX;
@@ -280,7 +285,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     relay.step = (time) => {
       if (time === relayAt) return;
       relayAt = time;
-      const p = exitOf(stage.getBoundingClientRect());
+      const p = exitOf(box(stage));
       if (relay.done) {
         // al subir, en cuanto deja de estar en 1 (si no lo tiene alguien cogido en el manifiesto)
         if (p < 1 && !relay.held) { relay.done = false; relay.fresh = false; fromMani = true; }
@@ -304,7 +309,7 @@ export async function createHeroStar({ gsap, lenis, stage, video, state, loop, r
     }
     const dt = ratio / 60;
     const H = view.h;
-    const r = stage.getBoundingClientRect();
+    const r = box(stage); // (AY-A: caché, sin forzar el layout)
     exitP = exitOf(r);
     const p = exitP;
     const E = p * p; // acelerando
