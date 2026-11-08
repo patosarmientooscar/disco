@@ -404,10 +404,12 @@ function markup(file, d) {
     <div class="fin__top">
       <p class="fin__kicker">FIN DE LA SESIÓN</p>
       <p class="fin__title"><span class="fin__w"><span>¿Rodamos</span></span> <span class="fin__w"><span>juntos<b>?</b></span></span></p>
-      <div class="fin__mail">
-        <a class="fin__email" href="mailto:${email}">${email}</a>
+      <div class="fin__mail">${file === 'contacto.html'
+        // (AY-I: en Contacto el email ya es la página entera: aquí, Instagram)
+        ? `<a class="fin__email" href="${ig.url}" target="_blank" rel="noopener">Instagram ${ig.handle}</a>`
+        : `<a class="fin__email" href="mailto:${email}">${email}</a>
         <button class="fin__copy" type="button" data-fin-copy>Copiar</button>
-        <span class="fin__copied" data-fin-copied role="status" aria-live="polite"></span>
+        <span class="fin__copied" data-fin-copied role="status" aria-live="polite"></span>`}
       </div>
     </div>
     <div class="fin__stage">
@@ -438,7 +440,7 @@ function markup(file, d) {
 function initCopy(root) {
   const out = root.querySelector('[data-fin-copied]');
   let timer = 0;
-  root.querySelector('[data-fin-copy]').addEventListener('click', async () => {
+  root.querySelector('[data-fin-copy]')?.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(config.email);
       out.textContent = 'Copiado';
