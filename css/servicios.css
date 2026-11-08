@@ -501,6 +501,15 @@
   .of-tc { right: 18px; }
   .of-sound { right: 14px; bottom: 14px; }
   .of-tl { padding: 8px 10px 8px 8px; }
+  /* AY-B: el panel entero es el botón. La regla común del texto (base.css: h1–h6 en position relative, z 4) hacía del
+     título el bloque contenedor del ::after del botón: la zona táctil quedaba en el título, que en un panel cerrado
+     se dibuja por encima del panel (recortado), sobre la foto del panel abierto. Sin posición, el ::after vuelve a
+     cubrir el panel (z 7) y el texto sigue encima de su imagen (el bloque de texto, z 5 dentro del panel). */
+  .of-name { position: static; }
+  /* la exposición del AF: encima de las escuadras y centrada (al lado se salía por el borde derecho; debajo pisaba el
+     texto del panel) */
+  .of-af__exif,
+  .of-af.is-left .of-af__exif { left: 50%; right: auto; top: auto; bottom: calc(100% + 8px); translate: -50% 0; }
 }
 
 /* movimiento reducido: los tres abiertos en tres columnas (móvil: apilados), cada uno con su texto */
