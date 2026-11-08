@@ -18,6 +18,10 @@ const PER_STEP = 0.6;                 // alto de la sección: escenario × (1 + 
 // lados asoman sin cortarse a medias), la plana centrada a un 34 % del alto (mitad de arriba), el pie justo debajo y
 // siempre entero, y menos scroll por tarjeta
 const MOB = { max: 640, cardW: 0.7, step: 9 * (Math.PI / 180), peek: 0.92, y: 0.34, perStep: 0.45 };
+// AY-K, móvil en horizontal (táctil, menos de 500 px de alto): la misma rueda plana, con la tarjeta según el alto
+// (45 %) y la plana un poco más abajo, por debajo del menú
+const LAND = { h: 0.45, maxW: 0.42, y: 0.4 };
+const landscape = matchMedia('(pointer: coarse) and (max-height: 500px)');
 const CAP = { y: 14, dur: 0.6, stagger: 0.06 };
 const pad = (n) => String(n).padStart(2, '0');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -51,15 +55,16 @@ export function initArcCarousel({ root, items, gsap, ScrollTrigger, lenis, loop,
   const measure = () => {
     g.W = stage.clientWidth;
     g.H = stage.clientHeight;
-    if (g.W < MOB.max) {
+    const land = g.W >= MOB.max && landscape.matches;
+    if (g.W < MOB.max || land) {
       g.step = MOB.step;
       g.per = MOB.perStep;
-      g.cw = MOB.cardW * g.W;
+      g.cw = land ? Math.min(LAND.maxW * g.W, LAND.h * g.H * GEO.ratio) : MOB.cardW * g.W;
       g.ch = g.cw / GEO.ratio;
       // (el radio que separa una tarjeta de la siguiente un 92 % de su ancho)
       g.R = (MOB.peek * g.cw) / Math.sin(MOB.step);
       g.hx = g.W / 2;
-      g.hy = MOB.y * g.H + g.R;
+      g.hy = (land ? LAND.y : MOB.y) * g.H + g.R;
     } else {
       g.step = STEP;
       g.per = PER_STEP;

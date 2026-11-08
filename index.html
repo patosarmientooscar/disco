@@ -75,7 +75,8 @@
       if (sessionStorage.getItem('disco_pt')) { sessionStorage.removeItem('disco_pt'); document.documentElement.classList.add('is-arriving'); }
       if (sessionStorage.getItem('disco_intro_done')) document.documentElement.classList.add('intro-skip');
     } catch (e) {}
-    if (matchMedia('(max-width: 767px)').matches) document.documentElement.classList.add('intro-skip');
+    // (AY-K: también el móvil en horizontal: táctil y poco alto)
+    if (matchMedia('(max-width: 767px), (pointer: coarse) and (max-height: 500px)').matches) document.documentElement.classList.add('intro-skip');
     // Abierto con doble clic (file://): el navegador bloquea los módulos JS y la web no arranca.
     if (location.protocol === 'file:') {
       document.addEventListener('DOMContentLoaded', function () {
