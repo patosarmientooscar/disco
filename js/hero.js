@@ -1,6 +1,10 @@
 import { splitLetters, initExposure } from './hero-exposure.js';
 import { gpuOK, gpuLevel, dlog } from './gpu.js';
-import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } from 'ogl';
+// (AY-D: ogl se carga al montar el fluido, con import(): si no llega, el hero se queda con su foto y el resto de la
+// web arranca igual; con el import estático, un fallo de ogl dejaba sin arrancar js/main.js entero)
+let Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2;
+let ogl = null;
+const loadOgl = () => (ogl ||= import('ogl').then((O) => ({ Renderer, Program, Mesh, Triangle, Texture, RenderTarget, Vec2 } = O)));
 
 // Hero v2: foto roja a pantalla completa. Con ratón, el cursor remueve un fluido (stable fluids,
 // Navier-Stokes 2D en GPU) y la foto se pliega dentro de los remolinos, como mármol o tinta removida.
@@ -429,7 +433,9 @@ function mountFluid({ hero, img, loop, early, tries = 0 }) {
     if (tries >= RELOST.tries) { dlog('fluido: sin contexto WebGL tras varios intentos: la foto'); return; }
     setTimeout(() => mountFluid({ hero, img, loop, early: null, tries: tries + 1 }), RELOST.wait * 2 ** tries);
   };
-  try { setupFluid({ hero, img, loop, early, retry }); } catch (e) { dlog('fluido: error al montar', e); retry(); }
+  loadOgl().then(() => {
+    try { setupFluid({ hero, img, loop, early, retry }); } catch (e) { dlog('fluido: error al montar', e); retry(); }
+  }, () => { ogl = null; dlog('fluido: ogl no ha cargado: la foto'); });
 }
 
 // formato de las texturas de la simulación: el mejor que se pueda RENDERIZAR de verdad, y nunca "no hay"
