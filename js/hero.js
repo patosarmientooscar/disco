@@ -412,13 +412,16 @@ function fitTitle(title, lines) {
     const base = parseFloat(getComputedStyle(title).fontSize);
     const longest = Math.max(...[...lines].map((l) => l.scrollWidth));
     const size = Math.min(TITLE_MAX, Math.max(TITLE_MIN, (base * innerWidth * TITLE_FILL) / longest));
-    title.style.fontSize = `${size}px`;
+    // (BA: el CSS ya trae este tamaño; solo se corrige si difiere: sin salto de layout al arrancar)
+    if (Math.abs(size - base) > 0.5) title.style.fontSize = `${size}px`;
     const widths = [...lines].map((l) => l.scrollWidth);
     const target = Math.max(...widths);
     lines.forEach((l, i) => {
       const chars = Math.max(1, l.textContent.length - 1);
       const extra = Math.min(TITLE_TRACK_MAX, (target - widths[i]) / chars / size);
-      if (extra > 0.001) l.style.letterSpacing = `${(TITLE_TRACK + extra).toFixed(4)}em`;
+      // (sobre el letter-spacing que ya tenga del CSS)
+      const track = parseFloat(getComputedStyle(l).letterSpacing) / size;
+      if (extra > 0.001) l.style.letterSpacing = `${((Number.isFinite(track) ? track : TITLE_TRACK) + extra).toFixed(4)}em`;
     });
   };
   fit();

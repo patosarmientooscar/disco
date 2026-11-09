@@ -37,6 +37,10 @@
   width: 100%; height: 100%;
   object-fit: cover;
   object-position: 50% 50%;
+  /* BA: Chrome no cuenta como LCP una imagen que cubre TODA la ventana (la toma por un fondo): sin este píxel
+     recortado abajo (invisible: debajo está el mismo negro, bajo la viñeta), la página no tenía LCP hasta que
+     entraba el titular, después de la intro. Recortar no mueve el layout. */
+  clip-path: inset(0 0 1px 0);
 }
 /* el canvas aparece cuando ya ha pintado la foto (sin parpadeo en negro) */
 .hero__canvas { display: block; opacity: 0; }
@@ -81,6 +85,15 @@
 .hero {
   --title-size: clamp(44px, 8vw, 148px);
   --title-bottom: clamp(28px, 5vh, 56px);
+}
+/* BA (CLS): en escritorio, el mismo ajuste que hace js/hero.js, ya en el CSS, para que el titular no cambie de tamaño
+   (y empuje el subtítulo) cuando arranca el JS. La línea más larga, "Es el ritmo de tu negocio.", mide 13.472em en
+   Clash Display 500 con -0.02em: 86vw / 13.472 = 6.3836vw (entre 38 y 128 px, como en el JS); la primera, más corta,
+   con +0.0065em de letter-spacing para igualarla. Si cambia el texto del titular, el JS lo sigue ajustando (con un
+   salto al cargar): rehacer estos dos números. */
+@media (min-width: 768px) {
+  .hero { --title-size: clamp(38px, 6.3836vw, 128px); }
+  .hero__line:first-child .hero__line-in { letter-spacing: -0.0135em; }
 }
 .hero__copy {
   position: absolute;

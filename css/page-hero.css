@@ -40,6 +40,11 @@
   object-position: var(--ph-pos, 50% 50%);
   image-rendering: auto;
 }
+/* BA: el póster cuenta como LCP. Chrome ignora la imagen que cubre TODA la ventana (la toma por un fondo); el
+   póster sobresale 12 px por abajo (parallax): 13 px recortados = 1 px por encima del borde, invisible (debajo, el
+   mismo tinta, bajo el degradado). Cuando el vídeo ya lo tapa, sin recorte. */
+.pgh__media img { clip-path: inset(0 0 13px 0); }
+.pgh__look:has(> video.is-on) img { clip-path: none; }
 .pgh__media video { opacity: 0; transition: opacity 0.4s ease; }
 .pgh__media video.is-on { opacity: 1; }
 /* el vídeo limpio: solo un oscurecido mínimo (sin grano, blur ni saturación) */
