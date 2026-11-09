@@ -424,8 +424,8 @@ function fitTitle(title, lines) {
       if (extra > 0.001) l.style.letterSpacing = `${((Number.isFinite(track) ? track : TITLE_TRACK) + extra).toFixed(4)}em`;
     });
   };
-  fit();
-  if (document.fonts) document.fonts.ready.then(fit);
+  // (BA: el tamaño de partida ya lo pone el CSS; aquí solo se comprueba, con las fuentes ya cargadas)
+  if (document.fonts) document.fonts.ready.then(fit); else fit();
   let raf = null;
   window.addEventListener('resize', () => { raf?.kill(); raf = gsap.delayedCall(0, fit); });
 }
@@ -685,6 +685,14 @@ function setupFluid({ hero, img, loop, early, retry }) {
     ready = true;
     draw();
     hero.classList.add('is-gl');
+    // (BA: el <picture> elige foto según la ventana; si al redimensionar cambia, la textura se actualiza)
+    img.addEventListener('load', () => {
+      img.decode().then(() => {
+        photo.needsUpdate = true;
+        display.program.uniforms.uImage.value.set(img.naturalWidth, img.naturalHeight);
+        draw();
+      }).catch(() => {});
+    });
   }).catch(() => { dlog('fluido: la foto no ha cargado'); gl.canvas.remove(); }); // se queda el <img>
 
   let onScreen = true;

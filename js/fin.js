@@ -79,8 +79,15 @@ export function initFin({ gsap, lenis, reduced, loop, star = null }) {
   const flash = $('.fin__flash');
   const prize = $('.fin__prize');
   const row = $('.fin__row');
-  const sb = slot.getBBox();
-  drop.setAttribute('viewBox', `${sb.x} ${sb.y} ${sb.width} ${sb.height}`);
+  // la caja del hueco (unidades del SVG): al medir por primera vez, no al arrancar (getBBox fuerza el layout; BA)
+  let sb = null;
+  const slotBox = () => {
+    if (!sb) {
+      sb = slot.getBBox();
+      drop.setAttribute('viewBox', `${sb.x} ${sb.y} ${sb.width} ${sb.height}`);
+    }
+    return sb;
+  };
 
   initCopy(footer);
   initClock($('[data-fin-clock]'));
@@ -140,6 +147,7 @@ export function initFin({ gsap, lenis, reduced, loop, star = null }) {
     m.oy = r.top - fr.top - vb.y * m.k;
     m.w = fr.width;
     m.floor = row.getBoundingClientRect().top - fr.top;
+    const sb = slotBox();
     m.slot = { x: m.ox + (sb.x + sb.width / 2) * m.k, y: m.oy + (sb.y + sb.height / 2) * m.k, h: sb.height * m.k };
     if (world) world.setScene({ w: m.w, floor: m.floor, rects: rects() });
   };
@@ -185,7 +193,8 @@ export function initFin({ gsap, lenis, reduced, loop, star = null }) {
   new IntersectionObserver(([e]) => { near = e.isIntersecting; if (near) measure(); }, { rootMargin: '25% 0px' }).observe(footer);
   let resizeTimer = 0;
   window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(measure, 150); });
-  if (document.fonts) document.fonts.ready.then(measure);
+  // (con las fuentes cambia el layout: se vuelve a medir si el footer está cerca; si no, al acercarse; BA)
+  if (document.fonts) document.fonts.ready.then(() => { if (near) measure(); });
 
   // --- la estrella: pose en px del footer; se pinta en el 3D (pantalla) o en el SVG que cae ---
   const pose = { x: 0, y: 0, angle: 0, spinY: 0, h: 1 };
@@ -201,6 +210,7 @@ export function initFin({ gsap, lenis, reduced, loop, star = null }) {
       screen.spinY = pose.spinY;
       screen.h = pose.h;
     } else {
+      const sb = slotBox();
       const w = (pose.h * sb.width) / sb.height;
       drop.style.width = `${w}px`;
       drop.style.height = `${pose.h}px`;

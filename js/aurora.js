@@ -8,7 +8,7 @@
 // más de 1.5 s, se queda el CSS. Nunca tapa en negro. Movimiento reducido: un solo fotograma (t = 18). Gama baja
 // (deviceMemory ≤ 4 o nivel 'low' de js/gpu.js): 0.75 de resolución y 30 fps.
 import { webglOK, gpuLevel } from './gpu.js';
-import { vp } from './viewport.js';
+import { vp, box } from './viewport.js';
 const MAX_DPR = 1.35;
 const MAX_PIXELS = 620000;
 const POINTER_LERP = 0.05;
@@ -167,7 +167,7 @@ export function initAurora({ canvas, stage, loop, reduced }) {
     const a = 1 - Math.pow(1 - POINTER_LERP, ratio || 1);
     ptr.x += (ptr.tx - ptr.x) * a;
     ptr.y += (ptr.ty - ptr.y) * a;
-    const r = stage.getBoundingClientRect();
+    const r = box(stage); // (BA: caja en caché, sin forzar el layout en cada fotograma)
     const scroll = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)));
     gl.uniform1f(U.u_time, still ? STILL_T : (now - t0) / 1000);
     gl.uniform2f(U.u_pointer, ptr.x, ptr.y);

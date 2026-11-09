@@ -185,7 +185,7 @@ function start() {
     const lt = lights.reduce((m, el) => Math.max(m, cover(box(el), H)), 0);
     let toLight = clamp((lt - 0.36) / 0.22);
     // con el scroll sigue el gesto; parado, se resuelve hacia claro u oscuro
-    const y = window.scrollY;
+    const y = vp.y; // (BA: el scroll en caché; window.scrollY aquí, después de que GSAP escriba, forzaba el layout)
     still = y === lastY ? still + dt : 0;
     lastY = y;
     if (still > REST) toLight = Math.round(toLight);

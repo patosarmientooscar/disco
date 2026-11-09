@@ -56,12 +56,18 @@
   <link rel="stylesheet" href="css/placeholder.css?v=bff21fe-69d58d">
   <link rel="stylesheet" href="css/interior.css?v=bff21fe-69d58d">
   <link rel="stylesheet" href="css/portfolio.css?v=bff21fe-69d58d">
-  <link rel="stylesheet" href="css/manifesto.css?v=bff21fe-69d58d">
+  <link rel="preload" href="css/manifesto.css?v=bff21fe-69d58d" as="style">
+  <link rel="stylesheet" href="css/manifesto.css?v=bff21fe-69d58d" media="print" onload="this.media='all'" data-css-late>
   <link rel="stylesheet" href="css/page-hero.css?v=bff21fe-69d58d">
   <link rel="stylesheet" href="css/nav.css?v=bff21fe-69d58d">
-  <link rel="stylesheet" href="css/fin.css?v=bff21fe-69d58d">
+  <link rel="preload" href="css/fin.css?v=bff21fe-69d58d" as="style">
+  <link rel="stylesheet" href="css/fin.css?v=bff21fe-69d58d" media="print" onload="this.media='all'" data-css-late>
   <link rel="stylesheet" href="css/transition.css?v=bff21fe-69d58d">
   <link rel="stylesheet" href="css/malla.css?v=bff21fe-69d58d">
+  <!-- BA: el CSS de las secciones de más abajo no bloquea el primer pintado (media="print" hasta que carga); el JS
+       (js/main.js, js/page.js) espera a window.discoCss antes de medir nada. Sin JS, con <noscript>. -->
+  <noscript><link rel="stylesheet" href="css/manifesto.css?v=bff21fe-69d58d"><link rel="stylesheet" href="css/fin.css?v=bff21fe-69d58d"></noscript>
+  <script>window.discoCss = Promise.all([].map.call(document.querySelectorAll('link[data-css-late]'), function (l) { return l.media === 'all' ? 0 : new Promise(function (r) { l.addEventListener('load', r); l.addEventListener('error', r); }); }));</script>
   <script>
     document.documentElement.classList.add('js');
     // transición entre páginas (js/transition.js): si se llega desde un enlace de la web, empieza con el velo puesto

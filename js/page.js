@@ -8,6 +8,9 @@ import { gpuOK, afterLoad } from './gpu.js';
 // js/about.js, js/servicios.js; la página de cada proyecto, proyecto.html#slug: js/proyecto.js). Las cuatro abren con el mismo hero (js/page-hero.js: vídeo + el destello 3D de la
 // home) y el destello vuelve después: en servicios recorre la página desde "Tres oficios"; en todas, cae en el footer
 // (js/page-star.js). Sin three o sin WebGL, el hero sigue (vídeo + título) y en el footer cae la estrella del logo.
+// BA: el CSS de las secciones de más abajo llega sin bloquear el pintado (ver el <head>); antes de crear pines y medir
+// alturas, que esté puesto (normalmente ya lo está: pesa menos que los módulos)
+await window.discoCss;
 const { gsap, ScrollTrigger, lenis, loop, reduced, transitions } = initCore();
 
 const nav = initNav({ gsap, ScrollTrigger, reduced });

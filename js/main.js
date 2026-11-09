@@ -19,6 +19,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 const anchored = location.hash.length > 1;
 if (!anchored) window.scrollTo(0, 0);
 
+// BA: el CSS de las secciones de más abajo llega sin bloquear el pintado (ver el <head>); antes de crear pines y medir
+// alturas, que esté puesto (normalmente ya lo está: pesa menos que los módulos)
+await window.discoCss;
 const { gsap, ScrollTrigger, lenis, loop, reduced, transitions } = initCore();
 
 // Nav de cristal: oculta hasta "disco:intro-done", entra a la vez que la frase del hero

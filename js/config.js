@@ -42,8 +42,9 @@ export const config = {
 
   // Loading: lo que se precarga de verdad (el nivel del agua refleja su carga) y su duración mínima.
   intro: {
-    // foto del hero v2 (la misma que pinta el <picture>; jpg = fallback) y la foto del flash de la intro
-    images: ['assets/hero/hero-red.webp', 'assets/intro/flash-burst.webp'],
+    // la foto del flash de la intro (la del hero también cuenta: js/intro-loader.js espera al <img> del hero, con la
+    // versión que haya elegido su <picture>; BA)
+    images: ['assets/intro/flash-burst.webp'],
     minSeconds: 2.6,
   },
 

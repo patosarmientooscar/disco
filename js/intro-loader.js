@@ -81,6 +81,14 @@ export function runIntroLoader({ gsap, lenis, reduced, loop, intro, assets = [] 
     img.src = src;
   });
 
+  // la foto del hero: la que ya pide su <picture> (sin descargar otra versión)
+  const heroImg = document.querySelector('[data-hero-img]');
+  if (heroImg) {
+    const s = track();
+    if (heroImg.complete) s.value = 1;
+    else { const done = () => { s.value = 1; }; heroImg.addEventListener('load', done, { once: true }); heroImg.addEventListener('error', done, { once: true }); }
+  }
+
   assets.forEach((p) => {
     const s = track();
     const done = () => { s.value = 1; };
