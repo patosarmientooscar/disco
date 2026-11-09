@@ -1,5 +1,6 @@
 # Caché y compresión (Apache). En Netlify / Cloudflare Pages, lo mismo está en _headers. Ver PENDIENTES.md → Hosting.
-#   assets/: 1 año, immutable (si se sustituye un archivo, hay que cambiarle el nombre). HTML, CSS y JS: se revalidan.
+#   assets/: 1 año, immutable (si se sustituye un archivo, hay que cambiarle el nombre). CSS y JS pedidos con ?v=<hash>
+#   (tools/version.mjs): 1 año, immutable (BA); sin ?v=, se revalidan. HTML: se revalida.
 
 <IfModule mod_mime.c>
   AddType font/woff2 .woff2
@@ -22,6 +23,10 @@
   <FilesMatch "\.(html|css|js)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
+  # (BA) CSS y JS con su versión en la URL: no cambian nunca
+  <If "%{REQUEST_URI} =~ m#\.(css|js)$# && %{QUERY_STRING} =~ /(^|&)v=/">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
 </IfModule>
 
 # todo lo de assets/: un año, immutable

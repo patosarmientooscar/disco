@@ -2,20 +2,23 @@
 # archivo (pone su propia caché de 10 min). Ver PENDIENTES.md → Hosting.
 #   /assets/: 1 año, immutable. OJO: si se sustituye un archivo de assets/, hay que cambiarle el nombre (o la
 #   ruta) para que los que ya lo tienen en caché vean el nuevo.
-#   HTML: siempre se revalida. CSS y JS: se revalidan (sin hash en el nombre; 304 si no ha cambiado).
+#   /css/ y /js/: 1 año, immutable (BA). Se pueden porque el HTML y el importmap los piden SIEMPRE con ?v=<hash>
+#   (tools/version.mjs): cada publicación cambia la URL y el navegador pide el nuevo; el viejo se queda sin usar.
+#   Ejecutar `node tools/version.mjs` antes de cada publicación es lo que lo hace seguro.
+#   HTML: siempre se revalida (es lo que trae las URLs nuevas).
 /assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/js/*
   Cache-Control: public, max-age=31536000, immutable
 
 /*.html
   Cache-Control: no-cache
 
 /
-  Cache-Control: no-cache
-
-/css/*
-  Cache-Control: no-cache
-
-/js/*
   Cache-Control: no-cache
 
 /*
