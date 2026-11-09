@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- generado por tools/site.mjs (no editar a mano): el dominio, en SITE_URL -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://[DOMINIO]/</loc><lastmod>2026-11-08</lastmod><priority>1.0</priority></url>
-  <url><loc>https://[DOMINIO]/servicios.html</loc><lastmod>2026-11-08</lastmod><priority>0.9</priority></url>
-  <url><loc>https://[DOMINIO]/portfolio.html</loc><lastmod>2026-11-08</lastmod><priority>0.8</priority></url>
-  <url><loc>https://[DOMINIO]/contacto.html</loc><lastmod>2026-11-08</lastmod><priority>0.9</priority></url>
-  <url><loc>https://[DOMINIO]/nosotros.html</loc><lastmod>2026-11-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://[DOMINIO]/proyecto-cachondeo-group.html</loc><lastmod>2026-11-08</lastmod><priority>0.7</priority></url>
-  <url><loc>https://[DOMINIO]/proyecto-esb.html</loc><lastmod>2026-11-08</lastmod><priority>0.7</priority></url>
+  <url><loc>https://[DOMINIO]/</loc><lastmod>2026-11-09</lastmod><priority>1.0</priority></url>
+  <url><loc>https://[DOMINIO]/servicios.html</loc><lastmod>2026-11-09</lastmod><priority>0.9</priority></url>
+  <url><loc>https://[DOMINIO]/portfolio.html</loc><lastmod>2026-11-09</lastmod><priority>0.8</priority></url>
+  <url><loc>https://[DOMINIO]/contacto.html</loc><lastmod>2026-11-09</lastmod><priority>0.9</priority></url>
+  <url><loc>https://[DOMINIO]/nosotros.html</loc><lastmod>2026-11-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://[DOMINIO]/proyecto-cachondeo-group.html</loc><lastmod>2026-11-09</lastmod><priority>0.7</priority></url>
+  <url><loc>https://[DOMINIO]/proyecto-esb.html</loc><lastmod>2026-11-09</lastmod><priority>0.7</priority></url>
 </urlset>
