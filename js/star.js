@@ -5,6 +5,7 @@ import { gpuOK, levelDpr } from './gpu.js';
 import { createTrail } from './star-trail.js';
 import { createDodge } from './star-dodge.js';
 import { vp } from './viewport.js';
+import { oldP } from './studio-cross.js';
 
 // Destello 3D de plata (la estrella de 4 puntas del logo): canvas fijo que recorre la home por un
 // camino curvo según el scroll y gira sobre sus ejes. Va por encima de las fotos y fondos y por
@@ -226,7 +227,8 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
   const blendVec = new THREE.Vector3();
   // progreso del estudio para el destello: del MISMO scroll suavizado que el resto del recorrido (antes usaba
   // el progreso del panorama, otro reloj con otra inercia: al cruzar el inicio del pin podía saltar)
-  const studioAt = (px) => (hold ? THREE.MathUtils.clamp((px - hold.start) / Math.max(1, hold.end - hold.start), 0, 1) : 0);
+  // (AZ: con la intro del estudio, el progreso "de antes": la intro por tiempo hace el tramo del set y el paneo a FOTO)
+  const studioAt = (px) => oldP(hold ? THREE.MathUtils.clamp((px - hold.start) / Math.max(1, hold.end - hold.start), 0, 1) : 0);
   // scroll (px) → parámetro de la curva: cada tramo entre dos puntos de paso ocupa lo mismo en la curva
   const curveAt = (px) => {
     const n = stops.length;

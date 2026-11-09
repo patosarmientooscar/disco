@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createStudioUI } from './studio-ui.js';
-import { CROSS, cross as crossState } from './studio-cross.js';
+import { CROSS, cross as crossState, intro, oldP } from './studio-cross.js';
 import { dlog, isDebug } from './gpu.js';
 import { vp, box } from './viewport.js';
 
@@ -16,6 +16,8 @@ const PANO_MOBILE = 'assets/studio/studio-360-mobile.jpg'; // 3584×1792, < 400 
 const PANO_ENV = 'assets/studio/studio-360-env.jpg';       // 2048×1024: reflejos del destello
 const SCRUB = 1.5;
 const SMOOTH = 0.05;              // suavizado extra del giro (por frame a 60 fps, independiente del frame rate)
+// AZ: al entrar desde arriba, terminado el corte, la cámara se queda en el set (con su deriva) y gira sola hasta FOTO
+const INTRO = { hold: 0.4, pan: 1.6 }; // s
 const PITCH = THREE.MathUtils.degToRad(3);
 const FOV = 55;
 const FOV_PORTRAIT = 70;
@@ -104,6 +106,7 @@ void main() {`);
   };
   mat.customProgramCacheKey = () => 'disco-studio-cross';
   const sphere = new THREE.Mesh(geo, mat);
+  if (isDebug()) window.__studioSphere = sphere; // (?debug: para medir el giro desde las pruebas)
   sphere.renderOrder = -1;
   sphere.visible = false;
   panoScene.add(sphere);
@@ -208,6 +211,21 @@ void main() {`);
     window.dispatchEvent(new CustomEvent('disco:studio-shot'));
   };
   const enter = (on) => { active = on; };
+  // --- AZ: la intro (giro solo del set a FOTO). intro.q: 0 = esperando en el set; sube por tiempo al acabar el corte;
+  // 1 = hecha. El yaw final es el del scroll (que ya empieza en FOTO) + el desfase de la intro, que va del set a 0:
+  // si se hace scroll durante el giro, se suma y nada salta ---
+  let introTw = null;
+  let armed = false; // entró desde arriba: el giro espera a que termine el corte
+  const introSet = (q) => { introTw?.kill(); introTw = null; armed = false; intro.q = q; };
+  const introOffset = (aside) => {
+    const t = intro.q * (INTRO.hold + INTRO.pan);
+    const foto = SPOTS[0].yaw + aside - DRIFT; // yawAt(0)
+    if (t <= INTRO.hold) return SET - DRIFT + 2 * DRIFT * (t / INTRO.hold) - foto; // en el set, con su deriva
+    const u = (t - INTRO.hold) / INTRO.pan;
+    const e = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2; // power2.inOut
+    return (SET + DRIFT - foto) * (1 - e);
+  };
+  introSet(1);
   gsap.to(state, {
     p: 1,
     ease: 'none',
@@ -226,9 +244,11 @@ void main() {`);
     trigger: section,
     start: 'top top',
     end: 'bottom top',
-    onEnter: light,
-    onLeaveBack: () => { section.classList.remove('is-lit'); window.dispatchEvent(new CustomEvent('disco:studio-dark')); },
-    onRefresh: (self) => { if (self.progress > 0) section.classList.add('is-lit'); },
+    onEnter: () => { introSet(0); armed = true; light(); },
+    onEnterBack: () => introSet(1),  // desde abajo: sin intro (está en EDICIÓN y sigue el scroll al revés)
+    onLeave: () => introSet(1),
+    onLeaveBack: () => { introSet(0); section.classList.remove('is-lit'); window.dispatchEvent(new CustomEvent('disco:studio-dark')); },
+    onRefresh: (self) => { if (self.progress > 0) { section.classList.add('is-lit'); if (!armed && !introTw) intro.q = 1; } else if (!armed) intro.q = 0; },
   });
 
   // --- móvil: si va justo (< 40 fps durante 2 s dentro del estudio), dpr 1 ---
@@ -263,6 +283,11 @@ void main() {`);
       bottom = sr.bottom;
       cut(section.classList.contains('is-lit') && resident && panoTex ? 1 : 0);
       const e = crossState.v;
+      // el giro solo empieza cuando el corte ha terminado (y el panorama está)
+      if (armed && e >= 1) {
+        armed = false;
+        introTw = gsap.to(intro, { q: 1, duration: INTRO.hold + INTRO.pan, ease: 'none', onComplete: () => { introTw = null; } });
+      }
       const prevC = cross.value;
       cross.value = e;
       blur.value = (1 - e) * CROSS.blur;
@@ -273,18 +298,20 @@ void main() {`);
       const lit = section.classList.contains('is-lit') && top < vp.h && bottom > 0;
       const show = lit && resident && !!panoTex;
       // giro del estudio y dónde caen los puestos en pantalla (también sin textura: el AF va igual)
-      const yaw = THREE.MathUtils.degToRad(yawAt(p, portrait ? ASIDE_MOBILE : ASIDE));
+      const aside = portrait ? ASIDE_MOBILE : ASIDE;
+      const yaw = THREE.MathUtils.degToRad(yawAt(p, aside) + (intro.q < 1 ? introOffset(aside) : 0));
       sphere.rotation.y = yaw;
-      panoCam.rotation.x = Math.sin(p * Math.PI * 2) * PITCH + (portrait ? LOOK_UP_MOBILE : 0);
+      panoCam.rotation.x = Math.sin(oldP(p) * Math.PI * 2) * PITCH + (portrait ? LOOK_UP_MOBILE : 0);
       star.setEnvRotation(yaw);
       sphere.updateMatrixWorld(true);
       panoCam.updateMatrixWorld();
-      ui.update(state.p, anchors.map((an) => {
+      // (las fichas siguen con sus fracciones de siempre: el progreso "de antes", intro incluida)
+      ui.update(oldP(state.p), anchors.map((an) => {
         an.getWorldPosition(v).project(panoCam);
         if (v.z > 1) return null; // detrás de la cámara
         return { x: (v.x + 1) / 2 * vp.w, y: (1 - v.y) / 2 * vp.h };
       }));
-      const changed = p !== prev || sphere.visible !== show || cross.value !== prevC || (bottom !== prevB && bottom < vp.h);
+      const changed = p !== prev || !!introTw || sphere.visible !== show || cross.value !== prevC || (bottom !== prevB && bottom < vp.h);
       sphere.visible = show;
       if (isDebug()) layers(p);
       return changed;
@@ -325,15 +352,17 @@ function layers(p) {
   dlog(`capas sobre el estudio al ${at * 100} %: ${found.join(' · ') || 'ninguna'}`);
 }
 
-// Recorrido de la cámara por el estudio (yaw en grados según p): set → Luna → cámara de cine → monitores
-// → vuelta larga al set. En las paradas apenas se mueve (±DRIFT); entre ellas, paneos suaves.
+// Recorrido de la cámara por el estudio con el scroll (yaw en grados según p): Luna → cámara de cine → monitores →
+// vuelta larga al set. En las paradas apenas se mueve (±DRIFT); entre ellas, paneos suaves. AZ: empieza ya en FOTO
+// (el set y el paneo a FOTO, que eran p 0 → 0.32, los hace la intro por tiempo); las mismas proporciones de antes,
+// reescaladas a 0 → 1: k(x) = (x − 0.32) / 0.68.
+const K = (x) => (x - 0.32) / 0.68;
 function yawAt(p, aside) {
   const [foto, video, edit] = SPOTS.map((sp) => sp.yaw + aside);
   const keys = [
-    [0, SET - DRIFT], [0.18, SET + DRIFT],
-    [0.32, foto - DRIFT, 'pan'], [0.46, foto + DRIFT],
-    [0.54, video - DRIFT, 'pan'], [0.68, video + DRIFT],
-    [0.74, edit - DRIFT, 'pan'], [0.88, edit + DRIFT],
+    [0, foto - DRIFT], [K(0.46), foto + DRIFT],
+    [K(0.54), video - DRIFT, 'pan'], [K(0.68), video + DRIFT],
+    [K(0.74), edit - DRIFT, 'pan'], [K(0.88), edit + DRIFT],
     [1, SET + 360, 'pan'],
   ];
   let i = 1;

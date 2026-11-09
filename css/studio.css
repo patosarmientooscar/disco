@@ -1,5 +1,5 @@
 /* ---------- estudio 360° — "¿Qué hacemos?" (js/studio.js + js/studio-ui.js) ----------
-   La sección mide 600vh y su interior (.studio__pin) se queda fijo mientras se recorre. El panorama no
+   La sección mide 440vh (AZ; antes 600vh) y su interior (.studio__pin) se queda fijo mientras se recorre. El panorama no
    está aquí: es el fondo del canvas del destello (z-index 1), así que la sección solo pone el color de
    debajo (oscuro como los cofundadores hasta el flash; claro después, por si la imagen no ha cargado) y
    su interior va por encima del canvas (z-index 2). Sin velos: lo que se lee va sobre la cinta americana
@@ -7,7 +7,7 @@
 .studio {
   --studio-orange: #F35411;
   position: relative;
-  height: 600vh;
+  height: 440vh; /* AZ: 600 − 160 (el set y el paneo a FOTO van ahora por tiempo, js/studio.js) */
   background: transparent; /* hasta que empieza: debajo sigue el naranja de "Dale al REC." */
 }
 /* se solapa con la última pantalla de "Dale al REC." (css/rec.css): su pin empieza justo cuando el naranja está
@@ -20,7 +20,7 @@
 .studio.is-lit { background: #f4f2ef; }
 
 .studio__pin {
-  position: sticky; /* el pin: fijo mientras se recorren los 600vh */
+  position: sticky; /* el pin: fijo mientras se recorren los 440vh */
   top: 0;
   z-index: 2;
   height: 100vh;
