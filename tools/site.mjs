@@ -1,9 +1,9 @@
 // SEO de la web en UN sitio: node tools/site.mjs (lo llama tools/version.mjs antes de versionar; AS).
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-// EL DÍA QUE HAYA DOMINIO: cambia esta línea (sin barra final) y ejecuta `node tools/version.mjs`. Nada más.
-export const SITE_URL = 'https://discoproduccion.com'; // (el dominio de disco; antes vacío = marcador [DOMINIO])
+// EL DOMINIO: esta línea (sin barra final); al cambiarlo, `node tools/version.mjs`. Nada más.
+export const SITE_URL = 'https://discoproduccion.com'; // (BC; vacía = el marcador [DOMINIO])
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-// Mientras esté vacía, todo sigue con el marcador https://[discoproduccion.com]: canonical y og:url van comentados en cada página,
+// Si está vacía, todo sigue con el marcador https://[DOMINIO]: canonical y og:url van comentados en cada página,
 // la línea Sitemap de robots.txt también, y el sitemap y el JSON-LD llevan el marcador.
 // Lo que hace, en cada página de la raíz (*.html):
 //   · reescribe el bloque <!-- seo (tools/site.mjs) --> … <!-- /seo -->: <title>, description, robots, canonical,
@@ -16,7 +16,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-export const BASE = SITE_URL || 'https://[discoproduccion.com]';
+export const BASE = SITE_URL || 'https://[DOMINIO]';
 export const abs = (path) => `${BASE}/${path.replace(/^\.?\//, '').replace(/^index\.html$/, '')}`;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const OG = { src: 'assets/brand/og.jpg', w: 1200, h: 630, alt: 'disco. — foto, vídeo y edición en Madrid' };
@@ -125,12 +125,12 @@ export async function buildSite({ quiet = false } = {}) {
   const index = [...ORDER, ...projects.map((p) => p.file)].filter((p) => existsSync(join(ROOT, p)) && !(PAGES[p]?.noindex));
   const urls = index.map((p) => `  <url><loc>${abs(p)}</loc><lastmod>${lastmod(p)}</lastmod><priority>${PRIORITY[p] || '0.7'}</priority></url>`).join('\n');
   writeFileSync(join(ROOT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
-<!-- generado por tools/site.mjs (no editar a mano): el discoproduccion.com, en SITE_URL -->
+<!-- generado por tools/site.mjs (no editar a mano): el dominio, en SITE_URL -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls}
 </urlset>
 `);
-  writeFileSync(join(ROOT, 'robots.txt'), `# disco. — generado por tools/site.mjs (no editar a mano): el discoproduccion.com, en SITE_URL
+  writeFileSync(join(ROOT, 'robots.txt'), `# disco. — generado por tools/site.mjs (no editar a mano): el dominio, en SITE_URL
 User-agent: *
 Allow: /
 Disallow: /legacy/
@@ -139,7 +139,7 @@ Disallow: /tools/
 
 ${SITE_URL ? '' : '# (se activa al poner SITE_URL en tools/site.mjs)\n# '}Sitemap: ${abs('sitemap.xml')}
 `);
-  if (!quiet) console.log(`SEO: ${pages.length} páginas · sitemap con ${index.length} URL · discoproduccion.com ${SITE_URL || '(marcador [discoproduccion.com])'}`);
+  if (!quiet) console.log(`SEO: ${pages.length} páginas · sitemap con ${index.length} URL · dominio ${SITE_URL || '(marcador [DOMINIO])'}`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) await buildSite();
