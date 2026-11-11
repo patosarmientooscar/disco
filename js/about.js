@@ -97,9 +97,10 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
     steps[0].classList.add('is-on');
   });
 
-  // el estudio: parallax suave de la foto dentro de su franja
+  // el estudio: parallax suave de la foto dentro de su franja (BC-D: la franja ya no está en la página; en
+  // legacy/nosotros-estudio/)
   const img = document.querySelector('[data-studio-img]');
-  gsap.fromTo(img, { yPercent: -12 }, {
+  if (img) gsap.fromTo(img, { yPercent: -12 }, {
     yPercent: 0,
     ease: 'none',
     scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },

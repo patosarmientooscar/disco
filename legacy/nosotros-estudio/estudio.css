@@ -1,0 +1,5 @@
+/* el estudio: franja panorámica con parallax suave */
+.ab-studio { padding-bottom: clamp(56px, 9vh, 112px); }
+.ab-studio__img { height: clamp(220px, 30vw, 460px); overflow: hidden; }
+.ab-studio__img img { width: 100%; height: 118%; object-fit: cover; object-position: 50% 50%; max-width: none; }
+.ab-studio__text { margin: 20px auto 0; font: 400 12px / 1.5 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
