@@ -9,9 +9,12 @@
 // stagger .05). Nada depende del scroll. Al girar el móvil (cruza los 768 px) se cambia de modo (gsap.matchMedia).
 // La hoja de contactos anterior está en legacy/js/why-contactos.js.
 import { vp } from './viewport.js';
-const SCRUB = 1.5;
-const SMOOTH = 0.06;          // suavizado extra del progreso (por frame a 60 fps)
-const EDGE = 0.06;            // al principio y al final del pin el foco se queda en la primera / última
+// (BC-B: el pin es un 40 % más corto (250vh); para que cada razón se siga leyendo con calma, el foco se DETIENE en
+// cada una (HOLD) y solo viaja en el tramo central entre dos; antes viajaba sin parar)
+const SCRUB = 1.2;
+const SMOOTH = 0.07;          // suavizado extra del progreso (por frame a 60 fps)
+const EDGE = 0.07;            // al principio y al final del pin el foco se queda en la primera / última
+const HOLD = 0.24;            // en cada tramo entre dos razones: fracción quieta al salir y al llegar (cada lado)
 const FOCUS = [               // por distancia al foco: activa, vecinas, lejanas
   { blur: 0, opacity: 1, scale: 1 },
   { blur: 10, opacity: 0.28, scale: 0.94 },
@@ -119,7 +122,7 @@ export function initWhy({ gsap, ScrollTrigger, reduced, loop, exitFade }) {
       p += (state.p - p) * (1 - Math.pow(1 - SMOOTH, ratio));
       if (Math.abs(state.p - p) < 1e-5) p = state.p;
       const n = items.length;
-      const f = gsap.utils.clamp(0, 1, (p - EDGE) / (1 - EDGE * 2)) * (n - 1); // foco continuo: 0 … 3
+      const f = dwell(gsap.utils.clamp(0, 1, (p - EDGE) / (1 - EDGE * 2)) * (n - 1)); // foco: 0 … 3, quieto en cada una
 
       const i = Math.round(f);
       if (i !== active) activate(i);
@@ -176,6 +179,14 @@ export function initWhy({ gsap, ScrollTrigger, reduced, loop, exitFade }) {
       active = -1;
     };
   }
+}
+
+// el foco se queda quieto en cada razón (HOLD a cada lado) y viaja suave en el tramo del medio
+function dwell(f) {
+  const i = Math.floor(f);
+  const t = f - i;
+  const u = Math.max(0, Math.min(1, (t - HOLD) / (1 - HOLD * 2)));
+  return i + u * u * (3 - 2 * u);
 }
 
 // foco extendido para el anillo: de -1 (principio del pin) a 4 (final), 0 … 3 en las razones

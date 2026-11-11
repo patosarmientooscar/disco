@@ -1,5 +1,5 @@
 /* ---------- "¿Por qué nosotros?" — enfoque de cámara (js/why.js) ----------
-   Papel cálido. La sección mide 100vh + 420vh de pin (móvil: + 300vh). Dos capas fijas (sticky) a la vez:
+   Papel cálido. La sección mide 100vh + 250vh de pin (móvil, sin JS: + 180vh; BC-B: antes 420vh y 300vh). Dos capas fijas (sticky) a la vez:
    .why__back (bokeh y anillo de diafragma) por DEBAJO del canvas del destello (z-index 1), así el destello
    queda dentro del anillo; .why__pin (título y razones) por ENCIMA (z-index 2).
    La hoja de contactos anterior está en legacy/css/why-contactos.css. */
@@ -8,7 +8,7 @@
   --orange: #F35411;
   --why-x: clamp(24px, 10vw, 180px);
   position: relative;
-  height: 520vh;
+  height: 350vh;
   background: var(--paper);
   color: #0b0909;
 }
@@ -117,9 +117,14 @@
 .why__ring text.is-on { fill: var(--orange); }
 .why__ring .index { stroke: var(--orange); stroke-width: 2; stroke-linecap: round; }
 
+/* tablet / portátil pequeño: un poco más pequeñas, para que "cualquier formato" quepa en una línea (BC-B) */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .why__list { font-size: clamp(44px, 5.9vw, 136px); }
+}
+
 /* ---------- móvil: pin más corto, razones más pequeñas, sin anillo ---------- */
 @media (max-width: 767px) {
-  .why { --why-x: 20px; height: 400vh; }
+  .why { --why-x: 20px; height: 280vh; }
   .why__title { top: 104px; }
   .why__list {
     width: calc(100vw - 40px);
