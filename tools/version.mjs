@@ -41,6 +41,8 @@ const THREE = {
 for (const page of list('.', '.html')) {
   const file = join(ROOT, page);
   let html = readFileSync(file, 'utf8');
+  // (archivos .html que no son páginas, p. ej. el de verificación de Google: sin <head>, no se tocan)
+  if (!html.includes('</head>')) { console.log(`${page}: no es una página (se deja igual)`); continue; }
   // 1) ?v= en los enlaces a css/ y js/
   html = html.replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))(?:\?v=[^"]*)?"/g, `$1$2?v=${version}"`);
   // 2) el import map: se quita donde esté y se pone en el <head> (antes del primer módulo), con three y los módulos

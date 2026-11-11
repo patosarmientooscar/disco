@@ -1,7 +1,7 @@
 // SEO de la web en UN sitio: node tools/site.mjs (lo llama tools/version.mjs antes de versionar; AS).
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-// EL DÍA QUE HAYA discoproduccion.com: cambia esta línea (sin barra final) y ejecuta `node tools/version.mjs`. Nada más.
-export const SITE_URL = ''; // p. ej. 'https://disco.es'
+// EL DÍA QUE HAYA DOMINIO: cambia esta línea (sin barra final) y ejecuta `node tools/version.mjs`. Nada más.
+export const SITE_URL = 'https://discoproduccion.com'; // (el dominio de disco; antes vacío = marcador [DOMINIO])
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 // Mientras esté vacía, todo sigue con el marcador https://[discoproduccion.com]: canonical y og:url van comentados en cada página,
 // la línea Sitemap de robots.txt también, y el sitemap y el JSON-LD llevan el marcador.

@@ -9,7 +9,7 @@ export const config = {
     url: 'https://www.instagram.com/disco.es/',
   },
   email: 'equipo@discoproduccion.com',
-  siteUrl: '',          // [DOMINIO], p. ej. 'https://disco.es' (para og:url / canonical)
+  siteUrl: 'https://discoproduccion.com', // (para og:url / canonical; el SEO lo genera tools/site.mjs → SITE_URL)
   city: 'Madrid',
   // (el footer del editor, en legacy/footer-editor/, sacaba de aquí estos datos; lo que esté vacío sale como [HUECO])
   phone: '',            // [TU TELÉFONO] visible, p. ej. '+34 600 000 000'
