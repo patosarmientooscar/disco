@@ -132,16 +132,13 @@
   justify-content: space-between;
   gap: 24px 48px;
 }
+/* (BC-C: una frase entera, en dos líneas compensadas; sin el párrafo de la derecha) */
 .oficios__title {
+  max-width: 21ch;
   margin: 0;
-  font: 600 clamp(40px, 5vw, 88px) / 0.95 var(--font-display);
+  font: 600 clamp(40px, 4.6vw, 84px) / 0.98 var(--font-display);
   letter-spacing: -0.035em;
-}
-.oficios__lead {
-  max-width: 34ch;
-  margin: 0;
-  font: 400 clamp(16px, 1.2vw, 19px) / 1.45 var(--font-display);
-  color: rgb(244 242 239 / 0.75);
+  text-wrap: balance;
 }
 .oficios__stage {
   --of-pad: clamp(20px, 2.4vw, 36px);
@@ -490,7 +487,7 @@
 @media (max-width: 767px) {
   .oficios__in { gap: 16px; padding: 96px 0 16px; justify-content: flex-start; }
   .oficios__head { display: block; }
-  .oficios__lead { margin-top: 10px; font-size: 15px; }
+  .oficios__title { max-width: none; font-size: clamp(30px, 8.6vw, 38px); letter-spacing: -0.025em; }
   .oficios__stage { --of-pad: 18px; flex-direction: column; flex: 1 1 auto; max-height: none; }
   .of-vert { left: 18px; bottom: 16px; font-size: 18px; transform: none; }
   .of-btn { font-size: clamp(36px, 11vw, 44px); }

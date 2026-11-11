@@ -29,18 +29,27 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced, arrived = Prom
   if (document.fonts) document.fonts.ready.then(() => ScrollTrigger.refresh());
 }
 
-// ---------- B) manifiesto: palabra a palabra (.15 → 1); "idea" e "imágenes" en naranja (y el destello, a su
-// derecha, lo celebra: js/page-star.js) ----------
-// (las palabras, una a una en spans .mw; las de <em>, .mw--hot. LEGACY: el texto de "En cada producción." que
-// también las usaba, en legacy/servicios-proceso-dos-textos/)
+// ---------- B) manifiesto: palabra a palabra (.15 → 1); las palabras clave (<em>: "idea", "fotos y vídeos") en
+// naranja (y el destello, a su derecha, lo celebra una vez por cada una: js/page-star.js) ----------
+// (las palabras, una a una en spans .mw; las de dentro de un <em>, .mw--hot con data-g = su grupo: una palabra clave
+// puede ser de varias palabras (BC-C). LEGACY: el texto de "En cada producción." que también las usaba, en
+// legacy/servicios-proceso-dos-textos/)
 function splitWords(el) {
-  const hot = new Set([...el.querySelectorAll('em')].map((e) => e.textContent.trim()));
   const text = el.textContent.replace(/\s+/g, ' ').trim();
-  el.innerHTML = `<span class="sr-only">${text}</span>${text.split(' ').map((w) => {
-    const bare = w.replace(/[.,]/g, '');
+  const words = [];
+  let g = 0;
+  el.childNodes.forEach((n) => {
+    const hot = n.nodeName === 'EM' ? ++g : 0;
+    n.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).forEach((w) => {
+      // (puntuación justo después de un <em>: con la palabra de antes)
+      if (/^[.,;:]+$/.test(w) && words.length) words[words.length - 1].w += w;
+      else words.push({ w, hot });
+    });
+  });
+  el.innerHTML = `<span class="sr-only">${text}</span>${words.map(({ w, hot }) => {
     // (la puntuación del final, aparte: en una palabra clave no se tiñe de naranja)
     const [, word, punct] = w.match(/^(.*?)([.,;:]*)$/);
-    return `<span class="mw${hot.has(bare) ? ' mw--hot' : ''}" aria-hidden="true">${word}${punct ? `<span class="mw-p">${punct}</span>` : ''}</span>`;
+    return `<span class="mw${hot ? ' mw--hot' : ''}"${hot ? ` data-g="${hot}"` : ''} aria-hidden="true">${word}${punct ? `<span class="mw-p">${punct}</span>` : ''}</span>`;
   }).join(' ')}`;
 }
 function initManifest(gsap, still) {
@@ -48,8 +57,11 @@ function initManifest(gsap, still) {
   if (!el) return;
   splitWords(el);
   if (still) return;
-  // cuando se ilumina una palabra clave, aviso al destello (js/page-star.js: giro extra y reflejo naranja)
-  const hotWords = [...el.querySelectorAll('.mw--hot')].map((w) => ({ w, lit: false }));
+  // cuando se ilumina una palabra clave (su última palabra), aviso al destello (js/page-star.js: giro extra y reflejo
+  // naranja): una vez por palabra clave, aunque sea de varias palabras
+  const last = new Map();
+  el.querySelectorAll('.mw--hot').forEach((w) => last.set(w.dataset.g, w));
+  const hotWords = [...last.values()].map((w) => ({ w, lit: false }));
   gsap.to(el.querySelectorAll('.mw'), {
     opacity: 1,
     ease: 'none',

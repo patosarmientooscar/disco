@@ -14,7 +14,7 @@ import { vp, box } from './viewport.js';
 //     en el mismo fotograma deja de pintar aquel y pinta este, en la misma pose (maniPose, la misma función para los
 //     dos), con los reflejos fundiéndose del vídeo al estudio (0.6 s). Se queda GRANDE en el hueco a la DERECHA del
 //     texto, centrado con él (maniPose), y al seguir bajando encoge hasta su escala .26, girando despacio en Y y respondiendo al ratón. Cuando se iluminan las palabras clave ("idea",
-//     "imágenes"; evento "disco:manifest-hot" de js/servicios.js) da un giro extra y su reflejo se tiñe un instante
+//     "fotos y vídeos"; evento "disco:manifest-hot" de js/servicios.js) da un giro extra y su reflejo se tiñe un instante
 //     de naranja. Al bajar se queda a media pantalla y, cuando el borde superior de "Tres oficios" lo alcanza, SE
 //     METE detrás (baja y da media vuelta, 0.45 s) con una luz naranja en ese borde, en su X; al subir, sale igual.
 //     (Sin el destello del hero, como antes: entra por arriba a la derecha);
