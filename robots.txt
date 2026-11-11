@@ -1,9 +1,4 @@
-# disco. — generado por tools/site.mjs (no editar a mano): el dominio, en SITE_URL
 User-agent: *
 Allow: /
-Disallow: /legacy/
-Disallow: /docs/
-Disallow: /tools/
 
-# (se activa al poner SITE_URL en tools/site.mjs)
-# Sitemap: https://[DOMINIO]/sitemap.xml
+Sitemap: https://discoproduccion.com/sitemap.xml
