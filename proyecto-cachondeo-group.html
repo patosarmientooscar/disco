@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
-  <script src="js/file-guard.js?v=cea1e43" defer></script>
+  <script src="js/file-guard.js?v=3d1eb8a-824423" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <!-- seo (tools/site.mjs: no editar a mano) -->
   <title>Cachondeo Group: fiesta en Madrid — disco.</title>
@@ -49,19 +49,19 @@
     @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
   </style>
 
-  <link rel="stylesheet" href="css/tokens.css?v=cea1e43">
-  <link rel="stylesheet" href="css/base.css?v=cea1e43">
-  <link rel="stylesheet" href="css/interior.css?v=cea1e43">
-  <link rel="stylesheet" href="css/page-hero.css?v=cea1e43">
-  <link rel="stylesheet" href="css/proyecto.css?v=cea1e43">
-  <link rel="stylesheet" href="css/nav.css?v=cea1e43">
-  <link rel="preload" href="css/fin.css?v=cea1e43" as="style">
-  <link rel="stylesheet" href="css/fin.css?v=cea1e43" media="print" onload="this.media='all'" data-css-late>
-  <link rel="stylesheet" href="css/transition.css?v=cea1e43">
-  <link rel="stylesheet" href="css/malla.css?v=cea1e43">
+  <link rel="stylesheet" href="css/tokens.css?v=3d1eb8a-824423">
+  <link rel="stylesheet" href="css/base.css?v=3d1eb8a-824423">
+  <link rel="stylesheet" href="css/interior.css?v=3d1eb8a-824423">
+  <link rel="stylesheet" href="css/page-hero.css?v=3d1eb8a-824423">
+  <link rel="stylesheet" href="css/proyecto.css?v=3d1eb8a-824423">
+  <link rel="stylesheet" href="css/nav.css?v=3d1eb8a-824423">
+  <link rel="preload" href="css/fin.css?v=3d1eb8a-824423" as="style">
+  <link rel="stylesheet" href="css/fin.css?v=3d1eb8a-824423" media="print" onload="this.media='all'" data-css-late>
+  <link rel="stylesheet" href="css/transition.css?v=3d1eb8a-824423">
+  <link rel="stylesheet" href="css/malla.css?v=3d1eb8a-824423">
   <!-- BA: el CSS de las secciones de más abajo no bloquea el primer pintado (media="print" hasta que carga); el JS
        (js/main.js, js/page.js) espera a window.discoCss antes de medir nada. Sin JS, con <noscript>. -->
-  <noscript><link rel="stylesheet" href="css/fin.css?v=cea1e43"></noscript>
+  <noscript><link rel="stylesheet" href="css/fin.css?v=3d1eb8a-824423"></noscript>
   <script>window.discoCss = Promise.all([].map.call(document.querySelectorAll('link[data-css-late]'), function (l) { return l.media === 'all' ? 0 : new Promise(function (r) { l.addEventListener('load', r); l.addEventListener('error', r); }); }));</script>
   <script>
     document.documentElement.classList.add('js');
@@ -75,75 +75,74 @@
       "three": "./assets/vendor/three-0.169.0/build/three.module.min.js",
       "three/addons/": "./assets/vendor/three-0.169.0/examples/jsm/",
       "ogl": "./assets/vendor/ogl-1.0.11.js",
-      "./js/about.js": "./js/about.js?v=cea1e43",
-      "./js/arc-carousel.js": "./js/arc-carousel.js?v=cea1e43",
-      "./js/aurora.js": "./js/aurora.js?v=cea1e43",
-      "./js/bento.js": "./js/bento.js?v=cea1e43",
-      "./js/config.js": "./js/config.js?v=cea1e43",
-      "./js/contact.js": "./js/contact.js?v=cea1e43",
-      "./js/core.js": "./js/core.js?v=cea1e43",
-      "./js/file-guard.js": "./js/file-guard.js?v=cea1e43",
-      "./js/fin-physics.js": "./js/fin-physics.js?v=cea1e43",
-      "./js/fin.js": "./js/fin.js?v=cea1e43",
-      "./js/gpu.js": "./js/gpu.js?v=cea1e43",
-      "./js/hero-exposure.js": "./js/hero-exposure.js?v=cea1e43",
-      "./js/hero-star.js": "./js/hero-star.js?v=cea1e43",
-      "./js/hero.js": "./js/hero.js?v=cea1e43",
-      "./js/home-close.js": "./js/home-close.js?v=cea1e43",
-      "./js/interior.js": "./js/interior.js?v=cea1e43",
-      "./js/intro-loader.js": "./js/intro-loader.js?v=cea1e43",
-      "./js/intro-shot.js": "./js/intro-shot.js?v=cea1e43",
-      "./js/main.js": "./js/main.js?v=cea1e43",
-      "./js/malla.js": "./js/malla.js?v=cea1e43",
-      "./js/manifesto.js": "./js/manifesto.js?v=cea1e43",
-      "./js/nav.js": "./js/nav.js?v=cea1e43",
-      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=cea1e43",
-      "./js/oficios.js": "./js/oficios.js?v=cea1e43",
-      "./js/page-hero.js": "./js/page-hero.js?v=cea1e43",
-      "./js/page-star.js": "./js/page-star.js?v=cea1e43",
-      "./js/page.js": "./js/page.js?v=cea1e43",
-      "./js/placeholder.js": "./js/placeholder.js?v=cea1e43",
-      "./js/portfolio-ball-color.js": "./js/portfolio-ball-color.js?v=cea1e43",
-      "./js/portfolio-data.js": "./js/portfolio-data.js?v=cea1e43",
-      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=cea1e43",
-      "./js/portfolio-render.js": "./js/portfolio-render.js?v=cea1e43",
-      "./js/portfolio.js": "./js/portfolio.js?v=cea1e43",
-      "./js/proc-say.js": "./js/proc-say.js?v=cea1e43",
-      "./js/proyecto-render.js": "./js/proyecto-render.js?v=cea1e43",
-      "./js/proyecto.js": "./js/proyecto.js?v=cea1e43",
-      "./js/rec.js": "./js/rec.js?v=cea1e43",
-      "./js/scroll-fx.js": "./js/scroll-fx.js?v=cea1e43",
-      "./js/servicios-data.js": "./js/servicios-data.js?v=cea1e43",
-      "./js/servicios.js": "./js/servicios.js?v=cea1e43",
-      "./js/star-core.js": "./js/star-core.js?v=cea1e43",
-      "./js/star-dodge.js": "./js/star-dodge.js?v=cea1e43",
-      "./js/star-trail.js": "./js/star-trail.js?v=cea1e43",
-      "./js/star.js": "./js/star.js?v=cea1e43",
-      "./js/studio-cross.js": "./js/studio-cross.js?v=cea1e43",
-      "./js/studio-ui.js": "./js/studio-ui.js?v=cea1e43",
-      "./js/studio.js": "./js/studio.js?v=cea1e43",
-      "./js/team.js": "./js/team.js?v=cea1e43",
-      "./js/transition.js": "./js/transition.js?v=cea1e43",
-      "./js/viewport.js": "./js/viewport.js?v=cea1e43",
-      "./js/wa-float.js": "./js/wa-float.js?v=cea1e43",
-      "./js/water.js": "./js/water.js?v=cea1e43",
-      "./js/why.js": "./js/why.js?v=cea1e43"
+      "./js/about.js": "./js/about.js?v=3d1eb8a-824423",
+      "./js/arc-carousel.js": "./js/arc-carousel.js?v=3d1eb8a-824423",
+      "./js/aurora.js": "./js/aurora.js?v=3d1eb8a-824423",
+      "./js/bento.js": "./js/bento.js?v=3d1eb8a-824423",
+      "./js/config.js": "./js/config.js?v=3d1eb8a-824423",
+      "./js/contact.js": "./js/contact.js?v=3d1eb8a-824423",
+      "./js/core.js": "./js/core.js?v=3d1eb8a-824423",
+      "./js/file-guard.js": "./js/file-guard.js?v=3d1eb8a-824423",
+      "./js/fin.js": "./js/fin.js?v=3d1eb8a-824423",
+      "./js/gpu.js": "./js/gpu.js?v=3d1eb8a-824423",
+      "./js/hero-exposure.js": "./js/hero-exposure.js?v=3d1eb8a-824423",
+      "./js/hero-star.js": "./js/hero-star.js?v=3d1eb8a-824423",
+      "./js/hero.js": "./js/hero.js?v=3d1eb8a-824423",
+      "./js/home-close.js": "./js/home-close.js?v=3d1eb8a-824423",
+      "./js/interior.js": "./js/interior.js?v=3d1eb8a-824423",
+      "./js/intro-loader.js": "./js/intro-loader.js?v=3d1eb8a-824423",
+      "./js/intro-shot.js": "./js/intro-shot.js?v=3d1eb8a-824423",
+      "./js/main.js": "./js/main.js?v=3d1eb8a-824423",
+      "./js/malla.js": "./js/malla.js?v=3d1eb8a-824423",
+      "./js/manifesto.js": "./js/manifesto.js?v=3d1eb8a-824423",
+      "./js/nav.js": "./js/nav.js?v=3d1eb8a-824423",
+      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=3d1eb8a-824423",
+      "./js/oficios.js": "./js/oficios.js?v=3d1eb8a-824423",
+      "./js/page-hero.js": "./js/page-hero.js?v=3d1eb8a-824423",
+      "./js/page-star.js": "./js/page-star.js?v=3d1eb8a-824423",
+      "./js/page.js": "./js/page.js?v=3d1eb8a-824423",
+      "./js/placeholder.js": "./js/placeholder.js?v=3d1eb8a-824423",
+      "./js/portfolio-ball-color.js": "./js/portfolio-ball-color.js?v=3d1eb8a-824423",
+      "./js/portfolio-data.js": "./js/portfolio-data.js?v=3d1eb8a-824423",
+      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=3d1eb8a-824423",
+      "./js/portfolio-render.js": "./js/portfolio-render.js?v=3d1eb8a-824423",
+      "./js/portfolio.js": "./js/portfolio.js?v=3d1eb8a-824423",
+      "./js/proc-say.js": "./js/proc-say.js?v=3d1eb8a-824423",
+      "./js/proyecto-render.js": "./js/proyecto-render.js?v=3d1eb8a-824423",
+      "./js/proyecto.js": "./js/proyecto.js?v=3d1eb8a-824423",
+      "./js/rec.js": "./js/rec.js?v=3d1eb8a-824423",
+      "./js/scroll-fx.js": "./js/scroll-fx.js?v=3d1eb8a-824423",
+      "./js/servicios-data.js": "./js/servicios-data.js?v=3d1eb8a-824423",
+      "./js/servicios.js": "./js/servicios.js?v=3d1eb8a-824423",
+      "./js/star-core.js": "./js/star-core.js?v=3d1eb8a-824423",
+      "./js/star-dodge.js": "./js/star-dodge.js?v=3d1eb8a-824423",
+      "./js/star-trail.js": "./js/star-trail.js?v=3d1eb8a-824423",
+      "./js/star.js": "./js/star.js?v=3d1eb8a-824423",
+      "./js/studio-cross.js": "./js/studio-cross.js?v=3d1eb8a-824423",
+      "./js/studio-ui.js": "./js/studio-ui.js?v=3d1eb8a-824423",
+      "./js/studio.js": "./js/studio.js?v=3d1eb8a-824423",
+      "./js/team.js": "./js/team.js?v=3d1eb8a-824423",
+      "./js/transition.js": "./js/transition.js?v=3d1eb8a-824423",
+      "./js/viewport.js": "./js/viewport.js?v=3d1eb8a-824423",
+      "./js/wa-float.js": "./js/wa-float.js?v=3d1eb8a-824423",
+      "./js/water.js": "./js/water.js?v=3d1eb8a-824423",
+      "./js/why.js": "./js/why.js?v=3d1eb8a-824423"
     } }
   </script>
-  <link rel="modulepreload" href="js/page.js?v=cea1e43">
-  <link rel="modulepreload" href="js/core.js?v=cea1e43">
-  <link rel="modulepreload" href="js/transition.js?v=cea1e43">
-  <link rel="modulepreload" href="js/water.js?v=cea1e43">
-  <link rel="modulepreload" href="js/wa-float.js?v=cea1e43">
-  <link rel="modulepreload" href="js/config.js?v=cea1e43">
-  <link rel="modulepreload" href="js/nav.js?v=cea1e43">
-  <link rel="modulepreload" href="js/fin.js?v=cea1e43">
-  <link rel="modulepreload" href="js/gpu.js?v=cea1e43">
-  <link rel="modulepreload" href="js/interior.js?v=cea1e43">
-  <link rel="modulepreload" href="js/placeholder.js?v=cea1e43">
-  <link rel="modulepreload" href="js/page-hero.js?v=cea1e43">
-  <link rel="modulepreload" href="js/proyecto.js?v=cea1e43">
-  <link rel="modulepreload" href="js/portfolio-data.js?v=cea1e43">
+  <link rel="modulepreload" href="js/page.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/core.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/transition.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/water.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/wa-float.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/config.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/nav.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/fin.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/gpu.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/interior.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/placeholder.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/page-hero.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/proyecto.js?v=3d1eb8a-824423">
+  <link rel="modulepreload" href="js/portfolio-data.js?v=3d1eb8a-824423">
   <script>
     // el póster del reel de la portada, pedido desde el principio (la ficha la pinta js/proyecto.js): uno por proyecto
     // con página, el de js/portfolio-data.js → project.reels[0].poster. Al añadir un proyecto, añadirlo aquí.
@@ -450,7 +449,7 @@
   <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
   <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
-  <script type="module" src="js/page.js?v=cea1e43"></script>
-  <script type="module" src="js/malla.js?v=cea1e43"></script>
+  <script type="module" src="js/page.js?v=3d1eb8a-824423"></script>
+  <script type="module" src="js/malla.js?v=3d1eb8a-824423"></script>
 </body>
 </html>

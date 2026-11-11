@@ -69,9 +69,9 @@ export function initFin({ gsap, lenis, reduced, loop, star = null }) {
   // --- entrada (una vez por visita): palabras con máscara, el resto con fade ---
   if (!reduced.matches) {
     const words = footer.querySelectorAll('.fin__w > span');
-    const enter = gsap.timeline({ paused: true })
-      .from(words, { yPercent: 110, duration: 0.9, ease: 'expo.out', stagger: 0.08 }, 0)
-      .from(footer.querySelectorAll('.fin__mail, .fin__social'), { opacity: 0, duration: 0.8, ease: 'power1.out', stagger: 0.12 }, 0.15)
+    const enter = gsap.timeline({ paused: true });
+    if (words.length) enter.from(words, { yPercent: 110, duration: 0.9, ease: 'expo.out', stagger: 0.08 }, 0); // (lite: sin título)
+    enter.from(footer.querySelectorAll('.fin__mail, .fin__social'), { opacity: 0, duration: 0.8, ease: 'power1.out', stagger: 0.12 }, words.length ? 0.15 : 0)
       .from($('.fin__row'), { opacity: 0, duration: 0.8, ease: 'power1.out' }, 0.45);
     new IntersectionObserver(([e], io) => {
       if (!e.isIntersecting) return;
