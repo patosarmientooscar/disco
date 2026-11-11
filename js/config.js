@@ -32,10 +32,10 @@ export const config = {
   //   logos: [{ src: 'assets/clientes/casa-lola.svg', alt: 'Casa Lola' }]
   //   quotes: [{ text: '...', name: 'Lola Pérez', business: 'Casa Lola' }]  (máximo 3)
   proof: { logos: [], quotes: [] },
-  // redes del footer: solo salen las que tienen url
+  // redes del footer (js/fin.js: iconos de Instagram y TikTok + el usuario): solo salen las que tienen url
   socials: [
     { name: 'Instagram', handle: '@disco.es', url: 'https://www.instagram.com/disco.es/' },
-    { name: 'TikTok', handle: '[TU USUARIO TIKTOK]', url: '' },
+    { name: 'TikTok', handle: '@disco.es', url: 'https://www.tiktok.com/@disco.es' }, // confirmar con disco
     { name: 'YouTube', handle: '[TU CANAL DE YOUTUBE]', url: '' },
     { name: 'LinkedIn', handle: '[TU PÁGINA DE LINKEDIN]', url: '' },
   ],

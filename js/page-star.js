@@ -30,7 +30,7 @@ import { vp, box } from './viewport.js';
 //   · PARA QUIÉN (escritorio): compañero del cursor, a la derecha de la fila que tienes encima, reflejando la foto de
 //     ese sector (fundido de mapas de reflejos); sin cursor, a la derecha de la lista;
 //   · CIERRE: al entrar gira rápido 2 vueltas y lo "sella" con una onda de luz;
-//   · footer: se apaga y cae (js/fin.js). Al subir, todo al revés.
+//   · footer: acaba junto a "¿Rodamos juntos?" y se apaga suave (js/fin.js, BC). Al subir, todo al revés.
 //   Móvil: 4 paradas en el bento y sin compañero del cursor.
 // ARRASTRE: en las paradas donde está quieto (manifiesto, "En cada producción.", "Para quién", cierre) se coge con
 // el ratón y se gira con inercia (como en el hero, js/hero-star.js); mientras se arrastra, el recorrido por scroll se
@@ -41,7 +41,7 @@ import { vp, box } from './viewport.js';
 // acompaña el manifiesto, grande a su derecha; se coloca en el hueco ENTRE Luna y Bruno (en vivo, inclinándose hacia la foto que
 // tiene el ratón encima); recorre los pasos de "Cómo trabajamos" (sobre la regla, de paso en paso, y el paso se
 // ilumina: .is-lit); en el estudio, a la derecha girando más rápido; en el cierre, centrado arriba con la onda; y
-// cae en el footer. Arrastrable en las paradas quietas.
+// acaba en el footer, junto a su título. Arrastrable en las paradas quietas.
 // Resto de páginas: solo el footer. Movimiento reducido: no hay recorrido (el footer ya está encajado).
 // LA FUGAZ (js/star-trail.js, AR-A): la estela naranja le sigue en todo el recorrido, con su tamaño en cada momento;
 // en el footer, al apagarse, se apaga con él.
@@ -315,9 +315,10 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
     dirty = true;
   };
   const footerStop = (max) => {
-    const stop = finStop(max, 1);
+    const stop = finStop(max);
     if (!stop) return { x: 0, y: 1.6, s: 0.3, at: max };
-    return { x: 0, y: 1 - (2 * stop.cy) / vp.h, s: stop.h / (unit() * vp.h), at: max, footer: true };
+    // (BC) junto a "¿Rodamos juntos?" del footer (o a sus redes, js/fin.js); ahí se apaga suave
+    return { x: (2 * stop.cx) / vp.w - 1, y: 1 - (2 * stop.cy) / vp.h, s: stop.h / (unit() * vp.h), at: max, footer: true };
   };
   const nx = (px) => (px / vp.w) * 2 - 1;
   const ny = (el, at) => 1 - (2 * (docTop(el) + el.offsetHeight / 2 - at)) / vp.h;
@@ -1159,6 +1160,11 @@ export async function initPageStar({ gsap, ScrollTrigger, lenis, loop, reduced }
       relight() {
         envK.tl?.kill();
         envK.tl = gsap.to(envK, { k: ENV_INTENSITY, duration: 0.4, ease: 'sine.out', onUpdate: dimLights });
+      },
+      // (BC) se apaga suave, sin parpadeo: al final del footer
+      dim(k, duration) {
+        envK.tl?.kill();
+        envK.tl = gsap.to(envK, { k: k * ENV_INTENSITY, duration, ease: 'sine.inOut', onUpdate: dimLights });
       },
       fade(opacity, duration) {
         gsap.to(canvas, { opacity, duration, ease: 'power1.out', overwrite: true, onComplete: () => { if (opacity === 1) canvas.style.opacity = ''; } });

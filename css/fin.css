@@ -1,9 +1,11 @@
-/* ---------- footer "fin de la sesión" (js/fin.js monta el contenido; js/fin-physics.js, la física) ----------
-   Toda la web es una noche en la pista y esto es el final: se apagan las luces y el destello cae sobre un
-   logo "disco" gigante, que hace de suelo. Capas: fondo y resplandor < logo < destello 3D (canvas fijo,
-   z-index 1, solo en la home) < textos y fila (z-index 2) < asa para coger la estrella (3) < flash (4).
+/* ---------- footer (js/fin.js monta el contenido) ----------
+   "¿Rodamos juntos?" de protagonista; debajo, en una línea, el email (+ Copiar) y las redes (Instagram, TikTok y el
+   usuario); abajo, la fila de páginas, legal y "Arriba ↑". El destello acaba junto al título y se apaga suave.
+   .fin--lite (cuando el cierre de justo encima ya dice "¿Rodamos juntos?"): sin título; la línea de redes manda.
+   Capas: fondo y resplandor < destello 3D (canvas fijo, z-index 1) < textos y fila (z-index 2).
    Sin z-index ni isolation en .fin: el canvas del destello tiene que quedar por encima de su fondo.
-   LEGACY: el footer del editor de vídeo está en legacy/footer-editor/. */
+   (BC-A. LEGACY: el logo "disco" gigante con física, en legacy/footer-logo-fisica/; el del editor de vídeo, en
+   legacy/footer-editor/) */
 .fin {
   --fin-bg: #0b0909;
   --fin-ink: #f4f2ef;
@@ -13,8 +15,6 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: max(100vh, 640px);
-  min-height: max(100svh, 640px);
   overflow: hidden;
   background: var(--fin-bg);
   color: var(--fin-ink);
@@ -22,16 +22,16 @@
 .fin :focus-visible { outline: 2px solid var(--fin-accent); outline-offset: 3px; }
 .fin a { color: inherit; }
 
-/* resplandor cálido detrás del logo: baja cuando el destello "se muere" (opacity, js/fin.js) */
+/* resplandor cálido desde abajo */
 .fin__glow {
   position: absolute;
   left: 50%;
-  bottom: -30%;
+  bottom: -55%;
   width: 150vmax;
   height: 110vmax;
   translate: -50% 0;
   background: radial-gradient(closest-side, rgb(243 84 17 / 1), rgb(243 84 17 / 0.35) 45%, rgb(243 84 17 / 0) 100%);
-  opacity: 0.22;
+  opacity: 0.2;
   pointer-events: none;
 }
 /* foco que sigue al cursor (solo ratón) */
@@ -48,26 +48,20 @@
   will-change: transform;
 }
 
-/* ---------- arriba: rótulo, "¿Rodamos juntos?" y el email ---------- */
+/* ---------- arriba: "¿Rodamos juntos?", el email y las redes ---------- */
 .fin__top {
   position: relative;
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12vh 16px 0;
+  padding: clamp(120px, 19vh, 200px) 16px clamp(88px, 14vh, 150px);
   text-align: center;
 }
-.fin__kicker {
-  margin: 0;
-  font: 400 11px / 1 var(--font-mono);
-  letter-spacing: 0.14em;
-  color: var(--fin-dim);
-}
 .fin__title {
-  margin: 22px 0 0;
-  font: 500 clamp(40px, 5.6vw, 96px) / 0.95 var(--font-display);
-  letter-spacing: -0.02em;
+  margin: 0;
+  font: 500 clamp(44px, 7.4vw, 132px) / 0.95 var(--font-display);
+  letter-spacing: -0.025em;
 }
 /* cada palabra en su máscara (sube al entrar) */
 .fin__w {
@@ -79,26 +73,49 @@
 }
 .fin__w > span { display: inline-block; }
 .fin__title b { font-weight: inherit; color: var(--fin-accent); }
-.fin__mail {
+
+.fin__contact {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 8px 16px;
-  margin-top: clamp(18px, 3vh, 28px);
+  gap: 4px clamp(28px, 3vw, 48px);
+  margin-top: clamp(28px, 4.4vh, 48px);
 }
-.fin__email {
+.fin__mail,
+.fin__social {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+}
+.fin__mail { flex-wrap: wrap; justify-content: center; }
+/* separador fino entre el email y las redes (cuando caben en la misma línea) */
+.fin__mail + .fin__social { position: relative; }
+.fin__mail + .fin__social::before {
+  content: '';
+  position: absolute;
+  left: calc(-0.5 * clamp(28px, 3vw, 48px));
+  top: 50%;
+  width: 1px;
+  height: 22px;
+  translate: 0 -50%;
+  background: rgb(244 242 239 / 0.18);
+}
+.fin__email,
+.fin__handle {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   font: 400 clamp(18px, 1.6vw, 26px) / 1.2 var(--font-display);
   text-decoration: none;
   background: linear-gradient(currentColor, currentColor) 0 calc(100% - 8px) / 0 1px no-repeat;
-  transition: background-size 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-size 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
   overflow-wrap: anywhere;
 }
 .fin__email:hover,
-.fin__email:focus-visible { background-size: 100% 1px; }
+.fin__email:focus-visible,
+.fin__handle:hover,
+.fin__handle:focus-visible { background-size: 100% 1px; }
 .fin__copy {
   min-height: 32px;
   padding: 0 14px;
@@ -114,130 +131,43 @@
 }
 .fin__copy:hover { border-color: var(--fin-ink); }
 .fin__copied { min-width: 7ch; font: 400 11px / 1 var(--font-mono); letter-spacing: 0.12em; color: var(--fin-accent); }
+.fin__copied:empty { min-width: 0; }
 
-/* ---------- el logo: protagonista, apoyado sobre la fila de abajo como el suelo de la pista ---------- */
-.fin__stage {
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding-bottom: clamp(22px, 3.4vh, 36px); /* hueco del reflejo y del mensaje del premio */
-}
-.fin__logo,
-.fin__mirror {
-  display: block;
-  width: min(92vw, 1500px);
-  height: auto;
-  overflow: visible;
-  fill: var(--fin-ink);
-}
-.fin__logo path { transform-box: fill-box; }
-/* reflejo: copia volteada (con <use>: las letras que se tambalean se reflejan igual), del 10 % a 0 */
-.fin__mirror {
-  position: absolute;
-  left: 50%;
-  top: calc(100% - clamp(22px, 3.4vh, 36px)); /* justo debajo de la línea base del logo */
-  translate: -50% 0;
-  scale: 1 -1;
-  transform-origin: 50% 50%;
-  opacity: 0.1;
-  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 18%);
-  mask-image: linear-gradient(to top, #000 0%, transparent 18%);
-  pointer-events: none;
-}
-/* el hueco de la estrella: contorno discontinuo que respira */
-.fin__hole {
-  fill: none;
-  stroke: rgb(244 242 239 / 1);
-  stroke-width: 1px;
-  stroke-dasharray: 4 4;
-  vector-effect: non-scaling-stroke;
-  animation: fin-hole 2.4s ease-in-out infinite alternate;
-}
-@keyframes fin-hole {
-  from { opacity: 0.15; }
-  to { opacity: 0.35; }
-}
-.fin__hole.is-hint { animation: fin-hint 0.5s ease-in-out 4 alternate; }
-@keyframes fin-hint {
-  from { opacity: 0.2; }
-  to { opacity: 1; }
-}
-.fin.is-fit .fin__hole,
-.fin.has-star .fin__hole { opacity: 0; animation: none; }
-/* la estrella del logo: blanca en su sitio (páginas sin 3D), naranja al encajar */
-.fin__slot { fill: var(--fin-ink); opacity: 0; }
-.fin.has-star .fin__slot { opacity: 1; }
-.fin.is-fit .fin__slot {
-  opacity: 1;
-  fill: var(--fin-accent);
-  filter: drop-shadow(0 0 6px rgb(243 84 17 / 0.7));
-  animation: fin-glow 2.2s ease-in-out infinite alternate;
-}
-@keyframes fin-glow {
-  to { filter: drop-shadow(0 0 14px rgb(243 84 17 / 0.95)); }
-}
-
-/* estrella en SVG que cae (páginas sin 3D): la mueve la física con transform */
-.fin__drop {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 2;
-  overflow: visible;
-  fill: var(--fin-ink);
-  pointer-events: none;
-  visibility: hidden;
-  will-change: transform;
-}
-/* asa para coger la estrella: solo ella captura el puntero (y el gesto táctil) */
-.fin__grab {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 3;
+/* iconos de las redes: 22 px dentro de un área de toque de 44 px; hover naranja */
+.fin__icons { display: flex; margin: 0 -6px 0 -11px; }
+.fin__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  touch-action: none;
-  cursor: grab;
-  visibility: hidden;
-  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease;
 }
-.fin__grab.is-on { visibility: visible; }
-.fin__grab.is-dragging { cursor: grabbing; }
+.fin__icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fin__icon:hover,
+.fin__icon:focus-visible,
+.fin__handle:hover { color: var(--fin-accent); }
 
-/* premio: debajo del logo, en el hueco del reflejo */
-.fin__prize {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin: 0;
-  translate: -50% 0;
-  white-space: nowrap;
-  font: 400 12px / 1 var(--font-mono);
-  letter-spacing: 0.1em;
+/* versión sin título: la línea de redes es la protagonista, el email debajo */
+.fin--lite .fin__top { padding-top: clamp(96px, 15vh, 150px); padding-bottom: clamp(72px, 11vh, 120px); }
+.fin--lite .fin__contact { flex-direction: column; gap: 10px; margin-top: 0; }
+.fin--lite .fin__social { gap: 18px; }
+.fin--lite .fin__handle {
+  font-size: clamp(30px, 3.4vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  background-position: 0 calc(100% - 4px);
 }
-.fin__prize[hidden],
-.fin__again[hidden] { display: none; }
-.fin__prize a { display: inline-flex; align-items: center; min-height: 32px; text-decoration: none; }
-.fin__prize a:hover { color: var(--fin-accent); }
-.fin__again {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid rgb(244 242 239 / 0.3);
-  border-radius: 999px;
-  background: none;
-  color: var(--fin-ink);
-  font: inherit;
-  letter-spacing: inherit;
-  cursor: pointer;
-}
-.fin__again:hover { border-color: var(--fin-ink); }
+.fin--lite .fin__icons { margin: 0 -4px 0 -11px; }
+.fin--lite .fin__icon svg { width: 24px; height: 24px; }
 
 /* ---------- fila de abajo ---------- */
 .fin__row {
@@ -293,26 +223,26 @@
 }
 .fin__up:hover { color: var(--fin-ink); }
 
-/* flash blanco del premio (como el de la intro) */
-.fin__flash {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  background: #fff;
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* sin JS: menú sencillo */
 .fin--fallback { min-height: 0; padding: 48px 24px; gap: 12px; font: 400 13px / 1.6 var(--font-mono); color: var(--fin-dim); }
 
+@media (min-width: 768px) and (max-width: 1199px) {
+  /* la fila en dos: páginas y hora arriba, legal debajo (en una sola no cabe sin partir "Contacto") */
+  .fin__row { grid-template-columns: 1fr auto; gap: 0 24px; }
+  .fin__list--mid { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; border-top: 1px solid rgb(244 242 239 / 0.06); }
+}
+@media (max-width: 1023px) {
+  /* el email y las redes, uno encima del otro (sin separador) */
+  .fin__contact { flex-direction: column; gap: 8px; }
+  .fin__mail + .fin__social::before { display: none; }
+}
 @media (max-width: 767px) {
   .fin { --fin-row: 40px; }
-  .fin__title { font-size: clamp(36px, 10vw, 52px); }
-  .fin__logo,
-  .fin__mirror { width: 94vw; }
-  .fin__stage { padding-bottom: 30px; }
-  .fin__mirror { top: calc(100% - 30px); }
+  /* encima del título queda el hueco del destello (js/fin.js: finStop) */
+  .fin__top { padding: 150px 16px 64px; }
+  .fin__title { font-size: clamp(40px, 12.4vw, 60px); }
+  .fin--lite .fin__top { padding-top: 132px; padding-bottom: 56px; }
+  .fin--lite .fin__handle { font-size: clamp(28px, 8.6vw, 36px); }
   .fin__row {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -326,7 +256,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fin__hole,
-  .fin.is-fit .fin__slot,
   .fin__colon { animation: none; }
 }

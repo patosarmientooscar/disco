@@ -70,8 +70,8 @@ const STUDIO_PATH_MOBILE = [[0, 0, 0.04, 0.55], [0.18, 0, 0.04, 0.55], [0.32, 0,
 const WHY = { x: 0.84, y: 0, s: 0.32 };
 const WHY_RING_INSET = 120; // px desde el borde derecho: el centro del hueco visible del anillo
 const WHY_MOBILE = { x: 0.6, y: 0.72, s: 0.25 };
-// footer (js/fin.js): el último punto de paso es encima del hueco de la estrella del logo, de frente y girando
-// despacio. Al entrar el footer del todo "se muere": se apaga parpadeando y lo mueve la física (fin.held)
+// footer (js/fin.js): el último punto de paso es junto a "¿Rodamos juntos?", de frente y girando despacio; al
+// final del scroll se apaga suave (BC; antes caía con física sobre el logo: legacy/footer-logo-fisica/)
 const FOOTER_FRONT = 0.5;          // × alto de pantalla antes del final: pasa al giro lento de frente, como en el hero
 // se funde como un foco: [intensidad (× la normal), s], irregular (~0.7 s); queda al 25 %
 const FLICKER = [[0.15, 0.08], [0.9, 0.1], [0.1, 0.14], [0.6, 0.12], [0.25, 0.26]];
@@ -584,6 +584,11 @@ export function initStar({ gsap, ScrollTrigger, lenis, reduced, loop }) {
         env.tl?.kill();
         env.tl = gsap.to(env, { k: ENV_INTENSITY, duration: 0.4, ease: 'sine.out', onUpdate: dim });
       },
+      // (BC) se apaga suave, sin parpadeo: al final del footer
+      dim(k, duration) {
+        env.tl?.kill();
+        env.tl = gsap.to(env, { k: k * ENV_INTENSITY, duration, ease: 'sine.inOut', onUpdate: dim });
+      },
       fade(opacity, duration) {
         gsap.to(canvas, {
           opacity,
@@ -706,11 +711,11 @@ function studioPoint(p, mobile, out) {
   return out.set(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, (s0 + (s1 - s0) * t) * GROW);
 }
 
-// Final en el footer (js/fin.js): centrado, 30 vh por encima del hueco de la estrella del logo, con un alto de
-// 1.6 × el hueco (siempre entero entre el email y el logo), medido con el scroll al final. Sin footer: por arriba.
+// Final en el footer (js/fin.js, BC): junto a "¿Rodamos juntos?" (a su derecha; en móvil, encima), medido con el
+// scroll al final; ahí se apaga suave. Sin footer: por arriba.
 function footerPoint(mobile, max, fallback) {
-  const stop = finStop(max, GROW);
+  const stop = finStop(max);
   if (!stop) return { ...fallback, y: 1.6 };
   const size = mobile ? HERO_SIZE_MOBILE : HERO_SIZE;
-  return { x: 0, y: 1 - (2 * stop.cy) / vp.h, s: stop.h / (size * vp.h), footer: true };
+  return { x: (2 * stop.cx) / vp.w - 1, y: 1 - (2 * stop.cy) / vp.h, s: stop.h / (size * vp.h), footer: true };
 }
