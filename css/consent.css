@@ -125,7 +125,7 @@
 /* en las páginas legales (cookies, privacidad, aviso legal) se lee el texto antes de decidir: en escritorio, la tarjeta
    va a la derecha (el texto de la política está a la izquierda) y el final de la página sube por encima de ella */
 .consent--doc { left: auto; right: clamp(16px, 2vw, 32px); }
-html.consent-doc-on main.legal { padding-bottom: var(--consent-h, 0px); }
+html.consent-doc-on body { padding-bottom: var(--consent-h, 0px); } /* debajo del footer: se lee todo, también su fila legal */
 
 /* móvil: franja inferior a todo el ancho, con la zona segura del iPhone */
 @media (max-width: 767px) {

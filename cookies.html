@@ -168,35 +168,57 @@
     </div>
   </header>
 
-  <!-- REVISAR CON UN PROFESIONAL ANTES DE PUBLICAR. La web no usa cookies de analítica ni de terceros: por eso NO
-       hay banner. Si se añade analítica (Google Analytics, Meta Pixel…), hay que añadir banner de consentimiento
-       y actualizar esta página. -->
+  <!-- REVISAR CON UN PROFESIONAL ANTES DE PUBLICAR. BE: la web usa Google Analytics 4 (por Google Tag Manager) SOLO con
+       consentimiento: Consent Mode v2 (tools/consent-head.html) + aviso (js/consent.js). Si se añade otra cookie o
+       servicio, actualiza la tabla y, si no es técnica, pide consentimiento antes de usarla. -->
   <main id="contenido" class="ip legal">
     <header class="ih ih--short ip-wrap">
       <p class="ip-eyebrow">LEGAL — <b>03</b></p>
       <h1 class="ih__title legal__title">Política de cookies</h1>
-      <p class="legal__date">Última actualización: [FECHA]</p>
+      <p class="legal__date">Última actualización: 14 de noviembre de 2026</p>
     </header>
     <article class="ip-wrap legal__body">
-      <h2>1. ¿Usamos cookies?</h2>
-      <p>Esta web <strong>no usa cookies de analítica, publicidad ni de terceros</strong>, y no rastrea tu navegación. Por eso no te mostramos un aviso de cookies.</p>
+      <h2>1. Qué son las cookies</h2>
+      <p>Son pequeños archivos que una web guarda en tu navegador para recordar algo de tu visita. Aquí usamos la palabra en sentido amplio: incluye también lo que se guarda en el almacenamiento del navegador (<em>localStorage</em> y <em>sessionStorage</em>), que funciona de forma parecida.</p>
+      <p>Las <strong>técnicas</strong> son las necesarias para que la web funcione como pides y no necesitan tu consentimiento (art. 22.2 LSSI-CE). Las de <strong>analítica</strong> solo se instalan si las aceptas.</p>
 
-      <h2>2. Qué guarda la web en tu navegador</h2>
-      <p>Para que la web funcione bien guardamos dos marcas técnicas en el almacenamiento de sesión de tu navegador (<em>sessionStorage</em>), que se borran solas al cerrar la pestaña:</p>
+      <h2>2. Qué cookies usamos</h2>
+      <div class="legal__table" role="region" aria-label="Cookies que usa la web" tabindex="0">
+        <table>
+          <thead>
+            <tr><th scope="col">Nombre</th><th scope="col">Proveedor</th><th scope="col">Finalidad</th><th scope="col">Duración</th><th scope="col">Tipo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>disco_consent</code></td><td>disco (propia)</td><td>Guardar tu elección de cookies.</td><td>12 meses</td><td>Técnica (<em>localStorage</em>)</td></tr>
+            <tr><td><code>disco_intro_done</code></td><td>disco (propia)</td><td>Recordar que ya has visto la animación de entrada, para no repetírtela.</td><td>Sesión</td><td>Técnica (<em>sessionStorage</em>)</td></tr>
+            <tr><td><code>disco_pt</code></td><td>disco (propia)</td><td>Indicar que vienes de otra página de la web, para hacer la transición entre páginas.</td><td>Sesión</td><td>Técnica (<em>sessionStorage</em>)</td></tr>
+            <tr><td><code>_ga</code></td><td>Google Ireland Ltd.</td><td>Distinguir usuarios para hacer estadísticas de uso.</td><td>2 años</td><td>Analítica, solo con tu consentimiento</td></tr>
+            <tr><td><code>_ga_&lt;ID&gt;</code></td><td>Google Ireland Ltd.</td><td>Mantener el estado de la sesión de analítica.</td><td>2 años</td><td>Analítica, solo con tu consentimiento</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Las marcas técnicas no contienen datos personales ni se comparten con nadie. Las de sesión se borran solas al cerrar la pestaña.</p>
+
+      <h2>3. Google Analytics</h2>
+      <p>Si aceptas la analítica, usamos <strong>Google Analytics 4</strong>, que cargamos a través de <strong>Google Tag Manager</strong>, para saber cuántas visitas tiene la web y qué páginas se ven, y así mejorarla. Lo presta <strong>Google Ireland Limited</strong> (Gordon House, Barrow Street, Dublín 4, Irlanda). Google puede tratar estos datos fuera del Espacio Económico Europeo, en EE. UU.; esas transferencias están amparadas en el Marco de Privacidad de Datos UE-EE. UU.</p>
+      <p>Mientras no aceptes, Google Analytics no instala cookies en tu navegador. Puedes leer cómo trata Google los datos en su <a href="https://policies.google.com/privacy?hl=es" target="_blank" rel="noopener">política de privacidad</a> y desactivarlo en todas las webs con su <a href="https://tools.google.com/dlpage/gaoptout?hl=es" target="_blank" rel="noopener">complemento de inhabilitación</a>.</p>
+
+      <h2>4. Cómo aceptar, rechazar o retirar tu consentimiento</h2>
+      <p>La primera vez que entras te preguntamos con un aviso: puedes aceptar, rechazar o elegir. Rechazar es igual de fácil que aceptar, y si cierras el aviso sin elegir no instalamos nada. Puedes cambiar de opinión cuando quieras desde aquí o desde «Configurar cookies», al pie de cada página. Si retiras el consentimiento, borramos las cookies de Google Analytics de tu navegador.</p>
+      <p><button class="legal__consent" type="button" data-consent-open aria-haspopup="dialog">Configurar cookies</button></p>
+      <p>También puedes bloquear o borrar las cookies desde tu navegador:</p>
       <ul>
-        <li><strong>disco_intro_done:</strong> recuerda que ya has visto la animación de entrada, para no repetírtela.</li>
-        <li><strong>disco_pt:</strong> indica que vienes de otra página de la web, para hacer la transición entre páginas.</li>
+        <li><a href="https://support.google.com/chrome/answer/95647?hl=es" target="_blank" rel="noopener">Chrome</a></li>
+        <li><a href="https://support.mozilla.org/es/kb/Borrar%20cookies" target="_blank" rel="noopener">Firefox</a></li>
+        <li><a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" target="_blank" rel="noopener">Safari</a></li>
+        <li><a href="https://support.microsoft.com/es-es/microsoft-edge/eliminar-cookies-en-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener">Edge</a></li>
       </ul>
-      <p>No contienen datos personales ni se comparten con nadie. Al ser estrictamente necesarias para el funcionamiento que pides, no requieren consentimiento (art. 22.2 LSSI-CE).</p>
 
-      <h2>3. Contenido de terceros</h2>
-      <p>Para mostrar las tipografías y algunas librerías, la web las carga desde servicios externos (Fontshare, Google Fonts, cdnjs, jsDelivr y unpkg). Estos servicios pueden recibir tu dirección IP técnica para entregarte los archivos. [REVISAR: alojar las fuentes en el propio servidor evita esta comunicación]</p>
+      <h2>5. Otros servicios externos</h2>
+      <p>Las tipografías y las librerías de la web están en nuestro propio servidor: al navegar no se cargan de ningún otro sitio. La única excepción es el formulario de contacto: cuando lo envías, tu mensaje pasa por Web3Forms para llegarnos por email. No instala cookies. Más detalle en la <a href="privacidad.html">política de privacidad</a>.</p>
 
-      <h2>4. Cómo borrar estos datos</h2>
-      <p>Cierra la pestaña o borra los datos del sitio desde la configuración de tu navegador.</p>
-
-      <h2>5. Cambios</h2>
-      <p>Si en el futuro añadimos cookies de analítica o de terceros, actualizaremos esta política y te pediremos el consentimiento antes de usarlas.</p>
+      <h2>6. Cambios</h2>
+      <p>Si añadimos o cambiamos alguna cookie, actualizaremos esta política y, si no es técnica, te volveremos a pedir el consentimiento.</p>
     </article>
   </main>
 
