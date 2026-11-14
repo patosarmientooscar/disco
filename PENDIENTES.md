@@ -97,8 +97,8 @@ Todo se rellena en `js/portfolio-data.js`, que trae un ejemplo comentado. Las ca
 
 ## Otros
 
-- [ ] **Páginas legales:** tienen plantilla estándar (LSSI-CE y RGPD) que hay que **REVISAR CON UN PROFESIONAL ANTES DE PUBLICAR**. Huecos: [TITULAR], [NIF], [DOMICILIO], [FECHA], datos registrales, plazos de conservación y proveedores (privacidad).
-- [ ] **Cookies:** la web no usa cookies de analítica ni de terceros, por eso no hay banner. Si se añade analítica, hay que poner banner y actualizar cookies.html.
+- [ ] **Páginas legales** (BF, 14-11-2026): aviso legal y privacidad completos (LSSI-CE y RGPD/LOPDGDD). **Solo faltan los datos del titular:** [TITULAR], [NIF], [DOMICILIO] y [REGISTRO] (este, vacío si sois autónomos). Se cambian en UN sitio, el objeto `legal` de `tools/legal.mjs` (y su `fecha`), y después `node tools/legal.mjs` → `node tools/version.mjs` → commit → push. Lo escribe en aviso-legal, privacidad, cookies (fecha) y la información básica del formulario de contacto. Antes de publicar, que lo revise un profesional.
+- [x] **Cookies** (BE, 14-11-2026): Google Analytics 4 por GTM solo con consentimiento (Consent Mode v2 + aviso, js/consent.js); política reescrita en cookies.html.
 - [x] **Fuentes:** alojadas en la propia web (`assets/fonts`: Clash Display, ITF Free Font License; IBM Plex Mono, OFL), con precarga y fallbacks métricos (AD-C).
 - [ ] **Newsletter del footer:** sin servicio conectado (TODO en `js/footer.js`).
 

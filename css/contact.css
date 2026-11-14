@@ -145,6 +145,10 @@
 .ct__status:empty { display: none; }
 .ct__status a { color: var(--paper); }
 .ct__status.is-error { color: #ff8a7d; }
+/* información básica de protección de datos, bajo "Enviar" (BF; primera capa de la AEPD) */
+.ct__privacy { max-width: 62ch; margin: 18px 0 0; font: 400 12px / 1.65 var(--font-mono); letter-spacing: 0.01em; color: var(--muted); text-wrap: pretty; }
+.ct__privacy a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color 0.2s ease; }
+.ct__privacy a:hover { color: var(--paper); }
 
 /* recibido: el destello (2D) girando y el mensaje */
 .ct__done { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 420px; }

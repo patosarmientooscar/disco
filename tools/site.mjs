@@ -101,6 +101,8 @@ export async function buildSite({ quiet = false } = {}) {
   // BE: el consentimiento de cookies (Consent Mode v2 + GTM + aviso) al principio de cada <head>; antes que los
   // proyectos, para que proyecto.html (su plantilla) ya lo lleve
   if (existsSync(join(ROOT, 'tools/consent.mjs'))) (await import(pathToFileURL(join(ROOT, 'tools/consent.mjs')).href)).applyConsent({ quiet });
+  // BF: los datos del titular (tools/legal.mjs) en aviso legal, privacidad, cookies y el formulario de contacto
+  if (existsSync(join(ROOT, 'tools/legal.mjs'))) (await import(pathToFileURL(join(ROOT, 'tools/legal.mjs')).href)).applyLegal({ quiet });
   // las páginas de proyecto (tools/proyectos.mjs) y los datos estructurados (tools/seo-ld.mjs), si existen
   const extra = existsSync(join(ROOT, 'tools/proyectos.mjs')) ? await import(pathToFileURL(join(ROOT, 'tools/proyectos.mjs')).href) : null;
   const projects = extra ? await extra.buildProjects({ headBlock, putLd, abs }) : [];

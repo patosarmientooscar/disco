@@ -37,4 +37,4 @@ export function applyConsent({ quiet = false } = {}) {
   return done;
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) applyConsent();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) applyConsent();
