@@ -5,7 +5,8 @@
 // puede ejecutar las veces que haga falta. Lo llama tools/site.mjs al empezar (y este, tools/version.mjs).
 // El bloque: Consent Mode v2 con todo denegado por defecto ANTES de que cargue GTM; ads_* siempre denegado (la web no
 // hace publicidad). Si ya aceptó la analítica (localStorage disco_consent con v 1 y de hace < 12 meses: la misma regla
-// que js/consent.js), se concede ahí mismo, antes de gtm.js. Después, el aviso: js/consent.js + css/consent.css.
+// que js/consent.js), se concede ahí mismo, antes de gtm.js. Luego el evento 'gtm.js' del fragmento oficial de GTM (sin
+// él no se dispara el activador "Todas las páginas": GA4 no enviaba nada) y el aviso: js/consent.js + css/consent.css.
 // El <meta charset> va delante del bloque (tiene que quedar en los primeros 1024 bytes de la página).
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';

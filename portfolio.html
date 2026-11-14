@@ -12,6 +12,7 @@
       if (dcEnd) dcEnd.setMonth(dcEnd.getMonth() + 12);
       if (dc && dc.v === 1 && dc.analytics === true && dcEnd > new Date()) gtag('consent', 'update', { analytics_storage: 'granted' });
     } catch (e) {}
+    dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
   </script>
   <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-WFZ68SD9"></script>
   <link rel="stylesheet" href="css/consent.css" media="print" onload="this.media='all'">
@@ -379,7 +380,7 @@
        Sin JS queda este menú sencillo. -->
   <footer class="fin fin--fallback" data-footer>
     <nav aria-label="Páginas"><a href="index.html">Inicio</a> · <a href="servicios.html">Servicios</a> · <a href="portfolio.html">Portfolio</a> · <a href="nosotros.html">Nosotros</a> · <a href="contacto.html">Contacto</a></nav>
-    <p>© 2026 disco. · <a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a></p>
+    <p>© 2026 disco. · <a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a> · <button class="fin__consent" type="button" data-consent-open aria-haspopup="dialog">Configurar cookies</button></p>
   </footer>
 
   <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>

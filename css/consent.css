@@ -1,0 +1,261 @@
+/* ---------- aviso de cookies (BE; js/consent.js) ----------
+   Primera capa: tarjeta fija abajo a la izquierda (escritorio, 420 px) o franja inferior a todo el ancho (móvil, con
+   safe-area). Fija: no empuja nada (sin CLS) y entra con fade + 8 px cuando ya ha pasado la intro.
+   "Aceptar" y "Rechazar" son el MISMO botón (tamaño, peso y contraste): el de "Conoce al equipo" de la home.
+   El naranja solo es detalle: el punto del título (como el REC) y el foco.
+   Segunda capa: <dialog> modal (capa superior del navegador: por encima de todo, foco atrapado).
+   z-index 2100: por encima de la nav (1000), del destello (1–3), de la intro (1500) y del velo de la transición (2000). */
+.consent,
+.consent-panel {
+  --c-bg: #0b0909;
+  --c-ink: #f4f2ef;
+  --c-text: rgb(244 242 239 / 0.8);   /* 13:1 sobre --c-bg */
+  --c-dim: #a8a3a1;                   /* 7.6:1 */
+  --c-line: rgb(244 242 239 / 0.14);
+  --c-accent: #F35411;
+  --c-ease: cubic-bezier(0.16, 1, 0.3, 1); /* expo.out, el de la web */
+  color: var(--c-ink);
+  font: 400 13px / 1.6 var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- primera capa ---------- */
+.consent {
+  position: fixed;
+  left: clamp(16px, 2vw, 32px);
+  bottom: clamp(16px, 2vw, 32px);
+  z-index: 2100;
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 32px));
+  padding: 22px 22px 18px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 rgb(244 242 239 / 0.06), 0 24px 60px -18px rgb(0 0 0 / 0.65), 0 2px 10px rgb(0 0 0 / 0.25);
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+  transition: opacity 0.6s var(--c-ease), transform 0.6s var(--c-ease);
+}
+.consent.is-in { opacity: 1; transform: none; }
+.consent:focus { outline: none; } /* el foco al aparecer (con ratón): sin anillo; con teclado va al primer botón */
+.consent.is-out { opacity: 0; transform: translate3d(0, 8px, 0); transition-duration: 0.3s; pointer-events: none; }
+.consent[hidden] { display: none; }
+
+.consent__title,
+.consent-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  font: 500 22px / 1.1 var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+/* el punto naranja, como el de grabar */
+.consent__title::after,
+.consent-panel__title::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  box-shadow: 0 0 10px rgb(243 84 17 / 0.55);
+}
+.consent__text { margin: 0 0 18px; color: var(--c-text); text-wrap: pretty; }
+.consent a,
+.consent-panel a {
+  color: var(--c-ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(243 84 17 / 0.8);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s ease;
+}
+.consent a:hover,
+.consent-panel a:hover { text-decoration-color: currentColor; }
+
+.consent__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Aceptar = Rechazar (y los tres del panel): mismo botón */
+.consent__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgb(244 242 239 / 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--c-ink);
+  font: 500 15px / 1 var(--font-display);
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.2s var(--c-ease);
+}
+.consent__btn:hover { background: var(--c-ink); border-color: var(--c-ink); color: var(--c-bg); }
+.consent__btn:active { transform: scale(0.98); }
+
+/* "Configurar": texto subrayado */
+.consent__more {
+  min-height: 44px;
+  padding: 0 4px 0 8px;
+  border: 0;
+  background: none;
+  color: var(--c-dim);
+  font: 500 12px / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.consent__more:hover { color: var(--c-ink); }
+
+.consent :focus-visible,
+.consent-panel :focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
+
+/* en las páginas legales (cookies, privacidad, aviso legal) se lee el texto antes de decidir: en escritorio, la tarjeta
+   va a la derecha (el texto de la política está a la izquierda) y el final de la página sube por encima de ella */
+.consent--doc { left: auto; right: clamp(16px, 2vw, 32px); }
+html.consent-doc-on main.legal { padding-bottom: var(--consent-h, 0px); }
+
+/* móvil: franja inferior a todo el ancho, con la zona segura del iPhone */
+@media (max-width: 767px) {
+  .consent,
+  .consent--doc {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    padding: 18px 16px calc(14px + env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-radius: 20px 20px 0 0;
+  }
+  .consent__title { font-size: 20px; margin-bottom: 6px; }
+  .consent__text { margin-bottom: 14px; font-size: 12.5px; }
+  .consent__btn { padding: 0 12px; }
+}
+
+/* ---------- segunda capa: "Configurar" ---------- */
+.consent-panel {
+  box-sizing: border-box;
+  width: min(600px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 32px));
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  border-radius: 24px;
+  box-shadow: inset 0 1px 0 rgb(244 242 239 / 0.06), 0 40px 100px -20px rgb(0 0 0 / 0.8);
+}
+.consent-panel::backdrop { background: rgb(11 9 9 / 0.72); }
+.consent-panel[open] { animation: consent-in 0.5s var(--c-ease); }
+.consent-panel[open]::backdrop { animation: consent-fade 0.4s ease; }
+@keyframes consent-in { from { opacity: 0; transform: translate3d(0, 8px, 0); } }
+@keyframes consent-fade { from { opacity: 0; } }
+
+.consent-panel__in { padding: 28px 28px 24px; }
+.consent-panel__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.consent-panel__title { margin: 6px 0 10px; font-size: clamp(24px, 3vw, 30px); }
+.consent-panel__close {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -4px -8px 0 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-dim);
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.consent-panel__close:hover { color: var(--c-ink); background: rgb(244 242 239 / 0.06); }
+.consent-panel__close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.consent-panel__intro { max-width: 52ch; margin: 0 0 20px; color: var(--c-text); }
+
+.consent-panel__rows { margin: 0 0 24px; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
+.consent-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 6px 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--c-line);
+}
+.consent-row__name { margin: 0; font: 500 18px / 1.25 var(--font-display); color: var(--c-ink); }
+.consent-row__desc { grid-column: 1 / -1; margin: 0; max-width: 56ch; color: var(--c-text); }
+.consent-row__desc code { font: inherit; color: var(--c-ink); }
+.consent-row__state {
+  padding-top: 3px;
+  font: 500 11px / 1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-dim);
+  white-space: nowrap;
+}
+
+/* interruptor (checkbox con role="switch"): apagado por defecto */
+.consent-switch { position: relative; display: inline-flex; align-items: center; min-height: 44px; margin: -11px 0; cursor: pointer; }
+.consent-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.consent-switch__track {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border: 1px solid rgb(244 242 239 / 0.35);
+  border-radius: 999px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+.consent-switch__track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--c-dim);
+  transition: transform 0.35s var(--c-ease), background-color 0.25s ease;
+}
+.consent-switch input:checked + .consent-switch__track { background: var(--c-ink); border-color: var(--c-ink); }
+.consent-switch input:checked + .consent-switch__track::after { transform: translateX(20px); background: var(--c-bg); }
+.consent-switch input:focus-visible + .consent-switch__track { outline: 2px solid var(--c-accent); outline-offset: 3px; }
+.consent-switch__label {
+  margin-right: 12px;
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-dim);
+}
+
+.consent-panel__actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.consent-panel__actions .consent__btn { padding: 0 12px; white-space: nowrap; }
+@media (max-width: 559px) {
+  .consent-panel__in { padding: 22px 18px 18px; }
+  .consent-panel__actions { grid-template-columns: 1fr 1fr; }
+  .consent-panel__actions .consent__btn:first-child { grid-column: 1 / -1; }
+}
+
+/* "Configurar cookies" (footer, su versión sin JS y la política de cookies): abre la segunda capa */
+.consent-open { cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  .consent,
+  .consent.is-out { transition: none; transform: none; }
+  .consent-panel[open],
+  .consent-panel[open]::backdrop { animation: none; }
+  .consent__btn,
+  .consent-switch__track,
+  .consent-switch__track::after { transition: none; }
+}

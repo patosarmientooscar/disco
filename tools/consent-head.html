@@ -9,6 +9,7 @@
       if (dcEnd) dcEnd.setMonth(dcEnd.getMonth() + 12);
       if (dc && dc.v === 1 && dc.analytics === true && dcEnd > new Date()) gtag('consent', 'update', { analytics_storage: 'granted' });
     } catch (e) {}
+    dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
   </script>
   <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-WFZ68SD9"></script>
   <link rel="stylesheet" href="css/consent.css" media="print" onload="this.media='all'">

@@ -222,6 +222,23 @@
   transition: color 0.2s ease;
 }
 .fin__up:hover { color: var(--fin-ink); }
+/* "Configurar cookies" (BE: js/consent.js), como un enlace más de la fila legal */
+.fin__consent {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--fin-row);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.fin__consent:hover { color: var(--fin-ink); }
+.fin--fallback .fin__consent { min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
 
 /* sin JS: menú sencillo */
 .fin--fallback { min-height: 0; padding: 48px 24px; gap: 12px; font: 400 13px / 1.6 var(--font-mono); color: var(--fin-dim); }

@@ -18,6 +18,7 @@ const PAGES = [
   { name: 'Nosotros', href: 'nosotros.html' },
   { name: 'Contacto', href: 'contacto.html' },
 ];
+// (+ "Configurar cookies": abre la 2.ª capa del aviso de cookies, js/consent.js; BE)
 const LEGAL = [
   { name: 'Aviso legal', href: 'aviso-legal.html' },
   { name: 'Privacidad', href: 'privacidad.html' },
@@ -162,7 +163,7 @@ function markup(file, lite) {
     </div>
     <div class="fin__row">
       <nav aria-label="Páginas"><ul class="fin__list">${PAGES.map(link).join('')}</ul></nav>
-      <ul class="fin__list fin__list--mid">${LEGAL.map(link).join('')}</ul>
+      <ul class="fin__list fin__list--mid">${LEGAL.map(link).join('')}<li><button class="fin__consent" type="button" data-consent-open aria-haspopup="dialog">Configurar cookies</button></li></ul>
       <div class="fin__end">
         <span data-fin-clock>MADRID</span>
         <span>© ${new Date().getFullYear()} disco.</span>
