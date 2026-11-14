@@ -37,8 +37,8 @@ export async function ldFor(page, { html, abs, BASE, projects }) {
     return qs.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: qs }] : [];
   };
   const person = (name, jobTitle, img) => ({ '@type': 'Person', name, jobTitle, image: abs(img), worksFor: { '@id': ORG } });
-  const LUNA = person('Luna López', 'Cofundadora · dirección y edición de vídeo', 'assets/team/luna-lopez-1280.webp');
-  const BRUNO = person('Bruno Marín', 'Cofundador · foto, vídeo y edición de foto', 'assets/team/bruno-marin-1280.webp');
+  const LUNA = person('Luna López', 'Cofundadora · dirección y edición de vídeo', 'assets/team/nosotros/luna-lopez-retrato-1280.webp');
+  const BRUNO = person('Bruno Marín', 'Cofundador · foto, vídeo y edición de foto', 'assets/team/nosotros/bruno-marin-retrato-1280.webp');
   const service = (name, description) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name, description, provider: { '@id': ORG }, areaServed: 'Madrid' } });
   const org = {
     '@context': 'https://schema.org',
