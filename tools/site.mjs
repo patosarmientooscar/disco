@@ -98,6 +98,9 @@ const git = (cmd) => { try { return execSync(`git ${cmd}`, { cwd: ROOT, stdio: [
 const lastmod = (file) => git(`log -1 --format=%cs -- "${file}"`) || statSync(join(ROOT, file)).mtime.toISOString().slice(0, 10);
 
 export async function buildSite({ quiet = false } = {}) {
+  // BE: el consentimiento de cookies (Consent Mode v2 + GTM + aviso) al principio de cada <head>; antes que los
+  // proyectos, para que proyecto.html (su plantilla) ya lo lleve
+  if (existsSync(join(ROOT, 'tools/consent.mjs'))) (await import(pathToFileURL(join(ROOT, 'tools/consent.mjs')).href)).applyConsent({ quiet });
   // las páginas de proyecto (tools/proyectos.mjs) y los datos estructurados (tools/seo-ld.mjs), si existen
   const extra = existsSync(join(ROOT, 'tools/proyectos.mjs')) ? await import(pathToFileURL(join(ROOT, 'tools/proyectos.mjs')).href) : null;
   const projects = extra ? await extra.buildProjects({ headBlock, putLd, abs }) : [];

@@ -1,0 +1,16 @@
+  <meta charset="utf-8">
+  <!-- consent:head (tools/consent-head.html, lo pone tools/consent.mjs: no editar aquí) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied', functionality_storage: 'granted', security_storage: 'granted', wait_for_update: 500 });
+    try {
+      var dc = JSON.parse(localStorage.getItem('disco_consent')), dcEnd = dc && new Date(dc.fecha);
+      if (dcEnd) dcEnd.setMonth(dcEnd.getMonth() + 12);
+      if (dc && dc.v === 1 && dc.analytics === true && dcEnd > new Date()) gtag('consent', 'update', { analytics_storage: 'granted' });
+    } catch (e) {}
+  </script>
+  <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-WFZ68SD9"></script>
+  <link rel="stylesheet" href="css/consent.css" media="print" onload="this.media='all'">
+  <script src="js/consent.js" defer></script>
+  <!-- /consent:head -->
