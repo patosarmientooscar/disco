@@ -1,0 +1,108 @@
+/* Edición: la sala de montaje. El visor ocupa todo el panel (el reel vertical, recortado) con la cortinilla: a la
+   izquierda de la línea, LOG; a la derecha, GRADE (--x desde js). Abajo, a lo ancho, la línea de tiempo: V1 con los
+   8 clips del reel (tira-reel.webp), A1 con su forma de onda real y el cabezal sincronizado; el texto, encima */
+.of-panel--edit { background: #0e0b0b; }
+.of-suite { position: absolute; inset: 0; }
+.of-viewer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: pan-y;
+}
+/* AT-A: la foto de E, S, B en el visor (antes, el reel de la fiesta: legacy/servicios-oficios-video-bus/). La cámara
+   lenta mueve las dos capas igual (js/oficios.js); la de LOG, encima, recortada por la cortinilla */
+.of-cam { position: absolute; inset: 0; will-change: transform; }
+.of-viewer__img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+/* LOG: la foto "en bruto": sin el color del neón y con un velo gris muy leve */
+.of-viewer__img--log { filter: saturate(0.35) contrast(0.78) brightness(1.08); }
+.of-log {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: inset(0 calc(100% - var(--x, 50%)) 0 0);
+  pointer-events: none;
+}
+.of-log::after { content: ""; position: absolute; inset: 0; background: rgb(150 146 144 / 0.08); }
+.of-wipe { position: absolute; inset: 0; pointer-events: none; }
+.of-wipe::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--x, 50%);
+  width: 1px;
+  background: #fff;
+}
+.of-wipe__knob {
+  position: absolute;
+  left: var(--x, 50%);
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: rgb(11 9 9 / 0.45);
+}
+.of-wipe__knob::before,
+.of-wipe__knob::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  margin-top: -4px;
+  border: 4px solid transparent;
+}
+.of-wipe__knob::before { left: 2px; border-right-color: #fff; }
+.of-wipe__knob::after { right: 2px; border-left-color: #fff; }
+.of-wipe__tag {
+  position: absolute;
+  top: 10px;
+  font: 400 10px / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  color: rgb(244 242 239 / 0.85);
+}
+.of-wipe__tag--l { right: calc(100% - var(--x, 50%) + 10px); }
+.of-wipe__tag--r { left: calc(var(--x, 50%) + 10px); }
+.of-tl {
+  position: absolute;
+  left: var(--of-pad);
+  right: var(--of-pad);
+  bottom: var(--of-pad);
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px 10px 10px;
+  border-radius: 10px;
+  background: rgb(11 9 9 / 0.72);
+  backdrop-filter: blur(8px);
+}
+/* el texto del panel abierto, encima de la línea de tiempo */
+.of-panel--edit .of-copy { padding-bottom: calc(var(--of-pad) * 1.6 + var(--of-tlh, 72px)); }
+.of-tl__track { font: 400 10px / 1 var(--font-mono); letter-spacing: 0.08em; color: var(--dim); }
+.of-tl__clips { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.of-tl__clips li {
+  flex: 1 1 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 2px;
+  background: url("../assets/servicios/oficios-real/tira-reel.webp") calc(var(--i) * 100% / 7) 0 / 800% 100% no-repeat;
+  box-shadow: inset 0 0 0 1px rgb(244 242 239 / 0.14);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+.of-tl__clips li.is-on { box-shadow: inset 0 0 0 1px #F35411; }
+.of-tl__wave { display: block; width: 100%; height: 20px; }
+.of-tl__head {
+  position: absolute;
+  left: 38px;
+  top: 6px;
+  bottom: 8px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--orange);
+  pointer-events: none;
+  will-change: transform;
+}
+

@@ -13,13 +13,13 @@
 //   VÍDEO, el directo: corte (un fotograma en negro), el baile en el bus (oficios-real/bus.mp4), bandas de cine hasta
 //     2.39:1, REC y el timecode real del vídeo. El botón de sonido le quita el silencio al propio vídeo (su audio, a
 //     la vez que la imagen); al cerrar el panel, se vuelve a silenciar.
-//   EDICIÓN, la sala de montaje: el visor ocupa todo el panel, con la foto de E, S, B (oficios-real/video-esb.webp; AT-A)
-//     en dos estados (LOG: en bruto, sin el color del neón; GRADE: tal cual) y la cortinilla que sigue al ratón; la foto,
-//     con un movimiento lento de cámara (escala 1.04 → 1.10, 14 s, ida y vuelta)
-//     (con el dedo, se arrastra); debajo, la línea de tiempo: V1 con los 8 clips del reel (al pasar por uno, el visor
-//     salta a ese tramo), A1 con la forma de onda real del audio y el cabezal sincronizado con el visor.
+//   EDICIÓN, antes / después (BG): la misma foto sin editar (izquierda) y editada (derecha), con una cortinilla que
+//     se arrastra con el ratón o el dedo (sin bloquear el scroll vertical) y con el teclado (slider: ← → Inicio Fin).
+//     La primera vez que se abre, la cortinilla barre del 85 % al 50 % para enseñar que se mueve. Las parejas están en
+//     js/servicios-data.js (edicionPares); con más de una, abajo, una tira de miniaturas (hoja de contactos) para
+//     cambiar de pareja. (LEGACY: la sala de montaje con el reel, en legacy/servicios-oficios-edicion-reel/)
 // Los vídeos solo corren con su panel abierto y la sección en pantalla. Todo en el loop único (gsap.ticker).
-// Movimiento reducido: los tres abiertos, quietos; el vídeo, con un botón para reproducirlo.
+// Movimiento reducido: los tres abiertos, quietos (la serie de Foto pasa con un corte cada 6 s); el vídeo, con un botón.
 // (LEGACY: la bailarina, en legacy/servicios-oficios-bailarina/)
 const MEDIA = {
   foto: { w: 2400, h: 1800, fx: 0.5, fy: 0.4 },    // oficios-real/foto-serie/ (todas 4:3): encuadre algo por encima del centro
@@ -42,20 +42,17 @@ const SHUTTER = { half: 0.09, flash: 0.85, flashDur: 0.22, zoom: 1.04, perSec: 3
 const PARALLAX = 10;               // px
 const SCOPE = { ratio: 2.39, max: 0.25 }; // bandas de cine (en paneles estrechos, cada banda como mucho 1/4 del alto)
 const CUT = 1 / 24;                // s: el corte en negro (un fotograma)
-const WIPE = { lerp: 0.15, sweep: 1.6 };
+// la cortinilla: de dónde sale el barrido de entrada (una vez), su duración, y el paso de las flechas (Mayús: x4)
+const WIPE = { from: 0.85, sweep: 1.1, step: 0.05 };
 const INTENT = 80; // ms con el ratón encima antes de abrir (cruzar la sección de camino a otro sitio no abre nada)
 const SRC = {
   video: { desk: 'assets/servicios/oficios-real/bus.mp4', narrow: 'assets/servicios/oficios-real/bus-720.mp4', fps: 25 },
-  edit: 23, // s: el "montaje" de la línea de tiempo (el cabezal da la vuelta en este tiempo; antes, el reel de la fiesta)
   near: '100% 0px', // los metadatos, con la sección a una pantalla
 };
-// forma de onda real del audio de reel-fiesta.mp4 (RMS en 120 tramos, 0–100; sacada con ffmpeg)
-const WAVE = [0, 0, 0, 23, 0, 24, 0, 22, 10, 0, 26, 7, 24, 0, 21, 14, 0, 25, 8, 26, 7, 19, 18, 0, 26, 5, 24, 12, 22, 17, 10, 27, 8, 25, 14, 20, 19, 2, 28, 12, 24, 14, 16, 75, 27, 74, 27, 64, 42, 19, 74, 21, 68, 25, 62, 47, 20, 73, 21, 70, 28, 50, 62, 27, 70, 25, 69, 27, 22, 72, 21, 73, 24, 67, 30, 22, 71, 21, 71, 23, 69, 39, 30, 72, 51, 50, 40, 44, 44, 37, 52, 40, 47, 40, 40, 42, 32, 48, 100, 63, 58, 47, 44, 38, 52, 39, 45, 42, 39, 45, 39, 49, 37, 42, 38, 34, 44, 95, 38, 16];
-const CLIPS = 8;
-// la cámara lenta de la foto del panel Edición (escala, desplazamiento en fracción del ancho, s por ida)
-const DOLLY = { from: 1.04, to: 1.10, shift: 0.015, dur: 14 };
 const MOBILE = '(max-width: 767px)';
 const NARROW = '(max-width: 899px)';
+
+import { edicionPares } from './servicios-data.js';
 
 export function initOficios({ gsap, loop, still }) {
   const sec = document.querySelector('[data-oficios]');
@@ -368,105 +365,161 @@ export function initOficios({ gsap, loop, still }) {
     };
   }
 
-  // ---------- EDICIÓN: la sala de montaje ----------
+  // ---------- EDICIÓN: antes / después (BG) ----------
   function editFx(p) {
-    const suite = p.el.querySelector('[data-of-suite]');
-    const viewer = p.el.querySelector('[data-of-viewer]');
-    const imgs = p.el.querySelectorAll('.of-viewer__img');
-    const cams = p.el.querySelectorAll('[data-of-cam]');
-    const clipsEl = p.el.querySelector('[data-of-clips]');
-    const clips = [...clipsEl.children];
-    const wave = p.el.querySelector('[data-of-wave]');
-    const head = p.el.querySelector('[data-of-head]');
-    const s = { on: false, loaded: false, x: 0.5, tx: 0.5, user: false, drag: false, sweep: null, px: '', hx: '', clip: -1, hover: -1, t: 0 };
-    const load = () => {
-      if (s.loaded) return;
-      s.loaded = true;
-      imgs.forEach((i) => { i.loading = 'eager'; i.decode?.().catch(() => {}); });
-    };
-    // la cámara: las dos capas (GRADE y LOG) con el mismo movimiento; en pausa con el panel cerrado o fuera de pantalla
-    gsap.set(cams, { scale: DOLLY.from, transformOrigin: '50% 50%' });
-    const dolly = gsap.to(cams, { scale: DOLLY.to, xPercent: -DOLLY.shift * 100, yPercent: DOLLY.shift * 40, duration: DOLLY.dur, ease: 'sine.inOut', repeat: -1, yoyo: true, paused: true });
-    const playing = () => s.on && st.vis && !document.hidden;
-    const run = () => { if (playing()) dolly.play(); else dolly.pause(); };
-    // el visor ocupa todo el panel; la línea de tiempo, abajo a lo ancho, y el texto encima de ella (--of-tlh)
-    const size = () => {
-      p.el.style.setProperty('--of-tlh', `${suite.querySelector('[data-of-tl]').offsetHeight.toFixed(0)}px`);
-      // forma de onda: barras de 2 px (una cada 4 px) sacadas de WAVE
-      const dpr = Math.min(2, devicePixelRatio || 1);
-      const cw = wave.clientWidth;
-      const ch = wave.clientHeight;
-      if (!cw) return;
-      wave.width = Math.round(cw * dpr);
-      wave.height = Math.round(ch * dpr);
-      const c = wave.getContext('2d');
-      c.scale(dpr, dpr);
-      c.fillStyle = '#F35411';
-      const n = Math.floor(cw / 4);
-      for (let i = 0; i < n; i++) {
-        const a = WAVE[Math.min(WAVE.length - 1, Math.floor((i / n) * WAVE.length))] / 100;
-        const h = Math.max(2, a * ch);
-        c.fillRect(i * 4, (ch - h) / 2, 2, h);
+    const ba = p.el.querySelector('[data-of-ba]');
+    const after = p.el.querySelector('[data-of-after]');
+    const beforeImg = p.el.querySelector('[data-of-before-img]');
+    const knob = p.el.querySelector('[data-of-knob]');
+    const note = p.el.querySelector('[data-of-note]');
+    const sheet = p.el.querySelector('[data-of-sheet]');
+    const list = p.el.querySelector('[data-of-sheet-list]');
+    const pares = (edicionPares || []).filter((q) => q && q.antes && q.despues);
+    const s = { on: false, x: WIPE.from, tx: WIPE.from, pair: 0, swept: false, big: false, drag: null, tw: null };
+    const narrow = matchMedia(NARROW);
+    // la cortinilla: --x en el comparador (lo leen el recorte de "sin editar", la línea, el tirador y las etiquetas)
+    const apply = () => {
+      ba.style.setProperty('--x', `${(s.x * 100).toFixed(2)}%`);
+      const n = Math.round(s.x * 100);
+      if (knob.getAttribute('aria-valuenow') !== String(n)) {
+        knob.setAttribute('aria-valuenow', String(n));
+        knob.setAttribute('aria-valuetext', `${n} % sin editar`);
       }
     };
-    const seek = (i) => {
-      if (i === s.hover) return;
-      s.hover = i;
-      s.t = (i / CLIPS) * SRC.edit + 0.05;
+    const to = (x, dur = 0) => {
+      s.tw?.kill();
+      x = Math.min(1, Math.max(0, x));
+      s.tx = x; // (el teclado cuenta desde aquí, no desde donde va la animación)
+      if (dur) s.tw = gsap.to(s, { x, duration: dur, ease: 'power3.out', onUpdate: apply });
+      else { s.x = x; apply(); }
     };
-    const point = (clientX) => {
-      const r = viewer.getBoundingClientRect();
-      s.user = true;
-      s.sweep?.kill();
-      s.tx = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    // las fotos de una pareja: la de 1000 px; la grande, solo con el panel abierto en pantallas anchas (cuando las dos
+    // han cargado, se cambian a la vez: así nunca se ve una grande junto a una pequeña)
+    const srcs = (q, big) => [big ? q.despues : q.despuesSm || q.despues, big ? q.antes : q.antesSm || q.antes];
+    const put = ([d, a]) => {
+      if (after.getAttribute('src') !== d) after.src = d;
+      if (beforeImg.getAttribute('src') !== a) beforeImg.src = a;
     };
-    // ratón: la cortinilla sigue al cursor sobre el visor; los clips, al pasar, llevan el visor a su tramo
-    viewer.addEventListener('pointermove', (e) => { if (s.on && (e.pointerType === 'mouse' || s.drag)) point(e.clientX); });
-    viewer.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse' && s.on) { s.drag = true; point(e.clientX); } });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => viewer.addEventListener(t, () => { s.drag = false; }));
-    clips.forEach((li, i) => {
-      li.addEventListener('pointerenter', (e) => { if (s.on && e.pointerType === 'mouse') seek(i); });
-      li.addEventListener('pointerdown', () => { if (s.on) { s.hover = -1; seek(i); } });
+    const preload = (urls) => Promise.all(urls.map((u) => { const i = new Image(); i.decoding = 'async'; i.src = u; return i.decode().catch(() => {}); }));
+    const show = (k) => {
+      const q = pares[k];
+      if (!q) return;
+      s.pair = k;
+      const big = s.big;
+      after.alt = `${q.alt}, foto editada`;
+      if (q.w && q.h) [after, beforeImg].forEach((i) => { i.width = q.w; i.height = q.h; });
+      const pos = q.foco || '';
+      after.style.objectPosition = pos;
+      beforeImg.style.objectPosition = pos;
+      note.textContent = q.nota || '';
+      note.hidden = !q.nota;
+      [...list.children].forEach((li, i) => li.firstElementChild.setAttribute('aria-pressed', String(i === k)));
+      // el cambio, con las dos ya cargadas: un corte limpio
+      const u = srcs(q, big);
+      preload(u).then(() => { if (s.pair === k) put(u); });
+    };
+    const goBig = () => {
+      if (s.big || narrow.matches || !pares.length) return;
+      s.big = true;
+      const k = s.pair;
+      const u = srcs(pares[k], true);
+      preload(u).then(() => { if (s.pair === k) put(u); });
+    };
+    // la hoja de contactos: solo con más de una pareja (hasta 8 caben en una fila)
+    if (pares.length > 1) {
+      pares.slice(0, 8).forEach((q, i) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'of-sheet__btn';
+        b.setAttribute('aria-label', `Pareja ${i + 1} de ${Math.min(8, pares.length)}: ${q.alt}`);
+        b.setAttribute('aria-pressed', String(i === 0));
+        b.innerHTML = `<img src="${q.despuesSm || q.despues}" width="${q.w || 2000}" height="${q.h || 1500}" alt="" loading="lazy" decoding="async"><span>${String(i + 1).padStart(2, '0')}</span>`;
+        b.addEventListener('click', () => { if (s.pair !== i) show(i); });
+        li.append(b);
+        list.append(li);
+      });
+      sheet.hidden = false;
+      p.el.classList.add('has-sheet');
+    }
+    // arrastrar: con el ratón, al pulsar; con el dedo, solo si el gesto es horizontal (el vertical es del scroll:
+    // touch-action pan-y, y el navegador manda pointercancel)
+    const xAt = (e) => { const r = ba.getBoundingClientRect(); return (e.clientX - r.left) / r.width; };
+    ba.addEventListener('pointerdown', (e) => {
+      if (!s.on || e.button > 0) return;
+      s.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, live: e.pointerType === 'mouse' };
+      if (s.drag.live) { ba.setPointerCapture(e.pointerId); ba.classList.add('is-drag'); to(xAt(e)); e.preventDefault(); }
     });
-    clipsEl.addEventListener('pointerleave', () => { s.hover = -1; });
+    ba.addEventListener('pointermove', (e) => {
+      const d = s.drag;
+      if (!d || d.id !== e.pointerId) return;
+      if (!d.live) {
+        const dx = Math.abs(e.clientX - d.x0);
+        const dy = Math.abs(e.clientY - d.y0);
+        if (dy > 10 && dy > dx) { s.drag = null; return; }
+        if (dx < 8 || dx < dy) return;
+        d.live = true;
+        ba.setPointerCapture(e.pointerId);
+        ba.classList.add('is-drag');
+      }
+      to(xAt(e));
+    });
+    const end = (e) => {
+      if (!s.drag || s.drag.id !== e.pointerId) return;
+      s.drag = null;
+      ba.classList.remove('is-drag');
+    };
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => ba.addEventListener(t, end));
+    // teclado (slider): ← → (con Mayús, más), Re Pág / Av Pág, Inicio y Fin
+    knob.addEventListener('keydown', (e) => {
+      const big = e.shiftKey ? 4 : 1;
+      const step = { ArrowLeft: -WIPE.step * big, ArrowDown: -WIPE.step * big, ArrowRight: WIPE.step * big, ArrowUp: WIPE.step * big, PageDown: -0.2, PageUp: 0.2 }[e.key];
+      let x = null;
+      if (step) x = s.tx + step;
+      else if (e.key === 'Home') x = 0;
+      else if (e.key === 'End') x = 1;
+      if (x === null) return;
+      e.preventDefault();
+      e.stopPropagation(); // (las flechas del escenario cambian de panel: aquí mueven la cortinilla)
+      to(x, still ? 0 : 0.25);
+    });
+    apply();
     return {
       s,
-      load,
-      resize: size,
+      load() { [after, beforeImg].forEach((i) => { i.loading = 'eager'; }); if (pares.length) show(0); },
+      resize() {
+        if (!sheet.hidden) p.el.style.setProperty('--of-tlh', `${sheet.offsetHeight.toFixed(0)}px`);
+        if (s.on) goBig();
+      },
       open() {
         s.on = true;
-        load();
-        size();
-        run();
-        // sin ratón encima, la cortinilla barre sola una vez y se queda a la mitad
-        s.user = false;
-        s.sweep?.kill();
-        s.x = 0.04;
-        s.sweep = gsap.timeline({ delay: 0.35 })
-          .fromTo(s, { tx: 0.04 }, { tx: 0.96, duration: WIPE.sweep * 0.65, ease: 'power2.inOut' })
-          .to(s, { tx: 0.5, duration: WIPE.sweep * 0.35, ease: 'power2.inOut' });
+        knob.tabIndex = 0;
+        goBig();
+        this.resize();
+        // la primera vez: la cortinilla barre del 85 % a la mitad (enseña que se puede mover)
+        if (!s.swept) {
+          s.swept = true;
+          s.tw?.kill();
+          s.x = s.tx = WIPE.from;
+          apply();
+          s.tx = 0.5;
+          s.tw = gsap.to(s, { x: 0.5, duration: WIPE.sweep, ease: 'power3.inOut', delay: 0.45, onUpdate: apply });
+        }
       },
       close() {
         s.on = false;
-        s.sweep?.kill();
-        run(); // la cámara, congelada donde está
+        knob.tabIndex = -1;
+        s.drag = null;
+        ba.classList.remove('is-drag');
       },
-      visible: run,
-      still() { size(); s.x = s.tx = 0.5; viewer.style.setProperty('--x', '50%'); dolly.kill(); gsap.set(cams, { scale: 1, xPercent: 0, yPercent: 0 }); },
-      tick(ratio) {
-        if (!s.on) return;
-        const a = 1 - Math.pow(1 - WIPE.lerp, ratio);
-        s.x += (s.tx - s.x) * (s.user ? a : 1);
-        const px = `${(s.x * 100).toFixed(2)}%`;
-        if (px !== s.px) { s.px = px; viewer.style.setProperty('--x', px); }
-        // el cabezal recorre el montaje (SRC.edit s, en bucle) mientras el panel está abierto y en pantalla; el clip que
-        // pasa, marcado
-        if (playing()) s.t = (s.t + ratio / 60) % SRC.edit;
-        const f = s.t / SRC.edit;
-        const hx = `${(f * clipsEl.clientWidth).toFixed(1)}px`;
-        if (hx !== s.hx) { s.hx = hx; head.style.transform = `translate3d(${hx}, 0, 0)`; }
-        const c = Math.min(CLIPS - 1, Math.floor(f * CLIPS));
-        if (c !== s.clip) { clips[s.clip]?.classList.remove('is-on'); clips[c].classList.add('is-on'); s.clip = c; }
+      visible() {},
+      still() {
+        s.on = true;
+        s.swept = true;
+        knob.tabIndex = 0;
+        to(0.5);
+        goBig();
+        this.resize();
       },
     };
   }
@@ -577,6 +630,5 @@ export function initOficios({ gsap, loop, still }) {
     if (!st.vis) return;
     fx.foto.tick(ratio);
     fx.video.tick();
-    fx.edit.tick(ratio);
   });
 }

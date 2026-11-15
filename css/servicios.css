@@ -400,52 +400,48 @@
 .of-sound:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
 .of-panel--video .of-text { padding-right: 52px; } /* el texto no llega al botón de sonido */
 
-/* Edición: la sala de montaje. El visor ocupa todo el panel (el reel vertical, recortado) con la cortinilla: a la
-   izquierda de la línea, LOG; a la derecha, GRADE (--x desde js). Abajo, a lo ancho, la línea de tiempo: V1 con los
-   8 clips del reel (tira-reel.webp), A1 con su forma de onda real y el cabezal sincronizado; el texto, encima */
+/* Edición: antes / después (BG). La misma foto sin editar (izquierda, recortada por la cortinilla) y editada (debajo,
+   entera); --x desde js. Se arrastra (ratón, dedo en horizontal) o con el teclado sobre el tirador (role slider).
+   Abajo, con más de una pareja, la hoja de contactos; el texto, encima de ella (--of-tlh).
+   (LEGACY: la sala de montaje con el reel, en legacy/servicios-oficios-edicion-reel/) */
 .of-panel--edit { background: #0e0b0b; }
-.of-suite { position: absolute; inset: 0; }
-.of-viewer {
+.of-ba {
+  --x: 85%;
   position: absolute;
   inset: 0;
   overflow: hidden;
   background: #000;
   touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
-/* AT-A: la foto de E, S, B en el visor (antes, el reel de la fiesta: legacy/servicios-oficios-video-bus/). La cámara
-   lenta mueve las dos capas igual (js/oficios.js); la de LOG, encima, recortada por la cortinilla */
-.of-cam { position: absolute; inset: 0; will-change: transform; }
-.of-viewer__img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
-/* LOG: la foto "en bruto": sin el color del neón y con un velo gris muy leve */
-.of-viewer__img--log { filter: saturate(0.35) contrast(0.78) brightness(1.08); }
-.of-log {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  clip-path: inset(0 calc(100% - var(--x, 50%)) 0 0);
-  pointer-events: none;
-}
-.of-log::after { content: ""; position: absolute; inset: 0; background: rgb(150 146 144 / 0.08); }
+.of-panel.is-open .of-ba { cursor: ew-resize; }
+.of-ba__img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; pointer-events: none; }
+.of-ba__before { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--x)) 0 0); pointer-events: none; }
 .of-wipe { position: absolute; inset: 0; pointer-events: none; }
 .of-wipe::before {
   content: "";
   position: absolute;
   top: 0;
   bottom: 0;
-  left: var(--x, 50%);
+  left: var(--x);
   width: 1px;
   background: #fff;
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.2);
 }
+/* el tirador: también el slider (con el panel abierto se llega con el tabulador) */
 .of-wipe__knob {
   position: absolute;
-  left: var(--x, 50%);
-  top: 50%;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
+  left: var(--x);
+  top: var(--wipe-y, 50%);
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
   border: 1px solid #fff;
   border-radius: 50%;
-  background: rgb(11 9 9 / 0.45);
+  background: rgb(11 9 9 / 0.5);
+  pointer-events: auto;
+  transition: background-color 0.3s cubic-bezier(0.32, 0.72, 0, 1), scale 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .of-wipe__knob::before,
 .of-wipe__knob::after {
@@ -455,58 +451,94 @@
   margin-top: -4px;
   border: 4px solid transparent;
 }
-.of-wipe__knob::before { left: 2px; border-right-color: #fff; }
-.of-wipe__knob::after { right: 2px; border-left-color: #fff; }
+.of-wipe__knob::before { left: 4px; border-right-color: #fff; }
+.of-wipe__knob::after { right: 4px; border-left-color: #fff; }
+.of-wipe__knob:focus { outline: none; }
+.of-wipe__knob:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.of-ba:hover .of-wipe__knob,
+.of-ba.is-drag .of-wipe__knob { background: rgb(243 84 17 / 0.85); }
+.of-ba.is-drag .of-wipe__knob { scale: 0.92; }
+/* SIN EDITAR / EDITADA: a los dos lados del tirador */
 .of-wipe__tag {
   position: absolute;
-  top: 10px;
+  top: var(--wipe-y, 50%);
+  padding: 5px 7px 4px;
+  background: rgb(11 9 9 / 0.6);
   font: 400 10px / 1 var(--font-mono);
   letter-spacing: 0.12em;
-  color: rgb(244 242 239 / 0.85);
+  color: var(--paper);
+  white-space: nowrap;
+  translate: 0 -50%;
 }
-.of-wipe__tag--l { right: calc(100% - var(--x, 50%) + 10px); }
-.of-wipe__tag--r { left: calc(var(--x, 50%) + 10px); }
-.of-tl {
+.of-wipe__tag--l { right: calc(100% - var(--x) + 28px); }
+.of-wipe__tag--r { left: calc(var(--x) + 28px); }
+/* la nota de la pareja (RAW → DISCO GRADE), arriba a la derecha como el contador de Foto */
+.of-note {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 5;
+  margin: 0;
+  padding: 5px 7px 4px;
+  background: rgb(11 9 9 / 0.7);
+  font: 400 11px / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--paper);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.of-panel.is-open .of-note { opacity: 1; transition-delay: 0.4s; }
+/* la hoja de contactos: una miniatura (la editada) por pareja, con su número; la que se ve, con el borde naranja */
+.of-sheet {
   position: absolute;
   left: var(--of-pad);
-  right: var(--of-pad);
   bottom: var(--of-pad);
+  max-width: calc(100% - var(--of-pad) * 2); /* abraza sus miniaturas; si no caben, se desliza en horizontal */
   z-index: 4;
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  align-items: center;
-  gap: 6px;
-  padding: 10px 12px 10px 10px;
+  padding: 8px;
   border-radius: 10px;
   background: rgb(11 9 9 / 0.72);
   backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease, visibility 0.3s;
 }
-/* el texto del panel abierto, encima de la línea de tiempo */
-.of-panel--edit .of-copy { padding-bottom: calc(var(--of-pad) * 1.6 + var(--of-tlh, 72px)); }
-.of-tl__track { font: 400 10px / 1 var(--font-mono); letter-spacing: 0.08em; color: var(--dim); }
-.of-tl__clips { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
-.of-tl__clips li {
-  flex: 1 1 0;
-  aspect-ratio: 16 / 9;
-  border-radius: 2px;
-  background: url("../assets/servicios/oficios-real/tira-reel.webp") calc(var(--i) * 100% / 7) 0 / 800% 100% no-repeat;
-  box-shadow: inset 0 0 0 1px rgb(244 242 239 / 0.14);
+.of-panel:not(.is-open) .of-sheet { opacity: 0; visibility: hidden; }
+.of-sheet[hidden] { display: none; }
+.of-sheet__list { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
+.of-sheet__list::-webkit-scrollbar { display: none; }
+.of-sheet__list > li { flex: none; }
+.of-sheet__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font: 400 9px / 1 var(--font-mono);
+  letter-spacing: 0.1em;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
 }
-.of-tl__clips li.is-on { box-shadow: inset 0 0 0 1px #F35411; }
-.of-tl__wave { display: block; width: 100%; height: 20px; }
-.of-tl__head {
-  position: absolute;
-  left: 38px;
-  top: 6px;
-  bottom: 8px;
-  width: 2px;
-  margin-left: -1px;
-  background: var(--orange);
-  pointer-events: none;
-  will-change: transform;
+.of-sheet__btn img {
+  display: block;
+  width: auto;
+  height: 46px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 3px;
+  opacity: 0.6;
+  outline: 1px solid rgb(244 242 239 / 0.14);
+  outline-offset: -1px;
+  transition: opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1), outline-color 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
+.of-sheet__btn:hover img { opacity: 1; }
+.of-sheet__btn[aria-pressed="true"] { color: var(--paper); }
+.of-sheet__btn[aria-pressed="true"] img { opacity: 1; outline: 1.5px solid var(--orange); }
+.of-sheet__btn:focus { outline: none; }
+.of-sheet__btn:focus-visible img { outline: 2px solid var(--orange); outline-offset: 2px; }
+/* el texto del panel abierto, encima de la hoja de contactos (solo si la hay) */
+.of-panel--edit.has-sheet .of-copy { padding-bottom: calc(var(--of-pad) * 1.6 + var(--of-tlh, 72px)); }
 
 /* móvil: los tres paneles apilados */
 @media (max-width: 767px) {
@@ -523,7 +555,11 @@
   .of-tc { right: 18px; }
   .of-count { top: 12px; right: 14px; }
   .of-sound { right: 14px; bottom: 14px; }
-  .of-tl { padding: 8px 10px 8px 8px; }
+  .of-note { top: 12px; right: 14px; }
+  .of-sheet__btn img { height: 38px; }
+  .of-wipe__tag { font-size: 9px; }
+  .of-ba { --wipe-y: 32%; } /* el tirador, por encima del texto del panel */
+  .has-sheet .of-ba { --wipe-y: 22%; }
   /* AY-B: el panel entero es el botón. La regla común del texto (base.css: h1–h6 en position relative, z 4) hacía del
      título el bloque contenedor del ::after del botón: la zona táctil quedaba en el título, que en un panel cerrado
      se dibuja por encima del panel (recortado), sobre la foto del panel abierto. Sin posición, el ::after vuelve a

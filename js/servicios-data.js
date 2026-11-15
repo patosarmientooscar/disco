@@ -11,3 +11,24 @@ export const sectors = [
   { name: 'Empresas y artistas', text: 'Vídeo corporativo, entrevistas, retratos y contenido para redes.', photo: { src: 'assets/servicios/sectores/artistas-directo.webp', w: 1600, h: 900, alt: 'En blanco y negro, retrato de un artista entre carteles y pantallas de un directo' } },
   { name: 'Eventos deportivos', text: 'Cobertura en directo, highlights y foto de acción.', photo: { src: 'assets/servicios/sectores/deportes-rugby.webp', w: 1600, h: 900, alt: 'Jugador de rugby con la camiseta azul del número 10 chutando en el campo' } },
 ];
+
+// Tres oficios, panel Edición (js/oficios.js): antes / después con fotos reales. Cada pareja es LA MISMA foto sin editar
+// (antes) y editada (después). Para añadir una:
+//   · las dos con el mismo encuadre exacto y el mismo tamaño (si no, la cortinilla no casa);
+//   · webp de 2000 px de ancho + su versión de 1000 px (-1000.webp), en assets/servicios/post/;
+//   · ancho y alto (w, h) de la grande; alt: qué se ve, corto; nota: la etiqueta de la esquina (opcional);
+//   · foco (opcional): el punto que manda al recortar la foto al panel ('50% 45%' si no se pone).
+// Con una sola pareja no se ve la tira de miniaturas; con 2–8, sí (una por pareja, en este orden).
+export const edicionPares = [
+  {
+    antes: 'assets/servicios/post/post-antes.webp',
+    antesSm: 'assets/servicios/post/post-antes-1000.webp',
+    despues: 'assets/servicios/post/post-despues.webp',
+    despuesSm: 'assets/servicios/post/post-despues-1000.webp',
+    w: 2000,
+    h: 1500,
+    alt: 'Cuatro amigas cantando y riendo con un micro en una fiesta',
+    foco: '50% 30%',
+    nota: 'RAW → DISCO GRADE',
+  },
+];
