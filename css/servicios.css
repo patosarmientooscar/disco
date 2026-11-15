@@ -314,6 +314,31 @@
 }
 .of-af.is-locked .of-af__exif { opacity: 1; }
 .of-af.is-left .of-af__exif { left: auto; right: calc(100% + 10px); }
+/* BG: la serie. Las 4 fotos, apiladas; se ve la que lleva .is-on (el corte, con el obturador cerrado: sin fundido). Al
+   cerrar el panel, la primera entra fundida por encima de la que se va (.is-leaving) */
+.of-pic__in > .of-img { opacity: 0; }
+.of-pic__in > .of-img.is-on { z-index: 1; opacity: 1; }
+.of-pic__in > .of-img.is-leaving { opacity: 1; }
+.of-af { z-index: 2; }
+/* el contador de la cámara: en qué foto de la serie vas (como el REC y el timecode del panel Vídeo) */
+.of-count {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 5;
+  margin: 0;
+  padding: 5px 7px 4px;
+  background: rgb(11 9 9 / 0.7); /* como la exposición: se lee sobre un cielo blanco */
+  font: 400 11px / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: rgb(244 242 239 / 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.of-count span { color: var(--paper); }
+.of-panel.is-open .of-count { opacity: 1; transition-delay: 0.4s; }
 
 /* Vídeo: bandas de cine (alto desde JS), REC, timecode y el botón de sonido */
 .of-bar {
@@ -496,6 +521,7 @@
   .of-tc { top: 14px; }
   .of-rec { left: 18px; }
   .of-tc { right: 18px; }
+  .of-count { top: 12px; right: 14px; }
   .of-sound { right: 14px; bottom: 14px; }
   .of-tl { padding: 8px 10px 8px 8px; }
   /* AY-B: el panel entero es el botón. La regla común del texto (base.css: h1–h6 en position relative, z 4) hacía del

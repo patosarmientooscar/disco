@@ -6,7 +6,10 @@
 // (último fotograma) y el que se abre arranca (anchos: 0.9 s expo.inOut).
 //   FOTO, el disparo: obturador (dos láminas que se cierran hasta el centro y se abren en 0.18 s), flash, la foto
 //     "congelada" (zoom 1.04 → 1) y el AF que se cierra con rebote sobre una cara (con el ratón: parallax ±10 px y el
-//     AF salta a la cara que tengas debajo).
+//     AF salta a la cara que tengas debajo). BG: una serie de 4 fotos (SERIE): con el panel abierto y en pantalla, cada
+//     3,5 s se dispara la siguiente y el corte cae con el obturador cerrado; el contador (01/04) y la exposición cambian
+//     con ella. Cerrado, la primera, quieta. Solo se carga la foto siguiente.
+//     (LEGACY: la foto sola de antes, en legacy/servicios-oficios-foto-antigua/)
 //   VÍDEO, el directo: corte (un fotograma en negro), el baile en el bus (oficios-real/bus.mp4), bandas de cine hasta
 //     2.39:1, REC y el timecode real del vídeo. El botón de sonido le quita el silencio al propio vídeo (su audio, a
 //     la vez que la imagen); al cerrar el panel, se vuelve a silenciar.
@@ -19,15 +22,19 @@
 // Movimiento reducido: los tres abiertos, quietos; el vídeo, con un botón para reproducirlo.
 // (LEGACY: la bailarina, en legacy/servicios-oficios-bailarina/)
 const MEDIA = {
-  foto: { w: 2400, h: 1800, fx: 0.5, fy: 0.4 },    // oficios-real/foto.webp (DSC03230): encuadre entre las dos caras
+  foto: { w: 2400, h: 1800, fx: 0.5, fy: 0.4 },    // oficios-real/foto-serie/ (todas 4:3): encuadre algo por encima del centro
   video: { w: 1280, h: 720, fx: 0.5, fy: 0.45 },   // oficios-real/bus.mp4 (el baile en el bus)
 };
-// caras de la foto (fracción de la imagen: centro y ancho); la primera, la de la izquierda (donde se cierra el AF)
-const FACES = [
-  { x: 0.42, y: 0.37, w: 0.16 },   // las dos que cantan al micro, abrazadas
-  { x: 0.585, y: 0.385, w: 0.16 },
-  { x: 0.045, y: 0.28, w: 0.09 },  // la del fondo, a la izquierda
+// BG: la serie del panel Foto, en el orden del HTML (img[data-of-shot]). Por foto: las caras (fracción de la imagen:
+// centro y ancho; en la primera se cierra el AF, las demás se enfocan al pasar el ratón) y su exposición (creíble: de
+// noche, ISO alto). Si se cambia una foto, se ajustan aquí sus caras mirando una captura.
+const SERIE = [
+  { exif: '1/125 · f/2.8 · ISO 3200', faces: [{ x: 0.37, y: 0.35, w: 0.17 }, { x: 0.525, y: 0.38, w: 0.12 }, { x: 0.755, y: 0.32, w: 0.09 }] }, // Cachondeo Group: el del micro
+  { exif: '1/60 · f/1.8 · ISO 6400', faces: [{ x: 0.585, y: 0.4, w: 0.2 }] },                                    // E, S, B: la barra con neones
+  { exif: '1/1000 · f/4 · ISO 100', faces: [{ x: 0.6, y: 0.43, w: 0.25 }] },                                      // retrato de día, el mar detrás
+  { exif: '1/200 · f/8 · ISO 400', faces: [{ x: 0.33, y: 0.33, w: 0.16 }, { x: 0.545, y: 0.3, w: 0.14 }] },      // editorial con flash, B/N
 ];
+const SHOT = { every: 3.5, still: 6 }; // s entre foto y foto (con movimiento reducido: un corte, cada 6 s)
 const GROW = { open: 5, openM: 4, closed: 1 };
 const OPEN = { dur: 0.9, ease: 'expo.inOut' };
 const SHADE = { closed: 0.55, open: 0.15 };
@@ -152,20 +159,48 @@ export function initOficios({ gsap, loop, still }) {
     fx[p.key].close();
   }
 
-  // ---------- FOTO: el disparo ----------
+  // ---------- FOTO: el disparo (BG: una serie de 4; cada ~3,5 s se dispara la siguiente, con el corte en el obturador) ----------
   function fotoFx(p) {
     const blades = p.el.querySelectorAll('[data-of-blade]');
     const flash = p.el.querySelector('[data-of-flash]');
     const af = p.el.querySelector('[data-of-af]');
-    const shots = [];
-    const s = { face: 0, on: false };
+    const exif = p.el.querySelector('[data-of-exif]');
+    const count = p.el.querySelector('[data-of-count]');
+    const shots = [...p.el.querySelectorAll('[data-of-shot]')];
+    const n = Math.min(shots.length, SERIE.length);
+    const shotTimes = [];
+    const s = { face: 0, on: false, i: 0, t: 0 };
+    const faces = () => SERIE[s.i].faces;
+    // las fotos de la serie se cargan de una en una: la que toca y la siguiente (las demás, ni se piden)
+    const load = (k) => {
+      const img = shots[k % n];
+      if (!img || !img.dataset.src) return;
+      img.srcset = img.dataset.srcset;
+      img.src = img.dataset.src;
+      img.loading = 'eager';
+      delete img.dataset.src;
+      delete img.dataset.srcset;
+      img.decode?.().catch(() => {});
+    };
+    const ready = (img) => img.complete && img.naturalWidth > 0;
+    // el corte: la foto k pasa a ser la visible (con su exposición y su número)
+    const show = (k) => {
+      shots[s.i].classList.remove('is-on');
+      shots[s.i].setAttribute('aria-hidden', 'true');
+      s.i = k;
+      shots[k].classList.add('is-on');
+      shots[k].removeAttribute('aria-hidden');
+      exif.textContent = SERIE[k].exif;
+      count.textContent = String(k + 1).padStart(2, '0');
+      load(k + 1);
+    };
     // el parallax mueve la foto con sus escuadras (el zoom del disparo, en la misma capa, lo compone gsap)
     const px = gsap.quickTo(p.inner, 'x', { duration: 0.8, ease: 'power2.out' });
     const py = gsap.quickTo(p.inner, 'y', { duration: 0.8, ease: 'power2.out' });
     // las escuadras sobre una cara (con su rebote de enfoque: entra grande, se pasa, rebota y se queda)
     const focusOn = (i, bounce = true) => {
       s.face = i;
-      const f = FACES[i];
+      const f = faces()[i];
       const fw = f.w * p.box.cw;
       af.style.setProperty('--af-w', `${fw.toFixed(1)}px`);
       af.classList.toggle('is-left', f.x > 0.6); // la exposición, al lado que tenga sitio
@@ -185,23 +220,44 @@ export function initOficios({ gsap, loop, still }) {
       }
       tl.add(() => af.classList.add('is-locked'));
     };
+    // el disparo: las láminas se cierran hasta el centro y, cerradas, el corte a la foto k (si hay); al abrir, flash y
+    // la foto congelada (zoom 1.04 → 1); luego el AF se cierra sobre su primera cara
+    const shoot = (k) => {
+      const now = performance.now();
+      while (shotTimes.length && now - shotTimes[0] > 1000) shotTimes.shift();
+      const fire = shotTimes.length < SHUTTER.perSec; // (como mucho 3 disparos por segundo)
+      gsap.to(af, { opacity: 0, duration: 0.08, overwrite: true });
+      af.classList.remove('is-locked');
+      if (!fire) { if (k !== s.i) show(k); } else shotTimes.push(now);
+      if (fire) gsap.timeline({ overwrite: true })
+        .set(blades, { scaleY: 0 })
+        .to(blades, { scaleY: 1, duration: SHUTTER.half, ease: 'power2.in' })
+        .add(() => { if (k !== s.i) show(k); })
+        .to(blades, { scaleY: 0, duration: SHUTTER.half, ease: 'power2.out' })
+        .fromTo(flash, { opacity: SHUTTER.flash }, { opacity: 0, duration: SHUTTER.flashDur, ease: 'power2.out' }, SHUTTER.half)
+        .fromTo(p.inner, { scale: SHUTTER.zoom }, { scale: 1, duration: 0.9, ease: 'expo.out' }, SHUTTER.half);
+      gsap.delayedCall(0.25, () => { if (s.on || still) focusOn(0); });
+    };
+    // la siguiente de la serie (si aún no ha llegado, se espera: el contador no se adelanta a una foto sin cargar)
+    const next = () => {
+      const k = (s.i + 1) % n;
+      load(k);
+      if (!ready(shots[k])) return false;
+      if (still) {
+        // movimiento reducido: un corte simple, sin obturador ni flash; el AF, quieto en su cara
+        show(k);
+        focusOn(0, false);
+      } else shoot(k);
+      return true;
+    };
     return {
       s,
+      load: () => load(1),
       open() {
         s.on = true;
-        const now = performance.now();
-        while (shots.length && now - shots[0] > 1000) shots.shift();
-        if (shots.length < SHUTTER.perSec) {
-          shots.push(now);
-          // las láminas se cierran hasta el centro y se abren; al abrir, flash y la foto congelada (zoom 1.04 → 1)
-          gsap.timeline({ overwrite: true })
-            .set(blades, { scaleY: 0 })
-            .to(blades, { scaleY: 1, duration: SHUTTER.half, ease: 'power2.in' })
-            .to(blades, { scaleY: 0, duration: SHUTTER.half, ease: 'power2.out' })
-            .fromTo(flash, { opacity: SHUTTER.flash }, { opacity: 0, duration: SHUTTER.flashDur, ease: 'power2.out' }, SHUTTER.half)
-            .fromTo(p.inner, { scale: SHUTTER.zoom }, { scale: 1, duration: 0.9, ease: 'expo.out' }, SHUTTER.half);
-        }
-        gsap.delayedCall(0.25, () => { if (s.on) focusOn(0); });
+        s.t = 0;
+        // la sesión empieza siempre por la primera: el disparo de entrada la "hace"
+        shoot(0);
       },
       close() {
         s.on = false;
@@ -209,9 +265,22 @@ export function initOficios({ gsap, loop, still }) {
         af.classList.remove('is-locked');
         px(0);
         py(0);
+        // cerrado se ve la primera, quieta (entra fundida mientras el panel se oscurece y se estrecha)
+        if (s.i !== 0) {
+          const from = shots[s.i];
+          show(0);
+          from.classList.add('is-leaving');
+          gsap.fromTo(shots[0], { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power2.out', clearProps: 'opacity', onComplete: () => from.classList.remove('is-leaving') });
+        }
       },
-      resize() { if (s.on && +getComputedStyle(af).opacity > 0) focusOn(s.face, false); },
+      resize() { if ((s.on || still) && +getComputedStyle(af).opacity > 0) focusOn(s.face, false); },
       still() { focusOn(0); },
+      // el reloj de la serie: solo corre con el panel abierto y la sección en pantalla (lo llama el loop)
+      tick(ratio) {
+        if (!(s.on || still) || n < 2) return;
+        s.t += ratio / 60;
+        if (s.t >= (still ? SHOT.still : SHOT.every) && next()) s.t = 0;
+      },
       // con el ratón encima: parallax y el AF a la cara que hay debajo
       point(e) {
         if (!s.on) return;
@@ -221,7 +290,7 @@ export function initOficios({ gsap, loop, still }) {
         const ir = p.inner.getBoundingClientRect();
         const u = (e.clientX - ir.left) / ir.width;
         const v = (e.clientY - ir.top) / ir.height;
-        const hit = FACES.findIndex((f) => Math.abs(u - f.x) < f.w * 0.65 && Math.abs(v - f.y) < f.w * 0.9 * (ir.width / ir.height));
+        const hit = faces().findIndex((f) => Math.abs(u - f.x) < f.w * 0.65 && Math.abs(v - f.y) < f.w * 0.9 * (ir.width / ir.height));
         if (hit >= 0 && hit !== s.face) focusOn(hit, false);
       },
       leave() { px(0); py(0); if (s.on && s.face !== 0) focusOn(0, false); },
@@ -412,13 +481,14 @@ export function initOficios({ gsap, loop, still }) {
   let raf = null;
   window.addEventListener('resize', () => { raf?.kill(); raf = gsap.delayedCall(0, measure); });
 
-  // con la sección a una pantalla: la foto y los metadatos de los dos vídeos
+  // con la sección a una pantalla: la primera foto de la serie (y la siguiente, nada más) y los metadatos de los vídeos
   const near = new IntersectionObserver((es) => {
     if (!es.some((e) => e.isIntersecting)) return;
     near.disconnect();
     const img = stage.querySelector('.of-img');
     img.loading = 'eager';
     img.decode?.().catch(() => {});
+    fx.foto.load();
     if (!still) { fx.video.load(); fx.edit.load(); }
   }, { rootMargin: SRC.near });
   near.observe(sec);
@@ -434,6 +504,9 @@ export function initOficios({ gsap, loop, still }) {
     });
     fx.edit.load();
     fx.video.button();
+    // la serie también pasa sola (un corte cada 6 s), solo con la sección en pantalla
+    new IntersectionObserver((es) => { st.vis = es[es.length - 1].isIntersecting; }).observe(sec);
+    loop.add((time, ratio) => { if (st.vis && !document.hidden) fx.foto.tick(ratio); });
     return;
   }
 
@@ -502,6 +575,7 @@ export function initOficios({ gsap, loop, still }) {
 
   loop.add((time, ratio) => {
     if (!st.vis) return;
+    fx.foto.tick(ratio);
     fx.video.tick();
     fx.edit.tick(ratio);
   });
