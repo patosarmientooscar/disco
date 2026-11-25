@@ -19,14 +19,14 @@ export const works = [
   {
     slug: '55b',
     title: '55B',
-    client: '55B · Fiesta en Madrid',                   // BORRADOR: Oscar confirma el cliente
+    client: '55B · Fiesta en El Internacional, Madrid · Noviembre 2026',
     category: 'noche',
     kind: 'foto',
     cover: 'assets/portfolio/55b/55b-portada-1000.webp',
     coverLarge: 'assets/portfolio/55b/55b-portada.webp',
     ratio: '16/9',
     media: [
-      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-01.webp', thumb: 'assets/portfolio/55b/55b-01-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: fotógrafo con la cámara y el flash bajo el letrero luminoso de 55B' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-01.webp', thumb: 'assets/portfolio/55b/55b-01-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: fotógrafo con la cámara y el flash bajo el letrero luminoso de 55B, en El Internacional' },
       { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-02.webp', thumb: 'assets/portfolio/55b/55b-02-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: de espaldas en la pista, con el letrero de 55B al fondo' },
       { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-03.webp', thumb: 'assets/portfolio/55b/55b-03-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chico con corbata haciendo los cuernos a cámara' },
       { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-04.webp', thumb: 'assets/portfolio/55b/55b-04-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chica riendo con una copa de cóctel en la mano' },
@@ -48,23 +48,23 @@ export const works = [
       { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-20.webp', thumb: 'assets/portfolio/55b/55b-20-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: fotógrafo sentado en el adoquín de la calle a la salida, revisando la cámara' },
     ],
     year: 2026,
-    deliverables: ['+40 fotos editadas', 'Blanco y negro con flash'],
-    // la página del proyecto (proyecto-55b.html). Solo fotos: sin reels (como E, S, B). Textos: BORRADOR (Oscar los confirma)
-    seo: { type: 'fotografía de fiesta', description: 'Flash directo y blanco y negro: una noche de fiesta en 55B, en Madrid, contada en más de 40 fotos editadas.' },
+    deliverables: ['Solo fotos', 'Blanco y negro con flash'],
+    // la página del proyecto (proyecto-55b.html). Solo fotos: sin reels (como E, S, B)
+    seo: { type: 'fotografía de fiesta', description: 'Flash directo y blanco y negro: la fiesta 55B en El Internacional (Madrid), en noviembre, contada solo en fotos.' },
     project: {
-      tagline: 'Una noche en 55B a golpe de flash. Blanco y negro, de cerca y sin posar.',
+      tagline: 'La fiesta 55B en El Internacional, a golpe de flash. Blanco y negro, de cerca y sin posar.',
       facts: [
-        ['Cliente', '55B [CONFIRMAR]'],
+        ['Cliente', '55B'],
         ['Tipo', 'Fiesta'],
-        ['Lugar', '55B, Madrid'],
-        ['Año', '2026'],
-        ['Entregables', '+40 fotos'],
+        ['Lugar', 'El Internacional, Madrid'],
+        ['Fecha', 'Noviembre 2026'],
+        ['Entregables', 'Solo fotos'],
         ['Equipo', 'Luna López, Bruno Marín'],
       ],
       story: [
-        ['El encargo', 'Contar una noche de fiesta en 55B tal como se vive: la pista, los sofás, las copas y la salida.'],
+        ['El encargo', 'Contar la fiesta 55B en El Internacional tal como se vive: la pista, los sofás, las copas y la salida.'],
         ['La idea', 'Todo en blanco y negro con flash directo: de cerca, con contraste, como un carrete de la noche.'],
-        ['El resultado', 'Más de 40 fotos editadas, listas para redes y para el recuerdo de quien estuvo.'],
+        ['El resultado', 'Una serie de fotos editadas, listas para redes y para el recuerdo de quien estuvo.'],
       ],
       reels: [],
       // "La noche en secuencia": 6 fotos con su pie (sin horas, como E, S, B). BORRADOR
