@@ -25,7 +25,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Preparar la web (sin carpetas de trabajo)
         run: |
@@ -36,11 +36,12 @@ jobs:
             --exclude='node_modules/' --exclude='.agents/' --exclude='skills-lock.json' --exclude='*.md'
           echo "Tamaño publicado: $(du -sh _site | cut -f1)"
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v3
+      # los archivos con punto (.htaccess, .nojekyll, .gitignore…) no se suben: la web no necesita ninguno
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
