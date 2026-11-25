@@ -1,6 +1,10 @@
 # Publica la web en GitHub Pages en cada push a main (y a mano: Actions → «Publicar en GitHub Pages» → Run workflow).
 # Sustituye a la publicación automática de GitHub («pages build and deployment»), que fallaba o se quedaba en cola.
 # La web se copia a _site sin las carpetas de trabajo (no se publican) y se sube tal cual: sin Jekyll ni build.
+# Dos jobs, como la plantilla oficial de GitHub: «build» prepara y sube el artefacto, y «deploy» (needs: build) lo
+# publica. En un solo job, deploy-pages buscaba el artefacto menos de un segundo después de subirlo y GitHub aún no lo
+# listaba («No artifacts named github-pages»); además, relanzar el job lo subía dos veces. Así, si falla deploy, se
+# relanza solo deploy (Re-run failed jobs) y usa el artefacto que ya está.
 name: Publicar en GitHub Pages
 
 on:
@@ -19,11 +23,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
 
@@ -43,5 +44,12 @@ jobs:
         with:
           path: _site
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v5
