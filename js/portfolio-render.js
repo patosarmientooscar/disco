@@ -1,7 +1,7 @@
 // El bloque de cada proyecto en la lista del portfolio (AS-D), sin DOM: lo usan js/portfolio.js y
 // tools/proyectos.mjs, que lo deja ya en el HTML de portfolio.html (para que Google lea título, línea, frase y enlace
 // sin ejecutar JS; al cargar, js/portfolio.js lo vuelve a pintar igual).
-import { projectUrl as page } from './proyecto-render.js';
+import { projectUrl as page, ratioSize } from './proyecto-render.js';
 
 export const FEATURED_MAX = 6; // hasta aquí, cada trabajo a todo el ancho, uno debajo de otro; con más, la rejilla
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -21,6 +21,11 @@ export function renderFeaturedList(list) {
 export function renderFeatured(w, i) {
   const photos = (w.media || []).filter((m) => m.type === 'img');
   const first = photos[0];
+  const size = first || ratioSize(w.ratio); // (sin fotos: la medida de la portada sale de su ratio)
+  // BI: trabajo de vídeo con preview: mudo, en bucle, al pasar el ratón (js/portfolio.js → initFeatured; solo con ratón
+  // y si el preview es horizontal: uno vertical no cabe en la portada 16:9)
+  const preview = w.kind === 'video' && w.preview ? `
+        <video class="pf-feat__preview" src="${esc(w.preview)}" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>` : '';
   const peek = [...photos.filter((m) => m.h > m.w), ...photos.slice(1).filter((m) => m.h <= m.w)].slice(0, 3);
   const line = [w.client, ...(w.deliverables || [])].filter(Boolean).map(esc).join(' · ');
   const all = page(w.slug, '?ver=galeria');
@@ -29,7 +34,7 @@ export function renderFeatured(w, i) {
   return `<div class="pf-proj">
     <article class="pf-feat">
       <a class="pf-feat__cover" href="${page(w.slug)}">
-        <img src="${esc(w.coverLarge || w.cover)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || w.cover)} 2000w" sizes="100vw"${first ? ` width="${first.w}" height="${first.h}"` : ''} alt="${esc(first?.alt || '')}" loading="lazy" decoding="async">
+        <img src="${esc(w.coverLarge || w.cover)}" srcset="${esc(w.cover)} 1000w, ${esc(w.coverLarge || w.cover)} 2000w" sizes="100vw" width="${size.w}" height="${size.h}" alt="${esc(first?.alt || '')}" loading="lazy" decoding="async">${preview}
         <span class="pf-feat__text">
           <h3 class="pf-feat__title">${esc(w.title)}</h3>
           <span class="pf-feat__line">${line}</span>

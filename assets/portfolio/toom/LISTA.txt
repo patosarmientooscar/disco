@@ -1,0 +1,6 @@
+toom-video.mp4	1920x1080 46 s	TOOM VIDEO_V2.mp4
+toom-video-1280.mp4	1280x720
+toom-reel.mp4	720x1280 18 s	reel toom
+toom-preview.mp4	720 px, 5 s mudo (26-31 s del video)
+toom-portada / toom-video-poster	fotograma 12,5 s (letrero TOOM)
+toom-reel-poster	fotograma 0,6 s del reel (kebab)

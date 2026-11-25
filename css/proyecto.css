@@ -148,6 +148,54 @@
 .pj-story__title { margin: 0; font: 500 clamp(24px, 2.2vw, 34px) / 1.05 var(--font-display); letter-spacing: -0.02em; }
 .pj-story__text { max-width: 34ch; margin: 16px 0 0; font: 400 18px / 1.55 var(--font-display); color: rgb(244 242 239 / 0.82); text-wrap: pretty; }
 
+/* ---------- (BI) "El vídeo": el horizontal del proyecto, con el lenguaje del showreel del portfolio
+   (css/portfolio.css → .reel__viewer / .reel__play / .reel__mute): 16:9 con el radio de la web, un solo play redondo y,
+   mientras se reproduce, dos pastillas pequeñas abajo a la derecha ---------- */
+.pj-film { padding-bottom: clamp(96px, 16vh, 180px); }
+.pj-sheet + .pj-film { padding-top: 0; } /* (el padding inferior de la ficha ya es el hueco) */
+.pj-film__viewer { position: relative; margin-top: clamp(40px, 7vh, 72px); overflow: hidden; border-radius: 4px; background: #141111; }
+.pj-film__viewer video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #141111; }
+.pj-film__play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(244 242 239 / 0.92);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgb(11 9 9 / 0.18), 0 12px 32px -12px rgb(11 9 9 / 0.7);
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.pj-film__play svg { margin-left: 3px; } /* el triángulo, centrado a ojo */
+.pj-film__play:hover { transform: scale(1.06); background: #f4f2ef; }
+.pj-film__play:active { transform: scale(0.97); }
+.pj-film__play:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
+html:not(.js) .pj-film__play { display: none; } /* (sin JS, los controles del navegador) */
+.pj-film__bar { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; }
+.pj-film__pill {
+  position: relative;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(11 9 9 / 0.62);
+  color: var(--paper);
+  font: 400 10px / 1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.pj-film__pill::before { content: ""; position: absolute; inset: -6px -2px; } /* (área táctil de 44 px aunque se vea pequeño) */
+.pj-film__pill:hover { background: rgb(11 9 9 / 0.82); }
+.pj-film__pill:focus-visible { outline: 1px solid var(--paper); outline-offset: 2px; }
+
 /* ---------- D) los reels ---------- */
 .pj-reels { padding: clamp(96px, 16vh, 180px) 0; background: #141111; }
 .pj-reels__row { display: flex; justify-content: center; gap: clamp(24px, 6vw, 120px); margin-top: clamp(48px, 8vh, 88px); }

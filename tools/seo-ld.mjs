@@ -112,6 +112,7 @@ export async function ldFor(page, { html, abs, BASE, projects }) {
       if (!pr) return [];
       const w = pr.work;
       const photos = (w.media || []).filter((m) => m.type === 'img').slice(0, 6);
+      const film = (w.media || []).find((m) => m.type === 'video' && m.w > m.h);
       return [
         {
           '@context': 'https://schema.org',
@@ -124,8 +125,12 @@ export async function ldFor(page, { html, abs, BASE, projects }) {
           dateCreated: String(w.year),
           locationCreated: { '@type': 'Place', name: 'Madrid' },
           creator: { '@id': ORG },
-          image: photos.map((m) => ({ '@type': 'ImageObject', contentUrl: abs(m.src), width: m.w, height: m.h, caption: m.alt })),
-          ...(w.project.reels?.length ? { video: w.project.reels.map((r) => video(r, `${w.title}: ${r.title}`, r.alt)) } : {}),
+          // (sin fotos: la portada)
+          image: photos.length
+            ? photos.map((m) => ({ '@type': 'ImageObject', contentUrl: abs(m.src), width: m.w, height: m.h, caption: m.alt }))
+            : [{ '@type': 'ImageObject', contentUrl: abs(w.coverLarge || w.cover), caption: w.title }],
+          // los vídeos: el horizontal ('El vídeo', si lo hay) y los reels
+          ...((film || w.project.reels?.length) ? { video: [...(film ? [video(film, `${w.title}: el vídeo`, film.alt)] : []), ...(w.project.reels || []).map((r) => video(r, `${w.title}: ${r.title}`, r.alt))] } : {}),
         },
         crumbs(['Portfolio', 'portfolio.html'], [w.title, page]),
       ];

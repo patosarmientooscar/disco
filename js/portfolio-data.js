@@ -79,6 +79,45 @@ export const works = [
     },
   },
   {
+    slug: 'toom',
+    title: 'Toóm',
+    client: 'Toóm · Deli libanés · Madrid [CONFIRMAR]', // BORRADOR: Oscar confirma la zona
+    category: 'restaurantes',
+    kind: 'video',
+    cover: 'assets/portfolio/toom/toom-portada-1000.webp',
+    coverLarge: 'assets/portfolio/toom/toom-portada.webp',
+    ratio: '16/9',
+    preview: 'assets/portfolio/toom/toom-preview.mp4',
+    // sin fotos: el vídeo horizontal (con w y h: su página lo enseña en "El vídeo"; srcSm, el de móvil) y el reel
+    media: [
+      { type: 'video', src: 'assets/portfolio/toom/toom-video.mp4', srcSm: 'assets/portfolio/toom/toom-video-1280.mp4', poster: 'assets/portfolio/toom/toom-video-poster.webp', w: 1920, h: 1080, alt: 'Vídeo de Toóm, deli libanés: cocina, platos y sala llena' },
+      { type: 'video', src: 'assets/portfolio/toom/toom-reel.mp4', poster: 'assets/portfolio/toom/toom-reel-poster.webp', alt: 'Reel vertical de Toóm' },
+    ],
+    year: 2026,
+    deliverables: ['1 vídeo horizontal', '1 reel vertical'],
+    // la página del proyecto (proyecto-toom.html). Sin fotos: ni secuencia ni galería. Textos: BORRADOR (Oscar los confirma)
+    seo: { type: 'vídeo para restaurante', description: 'Shawarma, pan recién hecho y la sala llena: un vídeo y un reel para Toóm, deli libanés en Madrid.' },
+    project: {
+      tagline: 'Del asador a la mesa: Toóm, deli libanés, contado en un vídeo y un reel.',
+      facts: [
+        ['Cliente', 'Toóm'],
+        ['Tipo', 'Vídeo para restaurante'],
+        ['Lugar', 'Madrid [CONFIRMAR]'],
+        ['Año', '2026'],
+        ['Entregables', '1 vídeo, 1 reel'],
+        ['Equipo', 'Luna López, Bruno Marín'],
+      ],
+      story: [
+        ['El encargo', 'Enseñar Toóm como se vive un día cualquiera: la cocina en marcha, el shawarma girando y la sala llena.'],
+        ['La idea', 'Luz cálida y planos cerca de las manos y del producto, con el ritmo de un servicio de verdad.'],
+        ['El resultado', 'Un vídeo horizontal para web y pantallas y un reel vertical para Instagram y TikTok.'],
+      ],
+      reels: [
+        { src: 'assets/portfolio/toom/toom-reel.mp4', poster: 'assets/portfolio/toom/toom-reel-poster.webp', title: 'El reel', duration: '0:18', alt: 'Reel vertical de Toóm' },
+      ],
+    },
+  },
+  {
     slug: 'cachondeo-group',
     title: 'Cachondeo Group',
     client: 'Cachondeo Group · Fiesta en Madrid', // BORRADOR: Oscar confirma lugar y fecha

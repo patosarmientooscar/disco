@@ -29,7 +29,7 @@ export async function buildProjects() {
     const photos = (w.media || []).filter((m) => m.type === 'img');
     // la imagen para compartir (1200×630, de la portada), si aún no está: con ffmpeg (si no hay, se avisa)
     const og = `assets/og/proyecto-${w.slug}.jpg`;
-    if (!existsSync(join(ROOT, og)) && photos[0]) {
+    if (!existsSync(join(ROOT, og)) && (w.coverLarge || photos[0])) { // (sin fotos: de la portada)
       try { execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', join(ROOT, w.coverLarge || photos[0].src), '-vf', 'scale=1200:630:force_original_aspect_ratio=increase,crop=1200:630', '-q:v', '3', join(ROOT, og)]); }
       catch { console.warn(`${og}: no se ha podido crear (¿ffmpeg?); hazla de 1200×630 a mano`); }
     }

@@ -45,7 +45,7 @@ export function init({ gsap, ScrollTrigger, lenis, loop, reduced }) {
 
   // de 1 a FEATURED_MAX trabajos: cada uno a todo el ancho, uno debajo de otro (el bloque de proyecto destacado)
   if (works.length <= FEATURED_MAX) {
-    initFeatured(works);
+    initFeatured(works, reduced);
     return;
   }
 
@@ -117,8 +117,22 @@ function initReel({ reduced }) {
 
 // --- hasta FEATURED_MAX trabajos: cada uno como proyecto destacado, uno debajo de otro, todos iguales ---
 // (el HTML, en js/portfolio-render.js; portfolio.html ya lo trae pintado: tools/proyectos.mjs)
-function initFeatured(list) {
+function initFeatured(list, reduced) {
   const stage = document.querySelector('[data-stage]');
   stage.classList.add('is-featured');
   stage.innerHTML = renderFeaturedList(list);
+  // BI: el preview, mudo y en bucle al pasar el ratón (como en la rejilla); solo con ratón, sin movimiento reducido y
+  // si es horizontal (se mira al cargarlo, la primera vez: uno vertical no cabe en la portada 16:9 y se quita)
+  if (reduced.matches || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  stage.querySelectorAll('.pf-feat__cover').forEach((a) => {
+    const v = a.querySelector('.pf-feat__preview');
+    if (!v) return;
+    let on = false;
+    v.addEventListener('loadedmetadata', () => { if (v.videoHeight > v.videoWidth) { v.pause(); v.removeAttribute('src'); v.load(); v.remove(); } }, { once: true });
+    a.addEventListener('pointerenter', () => {
+      on = true;
+      v.play().then(() => { if (on && v.isConnected) v.classList.add('is-playing'); }).catch(() => {});
+    });
+    a.addEventListener('pointerleave', () => { on = false; v.pause(); v.classList.remove('is-playing'); });
+  });
 }

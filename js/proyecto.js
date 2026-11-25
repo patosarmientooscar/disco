@@ -8,6 +8,9 @@ import { afterLoad } from './gpu.js';
 //   A) portada (100svh, sin pin): la foto de portada a pantalla completa (zoom leve con el scroll), un móvil con el
 //      reel en silencio y su botón de sonido, y abajo la etiqueta, el título y la frase;
 //   B) ficha (cliente, tipo, lugar, año, entregables, equipo) y C) el encargo, la idea y el resultado;
+//   (BI) "El vídeo": si el proyecto tiene un vídeo horizontal (media de vídeo con w > h), en 16:9 con el lenguaje del
+//      showreel del portfolio: póster, un play redondo que arranca CON sonido (nunca solo), y mientras suena, Pausa
+//      y Sonido abajo a la derecha. En móvil, su versión ligera (srcSm). Fuera de pantalla, se pausa;
 //   D) los dos reels en sus móviles: en silencio al entrar en pantalla, dándose el relevo (uno y, al acabar, el
 //      otro: dos vídeos a la vez no llegan a 60 fps); al tocar uno, suena en bucle (y el otro se calla y se para);
 //   E) la noche en secuencia: una tira de 6 fotos que avanza en horizontal con el scroll (sin pin);
@@ -28,7 +31,6 @@ const ZOOM = 1.1;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = (n) => String(n).padStart(2, '0');
 const mmss = (t) => `${Math.floor(t / 60)}:${pad(Math.round(t % 60))}`;
-const photoN = (m) => (m.src.match(/-(\d+)\.webp$/) || [])[1];
 
 export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.resolve() }) {
   const main = document.querySelector('[data-project]');
@@ -47,18 +49,18 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
   const still = reduced.matches;
   const p = w.project;
   const photos = (w.media || []).filter((m) => m.type === 'img');
-  const byN = Object.fromEntries(photos.map((m) => [photoN(m), m]));
-  const cover = photos[0];
-  const reels = p.reels || [];
   const { html, index } = renderProject(w, { works });
   // (proyecto-<slug>.html llega con el contenido ya en el HTML: tools/proyectos.mjs; si no, se pinta aquí)
   if (!main.dataset.slug) main.innerHTML = html;
 
   initCover({ gsap, ScrollTrigger, main, still, arrived });
-  const sound = initSound({ main, still });
+  // solo suena uno a la vez: si suena el vídeo, se callan los reels; si suena un reel, el vídeo se pausa
+  let film = { pause: () => {} };
+  const sound = initSound({ main, still, onLoud: () => film.pause() });
+  film = initFilm({ main, still, onLoud: () => sound.quiet() });
   initSequence({ gsap, ScrollTrigger, main, still });
-  const viewer = initViewer({ lenis, photos, main });
-  initGallery({ gsap, ScrollTrigger, main, still, viewer });
+  // (sin fotos, ni galería ni visor)
+  if (photos.length) initGallery({ gsap, ScrollTrigger, main, still, viewer: initViewer({ lenis, photos, main }) });
   initIndex({ lenis, main, still, ScrollTrigger, index });
   if (!still) {
     gsap.utils.toArray('[data-pj-reveal]', main).forEach((el, i) => {
@@ -72,7 +74,7 @@ export function init({ gsap, ScrollTrigger, lenis, reduced, arrived = Promise.re
     Promise.all([arrived, document.fonts?.ready]).then(() => { ScrollTrigger.refresh(); go(); });
     window.addEventListener('load', () => setTimeout(go, 60), { once: true });
   }
-  window.addEventListener('pagehide', () => sound.stop());
+  window.addEventListener('pagehide', () => { sound.stop(); film.pause(); });
 }
 
 // ---------- A) portada: el zoom con el scroll y la entrada ----------
@@ -106,9 +108,9 @@ function initCover({ gsap, ScrollTrigger, main, still, arrived }) {
 }
 
 // ---------- el sonido: solo suena uno a la vez (el reel de la portada o uno de los dos de abajo) ----------
-function initSound({ main, still }) {
+function initSound({ main, still, onLoud = () => {} }) {
   const coverV = main.querySelector('[data-pj-cover-video]');
-  if (!coverV) return { stop: () => {} }; // proyecto solo de fotos: ni reel en la portada ni sección de reels
+  if (!coverV) return { stop: () => {}, quiet: () => {} }; // proyecto solo de fotos: ni reel en la portada ni sección de reels
   const coverB = main.querySelector('[data-pj-cover-sound]');
   const section = main.querySelector('#reels');
   const reels = [...main.querySelectorAll('[data-pj-reel]')].map((fig) => ({ fig, v: fig.querySelector('video'), b: fig.querySelector('.pj-reel__hit') }));
@@ -130,6 +132,7 @@ function initSound({ main, still }) {
     item.v.muted = !on;
     item.b.setAttribute('aria-pressed', String(on));
     item.fig?.classList.toggle('is-loud', on);
+    if (on) onLoud();
   };
   const toggle = (item) => {
     const on = item.v.muted;
@@ -149,13 +152,53 @@ function initSound({ main, still }) {
   afterLoad().then(() => { loaded = true; coverPlay(); });
   new IntersectionObserver(([e]) => { coverOn = e.isIntersecting; coverPlay(); }, { threshold: 0.35 }).observe(coverV);
   new IntersectionObserver(([e]) => { inView = e.isIntersecting; runReels(); }, { threshold: 0.3 }).observe(section.querySelector('.pj-reels__row'));
-  return { stop: () => all.forEach((o) => o.v.pause()) };
+  return {
+    stop: () => all.forEach((o) => o.v.pause()),
+    // (suena el vídeo de "El vídeo": todos en silencio; siguen corriendo mudos, como antes de tocarlos)
+    quiet: () => { all.forEach((o) => { if (!o.v.muted) set(o, false); }); runReels(); },
+  };
+}
+
+// ---------- "El vídeo": el horizontal del proyecto (como el showreel del portfolio) ----------
+// play redondo en el centro (arranca con sonido: es un clic); mientras suena, Pausa y Sonido abajo a la derecha; clic
+// en el vídeo = pausa (vuelve el play). Fuera de pantalla se pausa. Movimiento reducido: además, los controles nativos
+function initFilm({ main, still, onLoud }) {
+  const box = main.querySelector('[data-pj-film]');
+  if (!box) return { pause: () => {} };
+  const v = box.querySelector('video');
+  const play = box.querySelector('[data-pj-film-play]');
+  const pause = box.querySelector('[data-pj-film-pause]');
+  const mute = box.querySelector('[data-pj-film-mute]');
+  v.controls = false; // (el HTML los trae por si no hay JS; con JS, el play redondo)
+  const showing = (on) => { play.hidden = on; pause.hidden = !on; mute.hidden = !on; box.classList.toggle('is-playing', on); };
+  const syncMute = () => { mute.setAttribute('aria-pressed', String(!v.muted)); mute.textContent = v.muted ? 'Sonido: no' : 'Sonido: sí'; };
+  play.addEventListener('click', () => {
+    v.muted = false;
+    syncMute();
+    v.controls = still;
+    onLoud();
+    v.play().then(() => pause.focus({ preventScroll: true })).catch(() => showing(false));
+  });
+  v.addEventListener('play', () => showing(true));
+  const stop = () => {
+    const had = box.contains(document.activeElement) && document.activeElement !== v;
+    showing(false);
+    if (had) play.focus({ preventScroll: true }); // (el foco no se pierde al esconderse Pausa)
+  };
+  v.addEventListener('pause', stop);
+  v.addEventListener('ended', stop);
+  v.addEventListener('click', () => { if (!v.paused && !v.controls) v.pause(); });
+  pause.addEventListener('click', () => v.pause());
+  mute.addEventListener('click', () => { v.muted = !v.muted; syncMute(); if (!v.muted) onLoud(); });
+  new IntersectionObserver(([e]) => { if (!e.isIntersecting && !v.paused) v.pause(); }, { threshold: 0 }).observe(box);
+  return { pause: () => { if (!v.paused) v.pause(); } };
 }
 
 // ---------- E) la noche en secuencia: la tira avanza con el scroll mientras la sección cruza la pantalla ----------
 function initSequence({ gsap, ScrollTrigger, main, still }) {
   const view = main.querySelector('[data-pj-seq-view]');
   const strip = main.querySelector('[data-pj-strip]');
+  if (!view || !strip) return; // (sin secuencia: proyecto sin fotos)
   if (still) { view.classList.add('is-manual'); return; }
   // (AY-J: en móvil, la tira se desliza con el dedo, con imán en cada foto; el scroll vertical sigue siendo de la
   // página y la siguiente foto asoma a la derecha)
