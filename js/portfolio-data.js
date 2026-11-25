@@ -81,7 +81,7 @@ export const works = [
   {
     slug: 'toom',
     title: 'Toóm',
-    client: 'Toóm · Deli libanés · Madrid [CONFIRMAR]', // BORRADOR: Oscar confirma la zona
+    client: 'Toóm · Restaurante · Salamanca, Madrid',
     category: 'restaurantes',
     kind: 'video',
     cover: 'assets/portfolio/toom/toom-portada-1000.webp',
@@ -94,17 +94,17 @@ export const works = [
       { type: 'video', src: 'assets/portfolio/toom/toom-reel.mp4', poster: 'assets/portfolio/toom/toom-reel-poster.webp', alt: 'Reel vertical de Toóm' },
     ],
     year: 2026,
-    deliverables: ['1 vídeo horizontal', '1 reel vertical'],
+    deliverables: ['2 reels verticales', '1 vídeo largo'],
     // la página del proyecto (proyecto-toom.html). Sin fotos: ni secuencia ni galería. Textos: BORRADOR (Oscar los confirma)
-    seo: { type: 'vídeo para restaurante', description: 'Shawarma, pan recién hecho y la sala llena: un vídeo y un reel para Toóm, deli libanés en Madrid.' },
+    seo: { type: 'vídeo para restaurante', description: 'Shawarma, pan recién hecho y la sala llena: dos reels y un vídeo largo para Toóm, restaurante libanés en el barrio de Salamanca, Madrid.' },
     project: {
       tagline: 'Del asador a la mesa: Toóm, deli libanés, contado en un vídeo y un reel.',
       facts: [
         ['Cliente', 'Toóm'],
-        ['Tipo', 'Vídeo para restaurante'],
-        ['Lugar', 'Madrid [CONFIRMAR]'],
+        ['Tipo', 'Restaurante'],
+        ['Lugar', 'Salamanca, Madrid'],
         ['Año', '2026'],
-        ['Entregables', '1 vídeo, 1 reel'],
+        ['Entregables', '2 reels, 1 vídeo largo'],
         ['Equipo', 'Luna López, Bruno Marín'],
       ],
       story: [
@@ -112,6 +112,7 @@ export const works = [
         ['La idea', 'Luz cálida y planos cerca de las manos y del producto, con el ritmo de un servicio de verdad.'],
         ['El resultado', 'Un vídeo horizontal para web y pantallas y un reel vertical para Instagram y TikTok.'],
       ],
+      // (de momento, UNO: falta el segundo reel en assets/portfolio/toom/; PENDIENTES.md)
       reels: [
         { src: 'assets/portfolio/toom/toom-reel.mp4', poster: 'assets/portfolio/toom/toom-reel-poster.webp', title: 'El reel', duration: '0:18', alt: 'Reel vertical de Toóm' },
       ],
