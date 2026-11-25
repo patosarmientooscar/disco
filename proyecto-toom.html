@@ -15,11 +15,11 @@
     dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
   </script>
   <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-WFZ68SD9"></script>
-  <link rel="stylesheet" href="css/consent.css?v=5b7a042-09f435" media="print" onload="this.media='all'">
-  <script src="js/consent.js?v=5b7a042-09f435" defer></script>
+  <link rel="stylesheet" href="css/consent.css?v=754e23a-9d9d17" media="print" onload="this.media='all'">
+  <script src="js/consent.js?v=754e23a-9d9d17" defer></script>
   <!-- /consent:head -->
   <!-- abierto con doble clic (file://): salta al servidor local o explica cómo encenderlo -->
-  <script src="js/file-guard.js?v=5b7a042-09f435" defer></script>
+  <script src="js/file-guard.js?v=754e23a-9d9d17" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <!-- seo (tools/site.mjs: no editar a mano) -->
   <title>Toóm: vídeo para restaurante en Madrid — disco.</title>
@@ -63,19 +63,19 @@
     @font-face{font-family:'Plex Fallback';src:local('Courier New');size-adjust:100%;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
   </style>
 
-  <link rel="stylesheet" href="css/tokens.css?v=5b7a042-09f435">
-  <link rel="stylesheet" href="css/base.css?v=5b7a042-09f435">
-  <link rel="stylesheet" href="css/interior.css?v=5b7a042-09f435">
-  <link rel="stylesheet" href="css/page-hero.css?v=5b7a042-09f435">
-  <link rel="stylesheet" href="css/proyecto.css?v=5b7a042-09f435">
-  <link rel="stylesheet" href="css/nav.css?v=5b7a042-09f435">
-  <link rel="preload" href="css/fin.css?v=5b7a042-09f435" as="style">
-  <link rel="stylesheet" href="css/fin.css?v=5b7a042-09f435" media="print" onload="this.media='all'" data-css-late>
-  <link rel="stylesheet" href="css/transition.css?v=5b7a042-09f435">
-  <link rel="stylesheet" href="css/malla.css?v=5b7a042-09f435">
+  <link rel="stylesheet" href="css/tokens.css?v=754e23a-9d9d17">
+  <link rel="stylesheet" href="css/base.css?v=754e23a-9d9d17">
+  <link rel="stylesheet" href="css/interior.css?v=754e23a-9d9d17">
+  <link rel="stylesheet" href="css/page-hero.css?v=754e23a-9d9d17">
+  <link rel="stylesheet" href="css/proyecto.css?v=754e23a-9d9d17">
+  <link rel="stylesheet" href="css/nav.css?v=754e23a-9d9d17">
+  <link rel="preload" href="css/fin.css?v=754e23a-9d9d17" as="style">
+  <link rel="stylesheet" href="css/fin.css?v=754e23a-9d9d17" media="print" onload="this.media='all'" data-css-late>
+  <link rel="stylesheet" href="css/transition.css?v=754e23a-9d9d17">
+  <link rel="stylesheet" href="css/malla.css?v=754e23a-9d9d17">
   <!-- BA: el CSS de las secciones de más abajo no bloquea el primer pintado (media="print" hasta que carga); el JS
        (js/main.js, js/page.js) espera a window.discoCss antes de medir nada. Sin JS, con <noscript>. -->
-  <noscript><link rel="stylesheet" href="css/fin.css?v=5b7a042-09f435"></noscript>
+  <noscript><link rel="stylesheet" href="css/fin.css?v=754e23a-9d9d17"></noscript>
   <script>window.discoCss = Promise.all([].map.call(document.querySelectorAll('link[data-css-late]'), function (l) { return l.media === 'all' ? 0 : new Promise(function (r) { l.addEventListener('load', r); l.addEventListener('error', r); }); }));</script>
   <script>
     document.documentElement.classList.add('js');
@@ -89,75 +89,75 @@
       "three": "./assets/vendor/three-0.169.0/build/three.module.min.js",
       "three/addons/": "./assets/vendor/three-0.169.0/examples/jsm/",
       "ogl": "./assets/vendor/ogl-1.0.11.js",
-      "./js/about.js": "./js/about.js?v=5b7a042-09f435",
-      "./js/arc-carousel.js": "./js/arc-carousel.js?v=5b7a042-09f435",
-      "./js/aurora.js": "./js/aurora.js?v=5b7a042-09f435",
-      "./js/bento.js": "./js/bento.js?v=5b7a042-09f435",
-      "./js/config.js": "./js/config.js?v=5b7a042-09f435",
-      "./js/consent.js": "./js/consent.js?v=5b7a042-09f435",
-      "./js/contact.js": "./js/contact.js?v=5b7a042-09f435",
-      "./js/core.js": "./js/core.js?v=5b7a042-09f435",
-      "./js/file-guard.js": "./js/file-guard.js?v=5b7a042-09f435",
-      "./js/fin.js": "./js/fin.js?v=5b7a042-09f435",
-      "./js/gpu.js": "./js/gpu.js?v=5b7a042-09f435",
-      "./js/hero-exposure.js": "./js/hero-exposure.js?v=5b7a042-09f435",
-      "./js/hero-star.js": "./js/hero-star.js?v=5b7a042-09f435",
-      "./js/hero.js": "./js/hero.js?v=5b7a042-09f435",
-      "./js/home-close.js": "./js/home-close.js?v=5b7a042-09f435",
-      "./js/interior.js": "./js/interior.js?v=5b7a042-09f435",
-      "./js/intro-loader.js": "./js/intro-loader.js?v=5b7a042-09f435",
-      "./js/intro-shot.js": "./js/intro-shot.js?v=5b7a042-09f435",
-      "./js/main.js": "./js/main.js?v=5b7a042-09f435",
-      "./js/malla.js": "./js/malla.js?v=5b7a042-09f435",
-      "./js/manifesto.js": "./js/manifesto.js?v=5b7a042-09f435",
-      "./js/nav.js": "./js/nav.js?v=5b7a042-09f435",
-      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=5b7a042-09f435",
-      "./js/oficios.js": "./js/oficios.js?v=5b7a042-09f435",
-      "./js/page-hero.js": "./js/page-hero.js?v=5b7a042-09f435",
-      "./js/page-star.js": "./js/page-star.js?v=5b7a042-09f435",
-      "./js/page.js": "./js/page.js?v=5b7a042-09f435",
-      "./js/placeholder.js": "./js/placeholder.js?v=5b7a042-09f435",
-      "./js/portfolio-ball-color.js": "./js/portfolio-ball-color.js?v=5b7a042-09f435",
-      "./js/portfolio-data.js": "./js/portfolio-data.js?v=5b7a042-09f435",
-      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=5b7a042-09f435",
-      "./js/portfolio-render.js": "./js/portfolio-render.js?v=5b7a042-09f435",
-      "./js/portfolio.js": "./js/portfolio.js?v=5b7a042-09f435",
-      "./js/proc-say.js": "./js/proc-say.js?v=5b7a042-09f435",
-      "./js/proyecto-render.js": "./js/proyecto-render.js?v=5b7a042-09f435",
-      "./js/proyecto.js": "./js/proyecto.js?v=5b7a042-09f435",
-      "./js/rec.js": "./js/rec.js?v=5b7a042-09f435",
-      "./js/scroll-fx.js": "./js/scroll-fx.js?v=5b7a042-09f435",
-      "./js/servicios-data.js": "./js/servicios-data.js?v=5b7a042-09f435",
-      "./js/servicios.js": "./js/servicios.js?v=5b7a042-09f435",
-      "./js/star-core.js": "./js/star-core.js?v=5b7a042-09f435",
-      "./js/star-dodge.js": "./js/star-dodge.js?v=5b7a042-09f435",
-      "./js/star-trail.js": "./js/star-trail.js?v=5b7a042-09f435",
-      "./js/star.js": "./js/star.js?v=5b7a042-09f435",
-      "./js/studio-cross.js": "./js/studio-cross.js?v=5b7a042-09f435",
-      "./js/studio-ui.js": "./js/studio-ui.js?v=5b7a042-09f435",
-      "./js/studio.js": "./js/studio.js?v=5b7a042-09f435",
-      "./js/team.js": "./js/team.js?v=5b7a042-09f435",
-      "./js/transition.js": "./js/transition.js?v=5b7a042-09f435",
-      "./js/viewport.js": "./js/viewport.js?v=5b7a042-09f435",
-      "./js/wa-float.js": "./js/wa-float.js?v=5b7a042-09f435",
-      "./js/water.js": "./js/water.js?v=5b7a042-09f435",
-      "./js/why.js": "./js/why.js?v=5b7a042-09f435"
+      "./js/about.js": "./js/about.js?v=754e23a-9d9d17",
+      "./js/arc-carousel.js": "./js/arc-carousel.js?v=754e23a-9d9d17",
+      "./js/aurora.js": "./js/aurora.js?v=754e23a-9d9d17",
+      "./js/bento.js": "./js/bento.js?v=754e23a-9d9d17",
+      "./js/config.js": "./js/config.js?v=754e23a-9d9d17",
+      "./js/consent.js": "./js/consent.js?v=754e23a-9d9d17",
+      "./js/contact.js": "./js/contact.js?v=754e23a-9d9d17",
+      "./js/core.js": "./js/core.js?v=754e23a-9d9d17",
+      "./js/file-guard.js": "./js/file-guard.js?v=754e23a-9d9d17",
+      "./js/fin.js": "./js/fin.js?v=754e23a-9d9d17",
+      "./js/gpu.js": "./js/gpu.js?v=754e23a-9d9d17",
+      "./js/hero-exposure.js": "./js/hero-exposure.js?v=754e23a-9d9d17",
+      "./js/hero-star.js": "./js/hero-star.js?v=754e23a-9d9d17",
+      "./js/hero.js": "./js/hero.js?v=754e23a-9d9d17",
+      "./js/home-close.js": "./js/home-close.js?v=754e23a-9d9d17",
+      "./js/interior.js": "./js/interior.js?v=754e23a-9d9d17",
+      "./js/intro-loader.js": "./js/intro-loader.js?v=754e23a-9d9d17",
+      "./js/intro-shot.js": "./js/intro-shot.js?v=754e23a-9d9d17",
+      "./js/main.js": "./js/main.js?v=754e23a-9d9d17",
+      "./js/malla.js": "./js/malla.js?v=754e23a-9d9d17",
+      "./js/manifesto.js": "./js/manifesto.js?v=754e23a-9d9d17",
+      "./js/nav.js": "./js/nav.js?v=754e23a-9d9d17",
+      "./js/nosotros-hero.js": "./js/nosotros-hero.js?v=754e23a-9d9d17",
+      "./js/oficios.js": "./js/oficios.js?v=754e23a-9d9d17",
+      "./js/page-hero.js": "./js/page-hero.js?v=754e23a-9d9d17",
+      "./js/page-star.js": "./js/page-star.js?v=754e23a-9d9d17",
+      "./js/page.js": "./js/page.js?v=754e23a-9d9d17",
+      "./js/placeholder.js": "./js/placeholder.js?v=754e23a-9d9d17",
+      "./js/portfolio-ball-color.js": "./js/portfolio-ball-color.js?v=754e23a-9d9d17",
+      "./js/portfolio-data.js": "./js/portfolio-data.js?v=754e23a-9d9d17",
+      "./js/portfolio-hero.js": "./js/portfolio-hero.js?v=754e23a-9d9d17",
+      "./js/portfolio-render.js": "./js/portfolio-render.js?v=754e23a-9d9d17",
+      "./js/portfolio.js": "./js/portfolio.js?v=754e23a-9d9d17",
+      "./js/proc-say.js": "./js/proc-say.js?v=754e23a-9d9d17",
+      "./js/proyecto-render.js": "./js/proyecto-render.js?v=754e23a-9d9d17",
+      "./js/proyecto.js": "./js/proyecto.js?v=754e23a-9d9d17",
+      "./js/rec.js": "./js/rec.js?v=754e23a-9d9d17",
+      "./js/scroll-fx.js": "./js/scroll-fx.js?v=754e23a-9d9d17",
+      "./js/servicios-data.js": "./js/servicios-data.js?v=754e23a-9d9d17",
+      "./js/servicios.js": "./js/servicios.js?v=754e23a-9d9d17",
+      "./js/star-core.js": "./js/star-core.js?v=754e23a-9d9d17",
+      "./js/star-dodge.js": "./js/star-dodge.js?v=754e23a-9d9d17",
+      "./js/star-trail.js": "./js/star-trail.js?v=754e23a-9d9d17",
+      "./js/star.js": "./js/star.js?v=754e23a-9d9d17",
+      "./js/studio-cross.js": "./js/studio-cross.js?v=754e23a-9d9d17",
+      "./js/studio-ui.js": "./js/studio-ui.js?v=754e23a-9d9d17",
+      "./js/studio.js": "./js/studio.js?v=754e23a-9d9d17",
+      "./js/team.js": "./js/team.js?v=754e23a-9d9d17",
+      "./js/transition.js": "./js/transition.js?v=754e23a-9d9d17",
+      "./js/viewport.js": "./js/viewport.js?v=754e23a-9d9d17",
+      "./js/wa-float.js": "./js/wa-float.js?v=754e23a-9d9d17",
+      "./js/water.js": "./js/water.js?v=754e23a-9d9d17",
+      "./js/why.js": "./js/why.js?v=754e23a-9d9d17"
     } }
   </script>
-  <link rel="modulepreload" href="js/page.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/core.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/transition.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/water.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/wa-float.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/config.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/nav.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/fin.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/gpu.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/interior.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/placeholder.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/page-hero.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/proyecto.js?v=5b7a042-09f435">
-  <link rel="modulepreload" href="js/portfolio-data.js?v=5b7a042-09f435">
+  <link rel="modulepreload" href="js/page.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/core.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/transition.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/water.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/wa-float.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/config.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/nav.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/fin.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/gpu.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/interior.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/placeholder.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/page-hero.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/proyecto.js?v=754e23a-9d9d17">
+  <link rel="modulepreload" href="js/portfolio-data.js?v=754e23a-9d9d17">
   <script>
     // el póster del reel de la portada, pedido desde el principio (la ficha la pinta js/proyecto.js): uno por proyecto
     // con página, el de js/portfolio-data.js → project.reels[0].poster. Al añadir un proyecto, añadirlo aquí.
@@ -350,7 +350,7 @@
   <script src="assets/vendor/gsap-3.12.5.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
   <script src="assets/vendor/lenis-1.1.13.min.js" defer></script>
-  <script type="module" src="js/page.js?v=5b7a042-09f435"></script>
-  <script type="module" src="js/malla.js?v=5b7a042-09f435"></script>
+  <script type="module" src="js/page.js?v=754e23a-9d9d17"></script>
+  <script type="module" src="js/malla.js?v=754e23a-9d9d17"></script>
 </body>
 </html>

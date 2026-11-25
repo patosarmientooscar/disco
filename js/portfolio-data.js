@@ -194,8 +194,8 @@ export const works = [
     client: 'E, S, B · Noche en Madrid',                 // BORRADOR: Oscar confirma lugar y fecha
     category: 'noche',
     kind: 'foto',
-    cover: 'assets/portfolio/esb/esb-01-1000.webp',
-    coverLarge: 'assets/portfolio/esb/esb-01.webp',
+    cover: 'assets/portfolio/esb/esb-portada-1000.webp',
+    coverLarge: 'assets/portfolio/esb/esb-portada.webp',
     ratio: '16/9',
     media: [
       { type: 'img', src: 'assets/portfolio/esb/esb-01.webp', thumb: 'assets/portfolio/esb/esb-01-1000.webp', w: 2000, h: 1125, alt: 'Chico con sudadera bajo el letrero luminoso de Desperados en un bar con luz azul y violeta' },
