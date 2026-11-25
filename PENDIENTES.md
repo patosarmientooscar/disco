@@ -71,6 +71,8 @@ Todo se rellena en `js/portfolio-data.js`, que trae un ejemplo comentado. Las ca
 
 - [ ] **Showreel (vídeo):** de momento es el manifiesto de disco (`assets/paginas/disco-manifiesto.mp4`, 38 s, con sonido). Cuando haya un showreel propio (30–60 s, 16:9, H.264, 1920×1080 y su póster webp), cámbialo en `showreel.src` y `showreel.poster`.
 - [ ] **Cachondeo Group (BORRADOR):** confirmar el lugar y la fecha de la fiesta (`client`, ahora "Cachondeo Group · Fiesta en Madrid") y los entregables ("+80 fotos editadas"). Las fotos y los reels están en `assets/portfolio/cachondeo/`.
+- [ ] **55B (BORRADOR, noviembre 2026):** confirmar con disco el cliente (ahora "55B [CONFIRMAR]" en la ficha y "55B · Fiesta en Madrid" en la tarjeta), el número de fotos entregadas ("+40 fotos editadas") y los textos BORRADOR de `project` (frase, encargo / idea / resultado y los pies de "La noche, en secuencia", sin horas como en E, S, B). Fotos en `assets/portfolio/55b/` (todas B/N: la galería no enseña los filtros Color / B/N).
+  - La portada (`55b-portada`) es un recorte 16:9 de la foto 15, no de la 01: el alt de la portada (tarjeta, página y og:image) es el de la foto 01 (el fotógrafo), y en la página la portada sale en el marco 4:3 de la 01 (se recortan los lados). Para arreglarlo: o la 15 pasa a ser la primera foto, o se añade a los datos un campo para la foto de la portada (decidir).
 - [ ] **Más proyectos:** con un solo trabajo, la página lo enseña como proyecto destacado (portada, reels y galería) y la tarjeta "Próximo proyecto: en rodaje". Al añadir el segundo, vuelve sola la rejilla con filtros.
 - [ ] **Cada trabajo nuevo lleva:**
   - Portada: `assets/portfolio/<slug>/cover.webp`, de 1200 px de ancho, en 4:5 (1200×1500), 1:1 (1200×1200) o 9:16 (1200×2133).

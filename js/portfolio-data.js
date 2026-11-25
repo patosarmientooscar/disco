@@ -17,6 +17,68 @@ export const showreel = { src: 'assets/paginas/disco-manifiesto.mp4', poster: 'a
 // Con UN solo trabajo, el portfolio lo enseña como proyecto destacado; con 2 o más, la rejilla. Cada uno abre su página.
 export const works = [
   {
+    slug: '55b',
+    title: '55B',
+    client: '55B · Fiesta en Madrid',                   // BORRADOR: Oscar confirma el cliente
+    category: 'noche',
+    kind: 'foto',
+    cover: 'assets/portfolio/55b/55b-portada-1000.webp',
+    coverLarge: 'assets/portfolio/55b/55b-portada.webp',
+    ratio: '16/9',
+    media: [
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-01.webp', thumb: 'assets/portfolio/55b/55b-01-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: fotógrafo con la cámara y el flash bajo el letrero luminoso de 55B' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-02.webp', thumb: 'assets/portfolio/55b/55b-02-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: de espaldas en la pista, con el letrero de 55B al fondo' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-03.webp', thumb: 'assets/portfolio/55b/55b-03-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chico con corbata haciendo los cuernos a cámara' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-04.webp', thumb: 'assets/portfolio/55b/55b-04-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chica riendo con una copa de cóctel en la mano' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-05.webp', thumb: 'assets/portfolio/55b/55b-05-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: mano sujetando una copa de champán con el flash' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-06.webp', thumb: 'assets/portfolio/55b/55b-06-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chica sonriendo mientras se baja las gafas de sol' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-07.webp', thumb: 'assets/portfolio/55b/55b-07-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chico riendo muy cerca de la cámara' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-08.webp', thumb: 'assets/portfolio/55b/55b-08-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: tres invitados con cámaras apuntando a la vez' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-09.webp', thumb: 'assets/portfolio/55b/55b-09-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chica haciendo una foto con la cámara en mitad de la fiesta' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-10.webp', thumb: 'assets/portfolio/55b/55b-10-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: detalle de manos con anillos sobre un vestido' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-11.webp', thumb: 'assets/portfolio/55b/55b-11-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chica bailando con el brazo levantado en los sofás' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-12.webp', thumb: 'assets/portfolio/55b/55b-12-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chico guiñando un ojo a cámara' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-13.webp', thumb: 'assets/portfolio/55b/55b-13-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chico con bigote mirando a cámara, con amigas detrás' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-14.webp', thumb: 'assets/portfolio/55b/55b-14-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: chica bailando junto a una lámpara de cristal' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-15.webp', thumb: 'assets/portfolio/55b/55b-15-1000.webp', w: 2000, h: 1500, alt: 'En blanco y negro: pareja haciendo muecas bajo el letrero de 55B' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-16.webp', thumb: 'assets/portfolio/55b/55b-16-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: pareja posando con una botella bajo el letrero de 55B' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-17.webp', thumb: 'assets/portfolio/55b/55b-17-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chico de brazos cruzados con una amiga apoyada en su hombro' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-18.webp', thumb: 'assets/portfolio/55b/55b-18-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: pareja riendo con el abrigo abierto' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-19.webp', thumb: 'assets/portfolio/55b/55b-19-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: chico con pañuelo señalando a cámara' },
+      { type: 'img', bw: true, src: 'assets/portfolio/55b/55b-20.webp', thumb: 'assets/portfolio/55b/55b-20-1000.webp', w: 1500, h: 2000, alt: 'En blanco y negro: fotógrafo sentado en el adoquín de la calle a la salida, revisando la cámara' },
+    ],
+    year: 2026,
+    deliverables: ['+40 fotos editadas', 'Blanco y negro con flash'],
+    // la página del proyecto (proyecto-55b.html). Solo fotos: sin reels (como E, S, B). Textos: BORRADOR (Oscar los confirma)
+    seo: { type: 'fotografía de fiesta', description: 'Flash directo y blanco y negro: una noche de fiesta en 55B, en Madrid, contada en más de 40 fotos editadas.' },
+    project: {
+      tagline: 'Una noche en 55B a golpe de flash. Blanco y negro, de cerca y sin posar.',
+      facts: [
+        ['Cliente', '55B [CONFIRMAR]'],
+        ['Tipo', 'Fiesta'],
+        ['Lugar', '55B, Madrid'],
+        ['Año', '2026'],
+        ['Entregables', '+40 fotos'],
+        ['Equipo', 'Luna López, Bruno Marín'],
+      ],
+      story: [
+        ['El encargo', 'Contar una noche de fiesta en 55B tal como se vive: la pista, los sofás, las copas y la salida.'],
+        ['La idea', 'Todo en blanco y negro con flash directo: de cerca, con contraste, como un carrete de la noche.'],
+        ['El resultado', 'Más de 40 fotos editadas, listas para redes y para el recuerdo de quien estuvo.'],
+      ],
+      reels: [],
+      // "La noche en secuencia": 6 fotos con su pie (sin horas, como E, S, B). BORRADOR
+      sequence: [
+        ['02', 'La pista'],
+        ['04', 'El cóctel'],
+        ['08', 'Tres cámaras'],
+        ['11', 'Los sofás'],
+        ['14', 'La lámpara'],
+        ['20', 'A la salida'],
+      ],
+    },
+  },
+  {
     slug: 'cachondeo-group',
     title: 'Cachondeo Group',
     client: 'Cachondeo Group · Fiesta en Madrid', // BORRADOR: Oscar confirma lugar y fecha

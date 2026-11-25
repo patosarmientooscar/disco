@@ -79,12 +79,12 @@ export function renderProject(w, { works = [] } = {}) {
 
     <section class="pj-gal ip-wrap" id="galeria" aria-labelledby="pj-gal-title">
       <div class="pj-gal__head">
-        <h2 class="pj-h2" id="pj-gal-title">Hoja de contactos<b class="pj-dot">.</b></h2>
+        <h2 class="pj-h2" id="pj-gal-title">Hoja de contactos<b class="pj-dot">.</b></h2>${photos.some((m) => m.bw) && photos.some((m) => !m.bw) ? `
         <div class="pj-filters" role="group" aria-label="Filtrar las fotos">
           <button class="pj-filter" type="button" data-pj-filter="all" aria-pressed="true">Todas</button>
           <button class="pj-filter" type="button" data-pj-filter="color" aria-pressed="false">Color</button>
           <button class="pj-filter" type="button" data-pj-filter="bw" aria-pressed="false">B/N</button>
-        </div>
+        </div>` : ''}
       </div>
       <ul class="pj-grid" data-pj-grid>${photos.map((m, i) => `
         <li class="pj-grid__item" data-bw="${m.bw ? '1' : '0'}"><button class="pj-shot" type="button" data-pj-shot="${i}" aria-label="Ampliar: ${esc(m.alt)}">
